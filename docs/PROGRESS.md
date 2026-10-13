@@ -42,13 +42,19 @@ Last updated 13 October 2026. Work stopped mid-polish when the usage limit was r
 - Everything co-op: downed and revive, shared scans, spectating. Needs two players.
 - DataStore saving with API access on, and the reserved-server party flow (`server/Party`).
 - Audio: every clip loads, nobody has listened to it.
+- **Phone layout.** The interface is now laid out for 830x400 with a minimum scale of 0.8
+  (`client/Ui.luau`), so a 705x338 phone viewport scales to about 0.85 instead of 0.55. Every
+  window in `client/Menus.luau` fits 800x380; long text (notes, field guide, report, daily
+  board, level clear) scrolls. In the HUD the objectives column and compass are narrower so
+  they no longer overlap at 830 wide, the map is 130 instead of 150, and the hint panel sits
+  above the touch FOCUS and LENS buttons. Needs a look in Studio's phone emulator and on PC.
+  The enlarged map (260) still covers the touch buttons on a phone.
+- **Title scene sweep.** It scanned a flat band because the beam only pitched 16 degrees (26
+  with the cone) while the camera shows 35 above and below. `SWEEP_PITCH` is now 25 in
+  `client/Title.luau`, so dots reach the floor and ceiling nearest the camera. Not yet seen.
 
 ## Known problems
 
-- **Phone layout is too small.** On a 705x338 viewport the interface scales to 0.55 and text
-  is about 7 px. Plan: lay out for 830x400 with a minimum scale of 0.8 (`client/Ui.luau`) and
-  shrink the windows in `client/Menus.luau` to fit 800x380.
-- The title scene scans a flat horizontal band; it should sweep floor and ceiling too.
 - No frame-rate measurement at the full 3,000 dots, and none on a real phone.
 - `scripts/check.sh` has not been run end to end since the server and client were added.
 

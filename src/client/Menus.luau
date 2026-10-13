@@ -134,6 +134,44 @@ local function closeButton(parent: Frame, name: string, text: string): TextButto
 	return button
 end
 
+-- Body text that scrolls when it outgrows its box, so long pages still fit a phone screen.
+local function scrollBody(
+	parent: Instance,
+	position: UDim2,
+	size: UDim2,
+	properties: { [string]: any }
+): TextLabel
+	local scroller = Ui.new("ScrollingFrame", {
+		Position = position,
+		Size = size,
+		BackgroundTransparency = 1,
+		BorderSizePixel = 0,
+		ScrollBarThickness = 4,
+		ScrollingDirection = Enum.ScrollingDirection.Y,
+		AutomaticCanvasSize = Enum.AutomaticSize.Y,
+		CanvasSize = UDim2.new(),
+		Parent = parent,
+	})
+	local label = Ui.label({
+		TextYAlignment = Enum.TextYAlignment.Top,
+		Size = UDim2.new(1, -10, 0, 0),
+		AutomaticSize = Enum.AutomaticSize.Y,
+	})
+	for key, value in properties do
+		(label :: any)[key] = value
+	end
+	label.Parent = scroller
+	return label
+end
+
+local function setBody(label: TextLabel, text: string)
+	label.Text = text
+	local scroller = label.Parent
+	if scroller and scroller:IsA("ScrollingFrame") then
+		scroller.CanvasPosition = Vector2.zero
+	end
+end
+
 --------------------------------------------------------------------------------------------
 -- Title
 
@@ -168,7 +206,7 @@ local function refreshTitle()
 		order += 1
 		local button = Ui.button({
 			Text = text,
-			Size = UDim2.fromOffset(320, 46),
+			Size = UDim2.fromOffset(320, 40),
 			LayoutOrder = order,
 			Parent = titleButtons,
 		}, function()
@@ -200,7 +238,7 @@ local function refreshTitle()
 	order += 1
 	Ui.button({
 		Text = "SETTINGS",
-		Size = UDim2.fromOffset(320, 38),
+		Size = UDim2.fromOffset(320, 34),
 		LayoutOrder = order,
 		Parent = titleButtons,
 	}, function()
@@ -213,7 +251,7 @@ local function refreshTitle()
 end
 
 local function buildTitle()
-	local frame = window("title", 760, 520)
+	local frame = window("title", 760, 380)
 	frame.BackgroundTransparency = 1;
 	(frame:FindFirstChildOfClass("UIStroke") :: UIStroke).Enabled = false
 	Ui.label({
@@ -221,8 +259,7 @@ local function buildTitle()
 		FontFace = Ui.fontBold,
 		TextSize = Ui.text.hero,
 		TextXAlignment = Enum.TextXAlignment.Center,
-		Size = UDim2.new(1, 0, 0, 100),
-		Position = UDim2.fromOffset(0, 20),
+		Size = UDim2.new(1, 0, 0, 90),
 		Parent = frame,
 	})
 	Ui.label({
@@ -231,16 +268,16 @@ local function buildTitle()
 		TextColor3 = Ui.colors.dim,
 		TextXAlignment = Enum.TextXAlignment.Center,
 		Size = UDim2.new(1, 0, 0, 22),
-		Position = UDim2.fromOffset(0, 126),
+		Position = UDim2.fromOffset(0, 90),
 		Parent = frame,
 	})
 	titleButtons = Ui.new("Frame", {
 		AnchorPoint = Vector2.new(0.5, 0),
-		Position = UDim2.new(0.5, 0, 0, 196),
-		Size = UDim2.fromOffset(320, 240),
+		Position = UDim2.new(0.5, 0, 0, 124),
+		Size = UDim2.fromOffset(320, 190),
 		BackgroundTransparency = 1,
 		Parent = frame,
-	}, { Ui.list(Enum.FillDirection.Vertical, 10) })
+	}, { Ui.list(Enum.FillDirection.Vertical, 8) })
 	titleStatus = Ui.label({
 		TextSize = Ui.text.small,
 		TextColor3 = Ui.colors.dim,
@@ -498,11 +535,11 @@ local function refreshGuide()
 			table.insert(lines, "UNKNOWN\nSomething you have not met yet.")
 		end
 	end
-	guideBody.Text = table.concat(lines, "\n\n")
+	setBody(guideBody, table.concat(lines, "\n\n"))
 end
 
 local function buildBench()
-	local frame = window("bench", 880, 520)
+	local frame = window("bench", 800, 380)
 	heading(frame, "WORKBENCH")
 	benchBalance = Ui.label({
 		FontFace = Ui.fontBold,
@@ -577,14 +614,10 @@ local function buildBench()
 	end)
 	closeButton(frame, "bench", "CLOSE")
 
-	local guide = window("guide", 620, 460)
+	local guide = window("guide", 620, 380)
 	heading(guide, "FIELD GUIDE")
-	guideBody = Ui.label({
+	guideBody = scrollBody(guide, UDim2.fromOffset(0, 44), UDim2.new(1, 0, 1, -100), {
 		TextSize = Ui.text.small,
-		TextYAlignment = Enum.TextYAlignment.Top,
-		Position = UDim2.fromOffset(0, 44),
-		Size = UDim2.new(1, 0, 1, -100),
-		Parent = guide,
 	})
 	closeButton(guide, "guide", "CLOSE")
 end
@@ -593,7 +626,7 @@ end
 -- Notes, level clear, report, daily board
 
 local function buildNote()
-	local frame = window("note", 560, 400, true)
+	local frame = window("note", 600, 380, true)
 	noteTitle = Ui.label({
 		FontFace = Font.new("rbxasset://fonts/families/Merriweather.json", Enum.FontWeight.Bold),
 		TextSize = Ui.text.large,
@@ -601,16 +634,13 @@ local function buildNote()
 		Size = UDim2.new(1, 0, 0, 32),
 		Parent = frame,
 	})
-	noteBody = Ui.label({
+	noteBody = scrollBody(frame, UDim2.fromOffset(0, 46), UDim2.new(1, 0, 1, -104), {
 		FontFace = Ui.fontSerif,
 		TextSize = Ui.text.body,
 		TextColor3 = Ui.colors.paperInk,
-		TextYAlignment = Enum.TextYAlignment.Top,
 		LineHeight = 1.25,
-		Position = UDim2.fromOffset(0, 46),
-		Size = UDim2.new(1, 0, 1, -104),
-		Parent = frame,
-	})
+	});
+	(noteBody.Parent :: ScrollingFrame).ScrollBarImageColor3 = Ui.colors.paperInk
 	closeButton(frame, "note", "PUT IT BACK")
 	windows.note.onClose = function()
 		-- If another page arrived while this one was open, show it next.
@@ -627,7 +657,7 @@ function Menus.showNote(title: string, body: string)
 		return
 	end
 	noteTitle.Text = title
-	noteBody.Text = body
+	setBody(noteBody, body)
 	Menus.open("note")
 end
 
@@ -663,12 +693,8 @@ local function buildClear()
 	-- Modal version, used once to offer the friend invite.
 	local frame = window("clear", 520, 380)
 	heading(frame, "LEVEL CLEARED")
-	clearBody = Ui.label({
+	clearBody = scrollBody(frame, UDim2.fromOffset(0, 44), UDim2.new(1, 0, 1, -150), {
 		TextSize = Ui.text.body,
-		TextYAlignment = Enum.TextYAlignment.Top,
-		Position = UDim2.fromOffset(0, 44),
-		Size = UDim2.new(1, 0, 1, -150),
-		Parent = frame,
 	})
 	Ui.label({
 		Text = "The dark is easier with someone else's dots in it.",
@@ -729,7 +755,7 @@ local function onLevelCleared(summary: any)
 		else `TIER {summary.tier} CLEARED  /  {string.upper(summary.name)}`
 	local text = summaryText(summary)
 	if summary.invite then
-		clearBody.Text = header .. "\n\n" .. text
+		setBody(clearBody, header .. "\n\n" .. text)
 		Menus.open("clear")
 		task.delay(CARD_SECONDS * 2, function()
 			if current == "clear" then
@@ -748,12 +774,8 @@ end
 local function buildReport()
 	local frame = window("report", 520, 380)
 	heading(frame, "SURVEY REPORT")
-	reportBody = Ui.label({
+	reportBody = scrollBody(frame, UDim2.fromOffset(0, 44), UDim2.new(1, 0, 1, -100), {
 		TextSize = Ui.text.body,
-		TextYAlignment = Enum.TextYAlignment.Top,
-		Position = UDim2.fromOffset(0, 44),
-		Size = UDim2.new(1, 0, 1, -100),
-		Parent = frame,
 	})
 	Ui.button({
 		Text = "INVITE A FRIEND",
@@ -775,33 +797,32 @@ function Menus.showReport()
 	for _ in profile.lore do
 		pages += 1
 	end
-	reportBody.Text = table.concat({
-		"THIS SESSION",
-		`LEVELS CLEARED  {session.levels}`,
-		`DISTANCE        {session.distance} studs`,
-		`LORE PAGES      {session.lore}`,
-		`TIMES CAUGHT    {session.catches}`,
-		`STATIC EARNED   {session.static}`,
-		"",
-		"ALL TIME",
-		`BEST TIER       {profile.bestTier}`,
-		`LORE PAGES      {pages}`,
-		`SURVEYORS FOUND {profile.stats.rescues}`,
-		"",
-		"Your place is saved in this room.",
-	}, "\n")
+	setBody(
+		reportBody,
+		table.concat({
+			"THIS SESSION",
+			`LEVELS CLEARED  {session.levels}`,
+			`DISTANCE        {session.distance} studs`,
+			`LORE PAGES      {session.lore}`,
+			`TIMES CAUGHT    {session.catches}`,
+			`STATIC EARNED   {session.static}`,
+			"",
+			"ALL TIME",
+			`BEST TIER       {profile.bestTier}`,
+			`LORE PAGES      {pages}`,
+			`SURVEYORS FOUND {profile.stats.rescues}`,
+			"",
+			"Your place is saved in this room.",
+		}, "\n")
+	)
 	Menus.open("report")
 end
 
 local function buildBoard()
-	local frame = window("board", 520, 440)
+	local frame = window("board", 520, 380)
 	heading(frame, "DAILY SURVEY")
-	boardBody = Ui.label({
+	boardBody = scrollBody(frame, UDim2.fromOffset(0, 44), UDim2.new(1, 0, 1, -100), {
 		TextSize = Ui.text.body,
-		TextYAlignment = Enum.TextYAlignment.Top,
-		Position = UDim2.fromOffset(0, 44),
-		Size = UDim2.new(1, 0, 1, -100),
-		Parent = frame,
 	})
 	closeButton(frame, "board", "CLOSE")
 end
@@ -828,7 +849,7 @@ local function onDailyBoard(board: any)
 	if #board.rows == 0 then
 		table.insert(lines, "No times posted yet today.")
 	end
-	boardBody.Text = table.concat(lines, "\n")
+	setBody(boardBody, table.concat(lines, "\n"))
 	Menus.open("board")
 end
 

@@ -19,9 +19,9 @@ local TOAST_SECONDS = 4.5
 local TOAST_LIMIT = 4
 local CARD_SECONDS = 4
 local HEAT_WIDTH = 190
-local COMPASS_WIDTH = 280
+local COMPASS_WIDTH = 220
 local COMPASS_FOV = 100 -- degrees of bearing the strip spans
-local MAP_SIZE = 150
+local MAP_SIZE = 130
 local MAP_HZ = 6
 local CELL = Config.World.cellSize
 
@@ -205,7 +205,7 @@ local function build()
 	-- Level and objectives, top left.
 	local info = Ui.new("Frame", {
 		Position = UDim2.fromOffset(16, 12),
-		Size = UDim2.fromOffset(360, 44),
+		Size = UDim2.fromOffset(280, 44), -- stops short of the compass
 		BackgroundTransparency = 1,
 		Parent = gui,
 	}, { Ui.list(Enum.FillDirection.Vertical, 2) })
@@ -246,8 +246,8 @@ local function build()
 
 	hintPanel = Ui.panel({
 		AnchorPoint = Vector2.new(0.5, 1),
-		Position = UDim2.new(0.5, 0, 1, -70),
-		Size = UDim2.fromOffset(520, 40),
+		Position = UDim2.new(0.5, 0, 1, -96), -- above the touch FOCUS and LENS buttons
+		Size = UDim2.fromOffset(440, 40),
 		AutomaticSize = Enum.AutomaticSize.Y,
 		Visible = false,
 		Parent = gui,
