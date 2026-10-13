@@ -7,10 +7,12 @@ local Players = game:GetService("Players")
 local MarketplaceService = game:GetService("MarketplaceService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local SocialService = game:GetService("SocialService")
+local UserInputService = game:GetService("UserInputService")
 
 local Audio = require(script.Parent.Audio)
 local Config = require(ReplicatedStorage.Shared.Config)
 local Dots = require(script.Parent.Dots)
+local DotRules = require(ReplicatedStorage.Shared.pure.DotRules)
 local Enemies = require(ReplicatedStorage.Shared.data.Enemies)
 local Input = require(script.Parent.Input)
 local Net = require(ReplicatedStorage.Shared.Net)
@@ -22,6 +24,7 @@ local Upgrades = require(ReplicatedStorage.Shared.data.Upgrades)
 type Window = { frame: Frame, first: GuiObject?, onClose: (() -> ())? }
 
 local CARD_SECONDS = 8
+local DOT_QUALITY_NEXT = { auto = "low", low = "medium", medium = "high", high = "auto" }
 local TITLE_LETTERS = "L  I  D  A  R"
 
 local Menus = {}
@@ -308,7 +311,7 @@ local function refreshSettings()
 	local function row(label: string, value: string, onPress: () -> ())
 		order += 1
 		local frame = Ui.new("Frame", {
-			Size = UDim2.new(1, 0, 0, 40),
+			Size = UDim2.new(1, 0, 0, 36),
 			BackgroundTransparency = 1,
 			LayoutOrder = order,
 			Parent = settingsRows,
@@ -318,7 +321,7 @@ local function refreshSettings()
 			Text = value,
 			AnchorPoint = Vector2.new(1, 0.5),
 			Position = UDim2.fromScale(1, 0.5),
-			Size = UDim2.new(0.42, 0, 0, 34),
+			Size = UDim2.new(0.42, 0, 0, 30),
 			Parent = frame,
 		}, function()
 			onPress()
@@ -344,6 +347,17 @@ local function refreshSettings()
 		local nextVolume = settings.volume + 0.2
 		setting("volume", if nextVolume > 1.01 then 0 else math.min(1, nextVolume))
 	end)
+	local quality = settings.dotQuality
+	row(
+		"DOT DETAIL",
+		if quality == "auto"
+			then "AUTO (" .. string.upper(Menus.dotQuality()) .. ")"
+			else string.upper(quality),
+		function()
+			setting("dotQuality", DOT_QUALITY_NEXT[settings.dotQuality] or "auto")
+			Menus.applyCosmetics()
+		end
+	)
 	row("FREEZE DOTS (PHOTO)", if Dots.isFrozen() then "FROZEN" else "LIVE", function()
 		Dots.setFrozen(not Dots.isFrozen())
 	end)
@@ -357,7 +371,7 @@ local function buildSettings()
 		Size = UDim2.new(1, 0, 1, -100),
 		BackgroundTransparency = 1,
 		Parent = frame,
-	}, { Ui.list(Enum.FillDirection.Vertical, 6) })
+	}, { Ui.list(Enum.FillDirection.Vertical, 4) })
 	closeButton(frame, "settings", "DONE")
 	windows.settings.onClose = function()
 		-- Settings opened from the title returns to it rather than dropping into the dark.
@@ -370,11 +384,24 @@ end
 --------------------------------------------------------------------------------------------
 -- Bench: upgrades and cosmetics
 
--- Applies palette and equipped cosmetics to the dot renderer.
+-- The dot detail actually in use: "auto" picks by device (phones hold fewer dots).
+function Menus.dotQuality(): string
+	local quality = State.profile.settings.dotQuality
+	if quality ~= "auto" then
+		return quality
+	end
+	return if UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
+		then "low"
+		else "medium"
+end
+
+-- Applies the palette, equipped cosmetics and the dot budget (detail setting plus the
+-- Phosphor upgrade) to the dot renderer.
 function Menus.applyCosmetics()
 	local profile = State.profile
 	local tint = Upgrades.cosmeticById[profile.cosmetics.dots]
 	Dots.setPalette(profile.settings.palette, if tint then tint.color else nil)
+	Dots.setBudget(DotRules.budget(Menus.dotQuality(), State.effects.phosphorLevel))
 end
 
 local function refreshBench()

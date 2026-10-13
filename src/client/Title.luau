@@ -1,7 +1,8 @@
 --!strict
 -- The title screen's backdrop: a small corridor that exists only on this client, slowly
 -- scanning itself. A sweeping beam builds the scene out of dots, in all four colours, so the
--- first thing a new player sees is what the game is.
+-- first thing a new player sees is what the game is. Like the maze, the corridor itself is
+-- invisible: only its dots are drawn, and they show through walls.
 
 local CollectionService = game:GetService("CollectionService")
 local Players = game:GetService("Players")
@@ -51,6 +52,7 @@ local function block(
 	part.Size = size
 	part.Position = ORIGIN + position
 	part.Color = Color3.fromRGB(40, 40, 40)
+	part.Transparency = 1
 	part.Shape = shape or Enum.PartType.Block
 	if tag then
 		CollectionService:AddTag(part, tag)
@@ -131,7 +133,7 @@ local function update(dt: number)
 	local count = math.min(math.floor(accumulator), MAX_RAYS_PER_FRAME)
 	accumulator -= math.floor(accumulator)
 	if count > 0 then
-		Lidar.sweep(beam, count, CONE_DEGREES, params)
+		Lidar.cast(beam, count, CONE_DEGREES, params)
 	end
 end
 

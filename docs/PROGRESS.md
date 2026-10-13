@@ -27,15 +27,35 @@ a friend and asked for a rework ("v2"). The feedback, in short:
 | --- | --- | --- |
 | Rules and data | `src/shared/**`, `tests/**` | Done. `lune run tests/run` passes (67). |
 | Server | `src/server/**` | Written, linted. Not yet run in Studio. |
-| Client core | `State`, `Dots`, `Lidar`, `Main.client` | In progress (main session). |
-| Client controls and menus | `Input`, `Avatar`, `Viewmodel`, `Atmosphere`, `Ui`, `Menus`, `Title` | In progress (helper B). |
-| Client presence and sound | `Audio`, `Presence` (new), `Effects` | In progress (helper C). |
-| Client HUD and teaching | `Hud`, `Tutorial` | In progress (helper D). |
+| Client core | `State`, `Dots`, `Lidar`, `Main.client` | Written (`913c1ec`). Not yet run in Studio. |
+| Client controls and menus | `Input`, `Avatar`, `Viewmodel`, `Atmosphere`, `Ui`, `Menus`, `Title` | Written (cloud session), type-checked. Not yet run in Studio. |
+| Client presence and sound | `Audio`, `Presence` (new), `Effects` | Written (cloud session), type-checked. Not yet run in Studio. |
+| Client HUD and teaching | `Hud`, `Tutorial` | Written (cloud session), type-checked. Not yet run in Studio. |
 | Docs | `README`, `docs/DESIGN`, `LORE`, `ASSETS`, `TESTING`, `PUBLISHING`, `DECISIONS` | In progress (helper E). |
 | Integration and playtest | everything | Not started. Main session only (Studio). |
 
-Until the client slices land, the place does not run: the server speaks v2 and the old
-client speaks v1.
+All client slices are now written to the contracts below, so the place should run again; it
+has not been opened in Studio since the rework, so expect a round of fixes there.
+
+How the cloud session checked the client without Studio: `scripts/check.sh` (format, lint,
+Lune tests, Rojo build) plus a strict type check with `luau-lsp analyze` against Roblox's
+type definitions and a Rojo sourcemap. That catches missing members and stale names (it
+found one); it cannot catch anything that only shows at runtime. Its remaining complaints are
+known false positives of the newer Luau solver (string literals widened to `string`, mixed
+instance arrays, `Part == nil` comparisons), which v1 code had too and ran fine.
+
+Choices made while writing the client slices, beyond the contracts:
+
+- Touch layout: SCAN, SWEEP, RUN, CROUCH, PING, SPREAD and SAY round the bottom-right
+  corner; RUN and CROUCH always toggle on touch, SCAN follows the scan-mode setting. The
+  hint panel is 360 wide so it clears the buttons on a phone.
+- `Menus.applyCosmetics` also applies the dot budget (`Dots.setBudget`) from the new DOT
+  DETAIL setting and the Phosphor level; `Menus.dotQuality()` resolves "auto" (phones low,
+  everything else medium).
+- A Mimic that is still disguised gives nothing away: no footprints, breath, aura, heartbeat
+  or breathing loop (`Audio.nearestEnemy` skips it).
+- Hints in `Tutorial` are lines from the story text (`LoreText`), with the device's control
+  in brackets underneath: the story bible's "never lecture" rule, kept usable on every device.
 
 Merged in from the cloud session (branch `claude/lucid-noether-kgfglb`, based on v1):
 

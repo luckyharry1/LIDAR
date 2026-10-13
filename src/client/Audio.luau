@@ -1,40 +1,51 @@
 --!strict
 -- Sound is half of the LIDAR mechanic: you hear the dark before you see it.
---  * Scan ticks, pitched by how far the dots landed, with a different tone per dot class.
---  * A low drone and a heartbeat that rise as an enemy gets close.
---  * Positional enemy sounds, each kind distinct: Wanderers shuffle, Listeners click,
---    Stalkers hiss only while they move (so only while you are not looking), Mimics are
---    silent until revealed, and real stranded surveyors tap on the wall.
--- Every clip is one of a handful that ship inside the Roblox client (see Config.Audio),
--- reshaped with playback speed and equalisation, so the game needs no uploaded audio.
+--  * Scan ticks, pitched by how far the dots landed, with a different tone per dot class;
+--    a falling run of ticks for the sweep and a soft ping for the Pulse Radar.
+--  * A low room tone and dripping water underneath everything in the dark, and far-off
+--    bumps from random directions, so silence is never quite silent.
+--  * Breathing and a heartbeat that rise as a monster gets close, and a low sting the first
+--    time one arrives near you.
+--  * Positional monster voices, each kind distinct: the Wanderer breathes and its steps are
+--    heavy, the Listener clicks, the Stalker whines only while it moves (so only while nobody
+--    is looking), and the Mimic is silent until it is revealed. Real stranded surveyors tap
+--    on the wall: two taps, a wait, one.
+-- Clips are listed in Config.Audio; every sound, including the ones the server makes, plays
+-- through one group so the volume setting covers all of it.
 
 local CollectionService = game:GetService("CollectionService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local SoundService = game:GetService("SoundService")
 
+local Avatar = require(script.Parent.Avatar)
 local Config = require(ReplicatedStorage.Shared.Config)
 local Lidar = require(script.Parent.Lidar)
 local State = require(script.Parent.State)
 local Ui = require(script.Parent.Ui)
 
-type EnemyVoice = { model: Model, kind: string, loop: Sound?, click: Sound?, nextClick: number }
+type EnemyVoice = { model: Model, root: BasePart, kind: string, loop: Sound? }
 type Tapper = { part: BasePart, sound: Sound, nextTap: number }
 
 local audio = Config.Audio
 local TICK_VOICES = 6
+local EMITTERS = 8 -- pooled invisible parts for one-shot positional sounds
 local NEAR_PITCH, FAR_PITCH = 1.7, 0.75 -- scan tick pitch for the closest and farthest dots
 local THREAT_HZ = 8
-local DRONE_SPEED_CALM, DRONE_SPEED_TENSE = 0.3, 0.46
-local HEART_SLOW, HEART_FAST = 1.15, 0.42 -- seconds per beat
-local HEART_GAP = 0.16 -- between the two thumps of one beat
-local WANDERER_RANGE = 75
-local LISTENER_RANGE = 85
-local STALKER_RANGE = 60
+local VOICE_RANGE = 80
+local STEP_RANGE = 70
 local TAP_RANGE = 70
 local TAP_PATTERN = { 0, 0.22, 0.75 } -- tap, tap ... tap
 local TAP_PERIOD = 2.8
+local BUMP_DISTANCE = 45 -- studs from the listener a distant bump is placed
 local LIT_FADE_PER_SECOND = 1.2
+local SWEEP_TICKS = 9
+local ONE_SHOT_MAX_SECONDS = 12
+local HEART_SPEED_CALM, HEART_SPEED_TENSE = 0.85, 1.45
+local STEP_SPEED: { [string]: number } =
+	{ wanderer = 0.85, listener = 1.35, stalker = 0.7, mimic = 1.2 }
+local STEP_VOLUME: { [string]: number } =
+	{ wanderer = 0.9, listener = 0.45, stalker = 1, mimic = 0.8 }
 
 local Audio = {}
 
@@ -42,19 +53,28 @@ local group = Instance.new("SoundGroup")
 group.Name = "Lidar"
 local holder = Instance.new("Folder")
 holder.Name = "LidarAudio"
+local emitterFolder = Instance.new("Folder")
+emitterFolder.Name = "LidarAudioEmitters"
 
 local tickVoices: { Sound } = {}
 local nextTick = 1
 local tickTimer = 0
-local drone: Sound
-local heartA: Sound
-local heartB: Sound
-local heartTimer = 0
-local threat = 0 -- 0 calm, 1 an enemy is on top of you
+local ambience: Sound
+local drips: Sound
+local presence: Sound
+local heartbeat: Sound
+local wade: Sound
+local emitters: { { part: Part, sound: Sound } } = {}
+local nextEmitter = 1
+local threat = 0 -- 0 calm, 1 a monster is on top of you
+local nearest = math.huge
 local litMix = 0
 local voices: { [Model]: EnemyVoice } = {}
 local tappers: { [Instance]: Tapper } = {}
 local threatTimer = 0
+local bumpTimer = 0
+local stingArmedAt = 0
+local stingNear = false
 local lit = false
 
 local function make(
@@ -78,6 +98,41 @@ local function positional(sound: Sound, maxDistance: number)
 	sound.RollOffMode = Enum.RollOffMode.InverseTapered
 	sound.RollOffMinDistance = 8
 	sound.RollOffMaxDistance = maxDistance
+end
+
+-- A one-shot (non-positional) clip that cleans up after itself.
+local function oneShot(id: string, volume: number, speed: number)
+	if id == "" then
+		return
+	end
+	local sound = make(holder, id, volume, speed, false)
+	sound.Ended:Once(function()
+		sound:Destroy()
+	end)
+	-- A clip that never loads never ends: clean it up anyway.
+	task.delay(ONE_SHOT_MAX_SECONDS, function()
+		if sound.Parent ~= nil then
+			sound:Destroy()
+		end
+	end)
+	sound:Play()
+end
+
+-- A one-shot clip played from a point in the world, through a small pool of emitters.
+local function playAt(position: Vector3, id: string, volume: number, speed: number, range: number)
+	if id == "" then
+		return
+	end
+	local emitter = emitters[nextEmitter]
+	nextEmitter = nextEmitter % EMITTERS + 1
+	emitter.part.Position = position
+	local sound = emitter.sound
+	sound:Stop()
+	sound.SoundId = id
+	sound.Volume = volume
+	sound.PlaybackSpeed = speed
+	sound.RollOffMaxDistance = range
+	sound:Play()
 end
 
 -- One-shot interface sounds, all from the same short tick so the game has one voice.
@@ -114,20 +169,67 @@ function Audio.relief()
 	Audio.sequence({ 1.3, 1.1, 0.9 }, 0.22, 0.35)
 end
 
-function Audio.overheat()
-	local thud = make(holder, audio.thud, 0.5, 0.6, false)
-	thud:Play()
-	thud.Ended:Once(function()
-		thud:Destroy()
+function Audio.caught()
+	oneShot(audio.caughtRoar, 0.9, 1)
+	oneShot(audio.rumble, 0.5, 0.45)
+end
+
+-- Studs from the camera to the nearest monster that is not pretending to be one of ours;
+-- math.huge when there is none.
+function Audio.nearestEnemy(): number
+	return nearest
+end
+
+-- One footstep of a monster, at the footprint Presence just placed.
+function Audio.monsterStep(kind: string, position: Vector3)
+	playAt(
+		position,
+		audio.wandererStep,
+		STEP_VOLUME[kind] or 0.8,
+		(STEP_SPEED[kind] or 1) * (0.94 + math.random() * 0.12),
+		STEP_RANGE
+	)
+end
+
+-- An alarm plate went off: the crew's bell, loud, from where it rang.
+function Audio.alarm(position: Vector3)
+	task.spawn(function()
+		for _ = 1, 4 do
+			playAt(position, audio.ping, 1, 0.62, 160)
+			task.wait(0.32)
+		end
 	end)
 end
 
-function Audio.caught()
-	local rumble = make(holder, audio.rumble, 0.8, 0.45, false)
-	rumble:Play()
-	rumble.Ended:Once(function()
-		rumble:Destroy()
+-- The local player fell into a pit.
+function Audio.fall()
+	oneShot(audio.air, 0.8, 1.1)
+	task.delay(0.6, function()
+		oneShot(audio.thud, 0.9, 0.55)
 	end)
+end
+
+-- A hidden recorder revealed itself: a click, then the tape starts.
+function Audio.echo(position: Vector3)
+	playAt(position, audio.tick, 0.8, 0.55, 60)
+	Audio.sequence({ 0.8, 0.95, 1.1 }, 0.09, 0.35)
+end
+
+-- The exit opened.
+function Audio.door()
+	oneShot(audio.door, 0.8, 1)
+end
+
+-- Lit rooms are quiet: the dark's sounds fade out and a small falling phrase plays.
+function Audio.setLit(value: boolean)
+	if value and not lit then
+		Audio.relief()
+	end
+	lit = value
+end
+
+function Audio.threat(): number
+	return threat
 end
 
 local function onBatch(
@@ -154,6 +256,21 @@ local function onBatch(
 	end
 end
 
+-- The sweep: a run of ticks that falls in pitch as the line travels down the view. It is
+-- meant to sound loud, because to anything listening it is.
+local function onSweep()
+	local speeds = {}
+	for index = 1, SWEEP_TICKS do
+		speeds[index] = 2.1 - (index - 1) / (SWEEP_TICKS - 1) * 1.2
+	end
+	Audio.sequence(speeds, Config.Lidar.sweepSeconds / SWEEP_TICKS, audio.tickVolume * 3)
+	oneShot(audio.air, 0.35, 2.4)
+end
+
+local function onRadar()
+	oneShot(audio.ping, 0.18, 0.7)
+end
+
 local function attachVoice(model: Instance)
 	if not model:IsA("Model") or voices[model] ~= nil then
 		return
@@ -165,25 +282,25 @@ local function attachVoice(model: Instance)
 	local kind = model:GetAttribute("Kind")
 	local voice: EnemyVoice = {
 		model = model,
+		root = root,
 		kind = if type(kind) == "string" then kind else "",
 		loop = nil,
-		click = nil,
-		nextClick = 0,
 	}
-	if voice.kind == "wanderer" or voice.kind == "mimic" then
-		local loop = make(root, audio.steps, 0, if voice.kind == "mimic" then 1.35 else 0.62, true)
-		positional(loop, WANDERER_RANGE)
-		loop:Play()
-		voice.loop = loop
-	elseif voice.kind == "stalker" then
-		local loop = make(root, audio.air, 0, 1.7, true)
-		positional(loop, STALKER_RANGE)
-		loop:Play()
-		voice.loop = loop
+	local id, speed = "", 1
+	if voice.kind == "wanderer" then
+		id, speed = audio.wandererVoice, 1
 	elseif voice.kind == "listener" then
-		local click = make(root, audio.tick, 0.9, 0.55, false)
-		positional(click, LISTENER_RANGE)
-		voice.click = click
+		id, speed = audio.listenerVoice, 1
+	elseif voice.kind == "stalker" then
+		id, speed = audio.stalkerVoice, 1
+	elseif voice.kind == "mimic" then
+		id, speed = audio.wandererVoice, 1.4
+	end
+	if id ~= "" then
+		local loop = make(root, id, 0, speed, true)
+		positional(loop, VOICE_RANGE)
+		loop:Play()
+		voice.loop = loop
 	end
 	voices[model] = voice
 end
@@ -202,6 +319,13 @@ local function attachTapper(model: Instance)
 		{ part = part, sound = sound, nextTap = os.clock() + math.random() * TAP_PERIOD }
 end
 
+-- Server-made loops (the waterfall, machinery) go through the same volume setting.
+local function adoptSound(instance: Instance)
+	if instance:IsA("Sound") then
+		instance.SoundGroup = group
+	end
+end
+
 local function updateVoices(now: number, dt: number)
 	for model, voice in voices do
 		if model.Parent == nil then
@@ -209,26 +333,21 @@ local function updateVoices(now: number, dt: number)
 			continue
 		end
 		local moving = model:GetAttribute("Moving") == true
+		local frozen = model:GetAttribute("Frozen") == true
 		local loop = voice.loop
 		if loop then
 			local target = 0
 			if voice.kind == "wanderer" then
-				target = if moving then 0.55 else 0
+				target = if moving then 0.6 else 0.3 -- it breathes even when it stops
+			elseif voice.kind == "listener" then
+				target = if moving then 0.75 else 0.35
 			elseif voice.kind == "stalker" then
-				target = if moving then 0.5 else 0
+				target = if moving and not frozen then 0.7 else 0
 			elseif voice.kind == "mimic" then
 				local disguised = CollectionService:HasTag(model, Config.Tags.disguised)
 				target = if moving and not disguised then 0.7 else 0
 			end
 			loop.Volume += (target - loop.Volume) * math.min(1, dt * 6)
-		end
-		local click = voice.click
-		if click and now >= voice.nextClick then
-			click.PlaybackSpeed = 0.5 + math.random() * 0.15
-			click:Play()
-			-- Slow, patient clicks while it drifts; quick ones while it hunts.
-			voice.nextClick = now
-				+ (if moving then 0.28 + math.random() * 0.2 else 1.1 + math.random() * 1.4)
 		end
 	end
 	for model, tapper in tappers do
@@ -252,20 +371,41 @@ local function updateVoices(now: number, dt: number)
 	end
 end
 
-local function measureThreat(): number
+local function measureNearest(): number
 	local camera = workspace.CurrentCamera
 	if camera == nil or not State.inLevel() then
-		return 0
+		return math.huge
 	end
-	local nearest = math.huge
+	local closest = math.huge
 	local position = camera.CFrame.Position
-	for model in voices do
-		local root = model.PrimaryPart
-		if root then
-			nearest = math.min(nearest, (root.Position - position).Magnitude)
+	for model, voice in voices do
+		-- A Mimic that is still pretending gives nothing away: no breath, no heartbeat.
+		if not CollectionService:HasTag(model, Config.Tags.disguised) then
+			closest = math.min(closest, (voice.root.Position - position).Magnitude)
 		end
 	end
-	return math.clamp(1 - nearest / audio.heartbeatDistance, 0, 1)
+	return closest
+end
+
+-- A far-off bump from a random direction, now and then.
+local function bump()
+	local camera = workspace.CurrentCamera
+	if camera == nil then
+		return
+	end
+	local angle = math.random() * math.pi * 2
+	local offset = Vector3.new(math.cos(angle), (math.random() - 0.5) * 0.4, math.sin(angle))
+	playAt(
+		camera.CFrame.Position + offset * BUMP_DISTANCE,
+		audio.bumps,
+		0.7,
+		0.85 + math.random() * 0.3,
+		BUMP_DISTANCE * 3
+	)
+end
+
+local function fadeTo(sound: Sound, target: number, dt: number, rate: number)
+	sound.Volume += (target - sound.Volume) * math.min(1, dt * rate)
 end
 
 local function update(dt: number)
@@ -275,65 +415,77 @@ local function update(dt: number)
 	threatTimer -= dt
 	if threatTimer <= 0 then
 		threatTimer = 1 / THREAT_HZ
-		threat = measureThreat()
+		nearest = measureNearest()
+		threat = math.clamp(1 - nearest / audio.heartbeatDistance, 0, 1)
+		-- The sting: a low hit the first time something arrives close, then a rest.
+		local near = nearest <= audio.stingDistance
+		if near and not stingNear and now >= stingArmedAt and litMix < 0.5 then
+			stingArmedAt = now + audio.stingRearmSeconds
+			oneShot(audio.rumble, 0.4, 0.6)
+		end
+		stingNear = near
 	end
 	litMix = math.clamp(litMix + (if lit then 1 else -1) * LIT_FADE_PER_SECOND * dt, 0, 1)
 	local dark = 1 - litMix
-	local active = State.server.stage ~= "title"
+	local playing = State.server.stage ~= "title"
+	local inDark = if playing then dark else 0.5
 
-	-- Drone: always there in the dark, heavier and higher as something closes in.
-	local droneTarget = if active
-		then audio.droneVolume * (0.55 + 1.1 * threat) * dark
-		else audio.droneVolume * 0.4
-	drone.Volume += (droneTarget - drone.Volume) * math.min(1, dt * 2)
-	drone.PlaybackSpeed = DRONE_SPEED_CALM + (DRONE_SPEED_TENSE - DRONE_SPEED_CALM) * threat
+	fadeTo(ambience, audio.ambienceVolume * inDark, dt, 2)
+	fadeTo(drips, audio.dripsVolume * inDark, dt, 2)
+	fadeTo(presence, audio.presenceVolume * threat * dark, dt, 3)
+	fadeTo(heartbeat, audio.heartbeatVolume * threat * dark, dt, 3)
+	heartbeat.PlaybackSpeed = HEART_SPEED_CALM + (HEART_SPEED_TENSE - HEART_SPEED_CALM) * threat
+	fadeTo(wade, if Avatar.wading and Avatar.moving then 0.5 else 0, dt, 5)
 
-	-- Heartbeat: lub-dub, faster and louder with threat, silent when nothing is near.
-	heartTimer -= dt
-	if threat > 0.02 and dark > 0.5 and heartTimer <= 0 then
-		heartTimer = HEART_SLOW + (HEART_FAST - HEART_SLOW) * threat
-		local volume = audio.heartbeatVolume * (0.25 + 0.75 * threat)
-		heartA.Volume = volume
-		heartB.Volume = volume * 0.7
-		heartA:Play()
-		task.delay(HEART_GAP, function()
-			heartB:Play()
-		end)
+	if playing and State.inLevel() and dark > 0.5 then
+		bumpTimer -= dt
+		if bumpTimer <= 0 then
+			local range = audio.bumpSeconds
+			bumpTimer = range[1] + math.random() * (range[2] - range[1])
+			bump()
+		end
 	end
 
 	updateVoices(now, dt)
 	group.Volume = audio.masterVolume * State.profile.settings.volume
 end
 
--- Lit rooms are quiet: the drone and heartbeat fade out and a small falling phrase plays.
-function Audio.setLit(value: boolean)
-	if value and not lit then
-		Audio.relief()
-	end
-	lit = value
-end
-
-function Audio.threat(): number
-	return threat
-end
-
 function Audio.start()
 	group.Parent = SoundService
 	holder.Parent = SoundService
+	emitterFolder.Parent = workspace
 	for index = 1, TICK_VOICES do
 		tickVoices[index] = make(holder, audio.tick, audio.tickVolume, 1, false)
 	end
-	drone = make(holder, audio.air, 0, DRONE_SPEED_CALM, true)
-	local equalizer = Instance.new("EqualizerSoundEffect")
-	equalizer.HighGain = -40
-	equalizer.MidGain = -14
-	equalizer.LowGain = 5
-	equalizer.Parent = drone
-	drone:Play()
-	heartA = make(holder, audio.thud, 0, 0.55, false)
-	heartB = make(holder, audio.thud, 0, 0.48, false)
+	for index = 1, EMITTERS do
+		local part = Instance.new("Part")
+		part.Name = "Emitter"
+		part.Anchored = true
+		part.CanCollide = false
+		part.CanQuery = false
+		part.CanTouch = false
+		part.Transparency = 1
+		part.Size = Vector3.one * 0.2
+		part.Parent = emitterFolder
+		local sound = make(part, "", 0, 1, false)
+		positional(sound, 80)
+		emitters[index] = { part = part, sound = sound }
+	end
+	ambience = make(holder, audio.ambience, 0, 1, true)
+	drips = make(holder, audio.drips, 0, 1, true)
+	presence = make(holder, audio.presence, 0, 1, true)
+	heartbeat = make(holder, audio.heartbeat, 0, HEART_SPEED_CALM, true)
+	wade = make(holder, audio.wade, 0, 0.9, true)
+	for _, loop in { ambience, drips, presence, heartbeat, wade } do
+		if loop.SoundId ~= "" then
+			loop:Play()
+		end
+	end
+	bumpTimer = audio.bumpSeconds[1]
 
 	Lidar.onBatch(onBatch)
+	Lidar.onSweep(onSweep)
+	Lidar.onRadar(onRadar)
 	Ui.onClick(Audio.click)
 
 	for _, model in CollectionService:GetTagged(Config.Tags.enemy) do
@@ -348,6 +500,10 @@ function Audio.start()
 	CollectionService:GetInstanceAddedSignal(Config.Tags.rescue):Connect(function(model)
 		task.spawn(attachTapper, model)
 	end)
+	for _, sound in CollectionService:GetTagged(Config.Tags.sound) do
+		adoptSound(sound)
+	end
+	CollectionService:GetInstanceAddedSignal(Config.Tags.sound):Connect(adoptSound)
 
 	RunService.Heartbeat:Connect(update)
 end

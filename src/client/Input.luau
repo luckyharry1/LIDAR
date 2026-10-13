@@ -1,8 +1,8 @@
 --!strict
 -- One input layer for mouse and keyboard, gamepad and touch. Other controllers read
--- Input.firing / focusing / sprinting and subscribe to one-shot actions; none of them look
--- at devices directly. On touch the scan and focus buttons toggle by default, so the right
--- thumb stays free to look around (Roblox is mostly mobile: this has to be comfortable).
+-- Input.firing / sprinting / crouching and subscribe to one-shot actions; none of them look
+-- at devices directly. On touch the scan, run and crouch buttons toggle by default, so the
+-- right thumb stays free to look around (Roblox is mostly mobile: this has to be comfortable).
 
 local ContextActionService = game:GetService("ContextActionService")
 local ProximityPromptService = game:GetService("ProximityPromptService")
@@ -13,12 +13,13 @@ local State = require(script.Parent.State)
 local Ui = require(script.Parent.Ui)
 
 export type Device = "keyboard" | "gamepad" | "touch"
+type HeldField = "firing" | "sprinting" | "crouching"
 
 local Input = {}
 
 Input.firing = false
-Input.focusing = false
 Input.sprinting = false
+Input.crouching = false
 Input.device = "keyboard" :: Device
 
 local actionListeners: { [string]: { () -> () } } = {}
@@ -28,18 +29,56 @@ local touchButtons: { [string]: TextButton } = {}
 -- Words for the current device, used by hints: Input.hint("fire") -> "Hold LEFT MOUSE".
 local HINTS: { [string]: { [Device]: string } } = {
 	fire = { keyboard = "Hold LEFT MOUSE", gamepad = "Hold RT", touch = "Tap SCAN" },
-	focus = { keyboard = "Hold RIGHT MOUSE", gamepad = "Hold LT", touch = "Tap FOCUS" },
+	sweep = { keyboard = "Press RIGHT MOUSE", gamepad = "Press LT", touch = "Tap SWEEP" },
+	spread = { keyboard = "Scroll", gamepad = "Press LB or RB", touch = "Tap SPREAD" },
+	crouch = { keyboard = "Hold CTRL or press C", gamepad = "Press B", touch = "Tap CROUCH" },
 	sprint = { keyboard = "Hold SHIFT", gamepad = "Click the left stick", touch = "Tap RUN" },
 	ping = { keyboard = "Press G", gamepad = "Press Y", touch = "Tap PING" },
 	interact = { keyboard = "Press E", gamepad = "Press X", touch = "Tap the prompt" },
-	lens = { keyboard = "Press V", gamepad = "Press D-pad up", touch = "Tap LENS" },
+}
+
+-- Keys that toggle a held state instead of holding it.
+local TOGGLE_KEYS: { [Enum.KeyCode]: boolean } = {
+	[Enum.KeyCode.ButtonL3] = true, -- sprint
+	[Enum.KeyCode.C] = true, -- crouch
+	[Enum.KeyCode.ButtonB] = true, -- crouch
+}
+
+-- Touch controls, laid out around the bottom-right corner where the jump button would be.
+-- x and y are the offset of each button's bottom-right corner from the screen's.
+local TOUCH_HELD = {
+	{ name = "fire", field = "firing" :: HeldField, text = "SCAN", size = 96, x = -26, y = -28 },
+	{
+		name = "sprint",
+		field = "sprinting" :: HeldField,
+		text = "RUN",
+		size = 58,
+		x = -34,
+		y = -138,
+	},
+	{
+		name = "crouch",
+		field = "crouching" :: HeldField,
+		text = "CROUCH",
+		size = 58,
+		x = -216,
+		y = -28,
+	},
+}
+local TOUCH_PRESS = {
+	{ name = "sweep", text = "SWEEP", size = 70, x = -136, y = -24 },
+	{ name = "ping", text = "PING", size = 50, x = -112, y = -118 },
+	{ name = "spreadCycle", text = "SPREAD", size = 46, x = -178, y = -108 },
+	{ name = "emote", text = "SAY", size = 46, x = -104, y = -182 },
 }
 
 function Input.hint(action: string): string
-	return HINTS[action][Input.device]
+	local words = HINTS[action]
+	return if words then words[Input.device] else ""
 end
 
--- Subscribes to a one-shot action: "ping", "lens", "photo", "emote", "map".
+-- Subscribes to a one-shot action: "sweep", "spreadIn", "spreadOut", "spreadCycle", "ping",
+-- "photo", "emote", "map".
 function Input.onAction(name: string, listener: () -> ())
 	local list = actionListeners[name]
 	if list == nil then
@@ -58,24 +97,27 @@ local function fire(name: string)
 	end
 end
 
-local function togglesOnTouch(): boolean
+-- The scan button follows the scan-mode setting; run and crouch always toggle on touch.
+local function scanToggles(): boolean
 	local mode = State.profile.settings.scanMode
 	return mode == "toggle" or (mode == "auto" and Input.device == "touch")
 end
 
 local function refreshTouchButtons()
-	for name, button in touchButtons do
-		local on = (name == "fire" and Input.firing)
-			or (name == "focus" and Input.focusing)
-			or (name == "sprint" and Input.sprinting)
-		button.BackgroundColor3 = if on then Ui.colors.line else Ui.colors.panel
-		button.TextColor3 = if on then Ui.colors.ink else Ui.colors.line
+	for _, spec in TOUCH_HELD do
+		local button = touchButtons[spec.name]
+		if button then
+			local on = (Input :: any)[spec.field] == true
+			button.BackgroundColor3 = if on then Ui.colors.line else Ui.colors.panel
+			button.TextColor3 = if on then Ui.colors.ink else Ui.colors.line
+		end
 	end
 end
 
--- Applies a press or release to one of the held states, honouring toggle mode.
-local function setHeld(name: string, pressed: boolean, toggle: boolean)
-	local current = (Input :: any)[name] :: boolean
+-- Applies a press or release to one of the held states, honouring toggle mode. Sprinting
+-- and crouching cancel each other.
+local function setHeld(field: HeldField, pressed: boolean, toggle: boolean)
+	local current = (Input :: any)[field] :: boolean
 	local value = current
 	if toggle then
 		if pressed then
@@ -87,29 +129,35 @@ local function setHeld(name: string, pressed: boolean, toggle: boolean)
 	if State.menuOpen then
 		value = false
 	end
-	(Input :: any)[name] = value
+	(Input :: any)[field] = value
+	if value and field == "sprinting" then
+		Input.crouching = false
+	elseif value and field == "crouching" then
+		Input.sprinting = false
+	end
 	refreshTouchButtons()
 end
 
 -- Releases everything: used when a menu opens or the player is caught.
 function Input.releaseAll()
 	Input.firing = false
-	Input.focusing = false
 	Input.sprinting = false
+	Input.crouching = false
 	refreshTouchButtons()
 end
 
-local function bindHeld(action: string, field: string, ...: Enum.KeyCode | Enum.UserInputType)
+local function bindHeld(
+	action: string,
+	field: HeldField,
+	toggleOnTouch: () -> boolean,
+	...: Enum.KeyCode | Enum.UserInputType
+)
 	ContextActionService:BindAction(
 		action,
 		function(_, state: Enum.UserInputState, input: InputObject)
 			if state == Enum.UserInputState.Begin or state == Enum.UserInputState.End then
-				local gamepadToggle = input.KeyCode == Enum.KeyCode.ButtonL3
-				setHeld(
-					field,
-					state == Enum.UserInputState.Begin,
-					togglesOnTouch() or gamepadToggle
-				)
+				local toggle = toggleOnTouch() or TOGGLE_KEYS[input.KeyCode] == true
+				setHeld(field, state == Enum.UserInputState.Begin, toggle)
 			end
 			return Enum.ContextActionResult.Pass
 		end,
@@ -125,6 +173,10 @@ local function bindPress(action: string, name: string, ...: Enum.KeyCode | Enum.
 		end
 		return Enum.ContextActionResult.Pass
 	end, false, ...)
+end
+
+local function never(): boolean
+	return false
 end
 
 local function buildTouchControls()
@@ -151,32 +203,24 @@ local function buildTouchControls()
 		})
 		return button
 	end
-	-- Laid out around the bottom-right corner, where the jump button would otherwise be.
-	local held = {
-		{ name = "fire", text = "SCAN", size = 96, x = -26, y = -28 },
-		{ name = "focus", text = "FOCUS", size = 70, x = -136, y = -24 },
-		{ name = "sprint", text = "RUN", size = 62, x = -34, y = -138 },
-	}
-	for _, spec in held do
+	for _, spec in TOUCH_HELD do
 		local button = round(spec.name, spec.text, spec.size, spec.x, spec.y)
 		touchButtons[spec.name] = button
+		local function toggles(): boolean
+			return spec.field ~= "firing" or scanToggles()
+		end
 		button.InputBegan:Connect(function(input: InputObject)
 			if input.UserInputType == Enum.UserInputType.Touch then
-				setHeld(spec.name, true, togglesOnTouch())
+				setHeld(spec.field, true, toggles())
 			end
 		end)
 		button.InputEnded:Connect(function(input: InputObject)
 			if input.UserInputType == Enum.UserInputType.Touch then
-				setHeld(spec.name, false, togglesOnTouch())
+				setHeld(spec.field, false, toggles())
 			end
 		end)
 	end
-	local presses = {
-		{ name = "ping", text = "PING", size = 54, x = -118, y = -108 },
-		{ name = "lens", text = "LENS", size = 46, x = -214, y = -34 },
-		{ name = "emote", text = "SAY", size = 46, x = -112, y = -176 },
-	}
-	for _, spec in presses do
+	for _, spec in TOUCH_PRESS do
 		local button = round(spec.name, spec.text, spec.size, spec.x, spec.y)
 		touchButtons[spec.name] = button
 		button.Activated:Connect(function()
@@ -200,7 +244,6 @@ local function refreshDevice()
 	if gui then
 		local stage = State.server.stage
 		gui.Enabled = device == "touch" and stage ~= "title" and not State.menuOpen
-		touchButtons.lens.Visible = (State.profile.upgrades.lens or 0) > 0
 		touchButtons.ping.Visible = stage == "level"
 		touchButtons.emote.Visible = State.server.partySize > 1
 	end
@@ -212,15 +255,43 @@ function Input.start()
 		else "keyboard"
 	buildTouchControls()
 
-	bindHeld("LidarFire", "firing", Enum.UserInputType.MouseButton1, Enum.KeyCode.ButtonR2)
 	bindHeld(
-		"LidarFocus",
-		"focusing",
+		"LidarFire",
+		"firing",
+		scanToggles,
+		Enum.UserInputType.MouseButton1,
+		Enum.KeyCode.ButtonR2
+	)
+	bindHeld("LidarSprint", "sprinting", never, Enum.KeyCode.LeftShift, Enum.KeyCode.ButtonL3)
+	bindHeld(
+		"LidarCrouch",
+		"crouching",
+		never,
+		Enum.KeyCode.LeftControl,
+		Enum.KeyCode.C,
+		Enum.KeyCode.ButtonB
+	)
+	bindPress(
+		"LidarSweep",
+		"sweep",
 		Enum.UserInputType.MouseButton2,
 		Enum.KeyCode.F,
 		Enum.KeyCode.ButtonL2
 	)
-	bindHeld("LidarSprint", "sprinting", Enum.KeyCode.LeftShift, Enum.KeyCode.ButtonL3)
+	bindPress("LidarSpreadIn", "spreadIn", Enum.KeyCode.Z, Enum.KeyCode.ButtonL1)
+	bindPress("LidarSpreadOut", "spreadOut", Enum.KeyCode.X, Enum.KeyCode.ButtonR1)
+	-- The wheel only reports a direction: up narrows the spread, down widens it.
+	ContextActionService:BindAction(
+		"LidarSpreadWheel",
+		function(_, state: Enum.UserInputState, input: InputObject)
+			if state == Enum.UserInputState.Change and input.Position.Z ~= 0 then
+				fire(if input.Position.Z > 0 then "spreadIn" else "spreadOut")
+			end
+			return Enum.ContextActionResult.Pass
+		end,
+		false,
+		Enum.UserInputType.MouseWheel
+	)
 	bindPress(
 		"LidarPing",
 		"ping",
@@ -228,7 +299,6 @@ function Input.start()
 		Enum.UserInputType.MouseButton3,
 		Enum.KeyCode.ButtonY
 	)
-	bindPress("LidarLens", "lens", Enum.KeyCode.V, Enum.KeyCode.DPadUp)
 	bindPress("LidarPhoto", "photo", Enum.KeyCode.P, Enum.KeyCode.DPadRight)
 	bindPress("LidarEmote", "emote", Enum.KeyCode.B, Enum.KeyCode.DPadDown)
 	bindPress("LidarMap", "map", Enum.KeyCode.M, Enum.KeyCode.DPadLeft)
