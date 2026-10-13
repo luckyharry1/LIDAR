@@ -4,6 +4,7 @@ local process = require("@lune/process")
 
 local suites = {
 	require("./MazeTests"),
+	require("./DotRulesTests"),
 }
 
 local failed = 0
