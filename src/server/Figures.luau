@@ -1,13 +1,12 @@
 --!strict
--- Humanoid and creature silhouettes built from primitives. Nothing here is ever lit in the
--- maze: these shapes exist to be read as clusters of LIDAR dots, so each one has a distinct
--- outline. Every figure is a Model whose PrimaryPart sits on the floor at its centre.
+-- Humanoid and creature shapes built from primitives. They are never drawn: a figure exists
+-- only as something for LIDAR rays to land on, so each one has a distinct outline in dots and
+-- no silhouette at all when nobody is scanning it. Every figure is a Model whose PrimaryPart
+-- sits on the floor at its centre.
 
 local CollectionService = game:GetService("CollectionService")
 
 local Build = require(script.Parent.Build)
-
-local SKIN = Color3.fromRGB(26, 26, 28)
 
 local Figures = {}
 
@@ -29,10 +28,9 @@ local function assemble(name: string, pieces: { Piece }, parent: Instance, tag: 
 			name = "Piece" .. index,
 			size = piece.size,
 			cframe = piece.offset,
-			color = SKIN,
-			material = Enum.Material.SmoothPlastic,
 			shape = piece.shape,
 			collide = false,
+			transparency = 1,
 			parent = model,
 		})
 	end

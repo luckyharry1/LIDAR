@@ -1,5 +1,5 @@
 --!strict
--- Permanent upgrades bought with Static at the lore-room bench, plus cosmetics.
+-- Permanent upgrades bought with Static at the safe-room bench, plus cosmetics.
 -- Cost of the next level = round(baseCost * costGrowth ^ currentLevel).
 
 export type UpgradeDef = {
@@ -9,7 +9,6 @@ export type UpgradeDef = {
 	maxLevel: number,
 	baseCost: number,
 	costGrowth: number,
-	perLevel: number, -- meaning depends on the upgrade; see Progression.effects
 	toggle: boolean?, -- true when the player can switch the effect on and off
 }
 
@@ -23,42 +22,47 @@ export type CosmeticDef = {
 
 local Upgrades = {}
 
+-- What each level does is defined in Progression.effects and tuned in Config.
 Upgrades.list = {
 	{
 		id = "battery",
-		name = "Deep Cell",
-		description = "Focus runs longer before the gun overheats.",
+		name = "Capacitor",
+		description = "The sweep recharges faster.",
 		maxLevel = 4,
 		baseCost = 40,
 		costGrowth = 1.6,
-		perLevel = 0.85, -- heat rate multiplier per level
 	},
 	{
 		id = "cooling",
-		name = "Heat Sink",
-		description = "The gun cools down faster.",
+		name = "Quiet Shutter",
+		description = "The sweep is quieter, so fewer things hear it.",
 		maxLevel = 3,
 		baseCost = 50,
 		costGrowth = 1.7,
-		perLevel = 0.25, -- extra cooling per level
 	},
 	{
 		id = "persistence",
 		name = "Phosphor",
-		description = "Dots linger longer before they fade.",
+		description = "The world holds more dots before the oldest ones fade.",
 		maxLevel = 4,
 		baseCost = 45,
 		costGrowth = 1.6,
-		perLevel = 0.22, -- extra lifetime per level
 	},
 	{
 		id = "lens",
 		name = "Wide Lens",
-		description = "A wider cone you can switch on for open rooms.",
+		description = "Lets you open the spread much wider.",
 		maxLevel = 1,
 		baseCost = 120,
 		costGrowth = 1,
-		perLevel = 1.6, -- cone multiplier while switched on
+	},
+	{
+		id = "radar",
+		name = "Pulse Radar",
+		description = "Every few seconds a ring of dots pulses out around you on its own. Level 2 pulses more often.",
+		maxLevel = 2,
+		baseCost = 130,
+		costGrowth = 1.8,
 		toggle = true,
 	},
 	{
@@ -68,7 +72,6 @@ Upgrades.list = {
 		maxLevel = 3,
 		baseCost = 60,
 		costGrowth = 1.6,
-		perLevel = 8, -- extra seconds of ping lifetime per level
 	},
 	{
 		id = "wayfinder",
@@ -77,7 +80,6 @@ Upgrades.list = {
 		maxLevel = 2,
 		baseCost = 150,
 		costGrowth = 2,
-		perLevel = 1,
 	},
 	{
 		id = "soles",
@@ -86,7 +88,6 @@ Upgrades.list = {
 		maxLevel = 3,
 		baseCost = 55,
 		costGrowth = 1.6,
-		perLevel = 0.7, -- movement noise multiplier per level
 	},
 } :: { UpgradeDef }
 
@@ -96,21 +97,21 @@ Upgrades.cosmetics = {
 		name = "Amber Phosphor",
 		slot = "dots",
 		cost = 80,
-		color = { 255, 196, 120 },
+		color = { 235, 180, 110 },
 	},
 	{
 		id = "dots_violet",
 		name = "Violet Phosphor",
 		slot = "dots",
 		cost = 80,
-		color = { 200, 170, 255 },
+		color = { 180, 150, 235 },
 	},
 	{
 		id = "dots_mint",
 		name = "Mint Phosphor",
 		slot = "dots",
 		cost = 80,
-		color = { 170, 255, 225 },
+		color = { 150, 230, 205 },
 	},
 	{
 		id = "gun_brass",

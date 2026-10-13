@@ -38,7 +38,8 @@ type Member = {
 	starting: boolean, -- true once Play has been pressed, so a double press is ignored
 	slot: number, -- 1..maxPlayers, picks the tutorial room position and spawn offset
 	scanFiring: boolean,
-	scanFocusing: boolean,
+	scanSweeping: boolean,
+	crouching: boolean, -- as reported; only believed while the player is moving slowly
 	scanLook: Vector3,
 	scanAt: number,
 	graceUntil: number,
@@ -58,7 +59,8 @@ type Member = {
 	sessionDistance: number,
 }
 
-type Collected = { key: boolean, cells: number, rescues: number, plate: boolean }
+type Collected = { key: boolean, cells: number, rescues: number, plate: boolean, echoes: number }
+type Decoy = { x: number, z: number, noise: number, expires: number }
 
 local CELL = Config.World.cellSize
 local LEVEL_ORIGINS = { Vector3.new(0, 0, 0), Vector3.new(0, 0, 700) } -- levels alternate between these
@@ -71,6 +73,8 @@ local SEED_SPAN = 2 ^ 30
 local SEED_STEP = 7919
 local BEACON_RADIUS = 10
 local TRANSITION_POLL_SECONDS = 0.2
+local PLATE_REACH = 6 -- studs above a plate within which a player counts as standing on it
+local DOT_QUALITIES = { auto = true, low = true, medium = true, high = true }
 local SETTINGS = {
 	palette = function(value: any): boolean
 		return value == "default" or value == "alt"
@@ -83,6 +87,9 @@ local SETTINGS = {
 	end,
 	volume = function(value: any): boolean
 		return type(value) == "number" and value == value and value >= 0 and value <= 1
+	end,
+	dotQuality = function(value: any): boolean
+		return DOT_QUALITIES[value] == true
 	end,
 }
 
@@ -99,13 +106,13 @@ local run = {
 	phase = "idle", -- "idle" | "level" | "lore" | "transition"
 	level = nil :: World.Level?,
 	lore = nil :: LoreRooms.LoreRoom?,
-	collected = { key = false, cells = 0, rescues = 0, plate = false } :: Collected,
+	collected = { key = false, cells = 0, rescues = 0, plate = false, echoes = 0 } :: Collected,
 	levelStartedAt = 0,
 	originIndex = 1,
 	nextTier = 1,
 	plateFound = false,
 	weeklyShown = false,
-	decoys = {} :: { { x: number, z: number, expires: number } },
+	decoys = {} :: { Decoy },
 	respawning = false,
 }
 
@@ -191,7 +198,7 @@ local function sendState(member: Member)
 		tierName = if level then level.plan.def.name else "",
 		seed = if level then level.plan.seed else 0,
 		origin = if level then level.origin else Vector3.zero,
-		heatScale = if level and inLevel(member) then level.plan.def.heatScale else 1,
+		sweepScale = if level and inLevel(member) then level.plan.def.sweepScale else 1,
 		-- With (tier, seed) these two options let the client rebuild the exact same plan.
 		forcedAnomaly = if level then level.model:GetAttribute("ForcedAnomaly") else "",
 		allowPlate = level ~= nil and level.model:GetAttribute("AllowPlate") == true,
@@ -201,6 +208,8 @@ local function sendState(member: Member)
 		cellsTotal = cellsTotal,
 		rescues = run.collected.rescues,
 		rescuesTotal = rescuesTotal,
+		echoes = run.collected.echoes,
+		echoesTotal = if level then #level.echoes else 0,
 		loreRoom = if lore and member.stage == "lore" then lore.room.id else "",
 		partySize = countStage("level") + countStage("downed") + countStage("lore"),
 		checkpointTier = profile.checkpointTier,
@@ -353,8 +362,11 @@ local function buildSources(): { EnemyBrain.Source }
 			local cell = Maze.cellOf(maze, relative.X, relative.Z)
 			local velocity = root.AssemblyLinearVelocity
 			local speed = Vector3.new(velocity.X, 0, velocity.Z).Magnitude
-			local scanning = member.scanFiring and now - member.scanAt < SCAN_STALE_SECONDS
-			local focusing = scanning and member.scanFocusing
+			local fresh = now - member.scanAt < SCAN_STALE_SECONDS
+			local scanning = fresh and member.scanFiring
+			local sweeping = fresh and member.scanSweeping
+			-- Crouching is the client's word, so it only counts at a crouching pace.
+			local crouching = fresh and member.crouching and speed <= Config.Noise.crouchSpeedLimit
 			local alive = member.stage == "level"
 			table.insert(sources, {
 				id = player.UserId,
@@ -363,14 +375,15 @@ local function buildSources(): { EnemyBrain.Source }
 				noise = if alive
 					then Noise.radius(
 						speed,
-						scanning,
-						focusing,
+						sweeping,
+						crouching,
 						level.plan.flooded[Maze.index(maze, cell.x, cell.y)] == true,
-						member.effects.solesLevel
+						member.effects.solesLevel,
+						member.effects.shutterLevel
 					)
 					else 0,
-				scanning = alive and scanning,
-				focusing = alive and focusing,
+				scanning = alive and (scanning or sweeping),
+				crouching = alive and crouching,
 				lookX = member.scanLook.X,
 				lookZ = member.scanLook.Z,
 				active = alive and now >= member.graceUntil and not run.respawning,
@@ -387,9 +400,9 @@ local function buildSources(): { EnemyBrain.Source }
 				id = -index,
 				x = decoy.x,
 				z = decoy.z,
-				noise = Config.Noise.ping,
+				noise = decoy.noise,
 				scanning = false,
-				focusing = false,
+				crouching = false,
 				lookX = 0,
 				lookZ = 1,
 				active = false,
@@ -569,7 +582,7 @@ local function wirePickup(level: World.Level, pickup: World.Pickup)
 			toastStage("Key found. The exit will open.", "good", "level", "downed")
 		elseif kind == "cell" then
 			run.collected.cells += 1
-			toastStage("Battery cell. The scanner is cool again.", "good", "level", "downed")
+			toastStage("Battery cell. The sweep is charged.", "good", "level", "downed")
 		elseif kind == "rescue" then
 			run.collected.rescues += 1
 			profileOf(member).stats.rescues += 1
@@ -631,7 +644,7 @@ local function beginLevel(tier: number)
 	run.level = level
 	run.lore = nil
 	run.tier = tier
-	run.collected = { key = false, cells = 0, rescues = 0, plate = false }
+	run.collected = { key = false, cells = 0, rescues = 0, plate = false, echoes = 0 }
 	run.decoys = {}
 	run.levelStartedAt = os.clock()
 
@@ -991,7 +1004,8 @@ local function onPlayerAdded(player: Player)
 		starting = false,
 		slot = freeSlot(),
 		scanFiring = false,
-		scanFocusing = false,
+		scanSweeping = false,
+		crouching = false,
 		scanLook = Vector3.new(0, 0, -1),
 		scanAt = 0,
 		graceUntil = 0,
@@ -1091,20 +1105,24 @@ end
 local function onScanState(
 	player: Player,
 	firing: boolean,
-	focusing: boolean,
+	sweeping: boolean,
+	crouching: boolean,
 	look: Vector3,
-	origin: Vector3
+	origin: Vector3,
+	spread: number
 )
 	local member = members[player]
 	local root = rootOf(player)
 	if member == nil or root == nil or look.Magnitude < 0.5 then
 		return
 	end
-	member.scanFiring = firing and member.stage ~= "downed"
-	member.scanFocusing = focusing
+	local standing = member.stage ~= "downed"
+	member.scanFiring = firing and standing
+	member.scanSweeping = sweeping and standing
+	member.crouching = crouching
 	member.scanLook = look.Unit
 	member.scanAt = os.clock()
-	-- Teammates draw a share of each other's dots; never relay a position far from the body.
+	-- Teammates redraw each other's dots; never relay a position far from the body.
 	if (origin - root.Position).Magnitude > Config.Coop.reviveDistance then
 		origin = root.Position
 	end
@@ -1115,9 +1133,10 @@ local function onScanState(
 				"ScanRelay",
 				player.UserId,
 				member.scanFiring,
-				focusing,
+				member.scanSweeping,
 				member.scanLook,
-				origin
+				origin,
+				spread
 			)
 		end
 	end
@@ -1151,11 +1170,48 @@ local function onPing(player: Player, position: Vector3)
 	end
 	if member.effects.decoy and level ~= nil then
 		local relative = (position - level.origin) / CELL
-		table.insert(
-			run.decoys,
-			{ x = relative.X, z = relative.Z, expires = now + Config.Noise.pingSeconds }
-		)
+		table.insert(run.decoys, {
+			x = relative.X,
+			z = relative.Z,
+			noise = Config.Noise.ping,
+			expires = now + Config.Noise.pingSeconds,
+		})
 	end
+end
+
+-- A client says it has put enough dots on a hidden recorder. The scanning itself cannot be
+-- checked here (dots are local), so the only test is that the player could plausibly reach it.
+local function onReveal(player: Player, echoId: number)
+	local member = members[player]
+	local root = rootOf(player)
+	local level = run.level
+	if member == nil or root == nil or level == nil or member.stage ~= "level" then
+		return
+	end
+	local echo = level.echoes[echoId]
+	if
+		echo == nil
+		or echo.revealed
+		or (echo.position - root.Position).Magnitude > Config.Lidar.maxRange + PROMPT_SLACK
+	then
+		return
+	end
+	World.revealEcho(level, echo)
+	run.collected.echoes += 1
+	Telemetry.custom(player, "EchoRevealed", run.tier)
+	-- Everyone in the level hears their own next line, so the story stays in order for each.
+	for otherPlayer, other in members do
+		if inLevel(other) then
+			local profile = profileOf(other)
+			local line = Lore.echoes[profile.echoes % #Lore.echoes + 1]
+			profile.echoes += 1
+			other.sessionLore += 1
+			grant(other, Config.Economy.echoBonus, "Echo")
+			Remotes.send(otherPlayer, "Echo", echo.id, echo.position, Lore.echoSpeaker, line)
+			sendProfile(other)
+		end
+	end
+	sendStateAll()
 end
 
 local function onEmote(player: Player, index: number)
@@ -1266,6 +1322,71 @@ local function tickMembers()
 	end
 end
 
+-- Pits and alarm plates. Checked every frame: a sprinting player crosses a plate in a few.
+local function tickHazards()
+	local level = run.level
+	if level == nil or run.phase ~= "level" then
+		return
+	end
+	local now = os.clock()
+	local function alarm(
+		kind: string,
+		position: Vector3,
+		userId: number,
+		noise: number,
+		seconds: number
+	)
+		local relative = (position - level.origin) / CELL
+		table.insert(
+			run.decoys,
+			{ x = relative.X, z = relative.Z, noise = noise, expires = now + seconds }
+		)
+		for otherPlayer, other in members do
+			if inLevel(other) then
+				Remotes.send(otherPlayer, "Hazard", kind, position, userId)
+			end
+		end
+	end
+	for player, member in members do
+		local root = rootOf(player)
+		if member.stage ~= "level" or root == nil then
+			continue
+		end
+		local position = root.Position
+		if position.Y < level.origin.Y - Config.World.pitFallDepth then
+			alarm(
+				"pit",
+				position,
+				player.UserId,
+				Config.World.pitNoise,
+				Config.World.pitNoiseSeconds
+			)
+			member.graceUntil = now + Config.World.respawnGraceSeconds
+			Director.placeMember(member, member.respawnCFrame or level.startCFrame)
+			toast(player, "The floor was not there. Back to the start of the level.", "warn")
+			continue
+		end
+		for _, plate in level.plates do
+			local offset = position - plate.position
+			if
+				now >= plate.rearmAt
+				and offset.Y < PLATE_REACH
+				and Vector3.new(offset.X, 0, offset.Z).Magnitude <= Config.World.plateRadius
+			then
+				plate.rearmAt = now + Config.World.plateRearmSeconds
+				alarm(
+					"plate",
+					plate.position,
+					player.UserId,
+					Config.Noise.plate,
+					Config.Noise.plateSeconds
+				)
+				toastStage("Alarm plate. Everything heard that.", "warn", "level", "downed")
+			end
+		end
+	end
+end
+
 --------------------------------------------------------------------------------------------
 -- Playtest shortcuts. Only server/Dev calls these, and only in Studio.
 
@@ -1314,6 +1435,25 @@ function Director.dev.clearLevel()
 	end
 end
 
+-- Reveals the next hidden recorder as if the first player in the level had scanned it.
+function Director.dev.revealEcho()
+	local level = run.level
+	if level == nil then
+		return
+	end
+	for player, member in members do
+		if member.stage == "level" then
+			for _, echo in level.echoes do
+				if not echo.revealed then
+					Director.placeMember(member, CFrame.new(echo.position + Vector3.new(0, 3, 0)))
+					onReveal(player, echo.id)
+					return
+				end
+			end
+		end
+	end
+end
+
 function Director.dev.grant(amount: number)
 	for _, member in members do
 		grant(member, amount, "Dev")
@@ -1327,6 +1467,7 @@ function Director.start()
 	Remotes.on("Start", onStart)
 	Remotes.on("ScanState", onScanState)
 	Remotes.on("Ping", onPing)
+	Remotes.on("Reveal", onReveal)
 	Remotes.on("Emote", onEmote)
 	Remotes.on("BuyUpgrade", onBuyUpgrade)
 	Remotes.on("EquipCosmetic", onEquipCosmetic)
@@ -1343,6 +1484,7 @@ function Director.start()
 	local accumulator = 0
 	local interval = 1 / LOGIC_HZ
 	RunService.Heartbeat:Connect(function(dt: number)
+		tickHazards()
 		accumulator += dt
 		if accumulator >= interval then
 			tickRevives(accumulator)

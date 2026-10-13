@@ -48,11 +48,11 @@ tests["effects follow upgrade levels"] = function()
 	local profile = SaveData.default()
 	local base = Progression.effects(profile)
 	assert(
-		base.heatRateMul == 1 and base.coolMul == 1 and base.lifetimeMul == 1,
+		base.sweepRechargeMul == 1 and base.shutterLevel == 0 and base.phosphorLevel == 0,
 		"base effects are not neutral"
 	)
 	assert(
-		not base.wideLens and base.coneMul == 1 and not base.decoy and base.wayfinder == 0,
+		not base.wideLens and base.radarLevel == 0 and not base.decoy and base.wayfinder == 0,
 		"base extras are on"
 	)
 	profile.upgrades = {
@@ -60,28 +60,37 @@ tests["effects follow upgrade levels"] = function()
 		cooling = 1,
 		persistence = 3,
 		lens = 1,
+		radar = 2,
 		marker = 2,
 		wayfinder = 2,
 		soles = 1,
 	}
-	profile.toggles.lens = true
+	profile.toggles.radar = true
 	local effects = Progression.effects(profile)
+	assert(effects.sweepRechargeMul < 1, "Capacitor should shorten the recharge")
 	assert(
-		effects.heatRateMul < 1 and effects.coolMul > 1 and effects.lifetimeMul > 1,
-		"core effects wrong"
+		effects.shutterLevel == 1 and effects.phosphorLevel == 3,
+		"shutter or phosphor level wrong"
 	)
-	assert(effects.wideLens and effects.coneMul > 1, "lens should widen the cone")
+	assert(effects.wideLens and effects.radarLevel == 2, "lens or radar wrong")
 	assert(
 		effects.pingLifetime > Config.Coop.pingLifetime and effects.decoy,
 		"marker effects wrong"
 	)
 	assert(effects.wayfinder == 2 and effects.solesLevel == 1, "wayfinder or soles wrong")
-	assert(Progression.setToggle(profile, "lens", false), "could not switch the lens off")
-	assert(not Progression.effects(profile).wideLens, "lens stayed on")
+	assert(Progression.setToggle(profile, "radar", false), "could not switch the radar off")
+	assert(Progression.effects(profile).radarLevel == 0, "radar stayed on")
 	assert(
 		not Progression.setToggle(profile, "battery", true),
 		"toggled an upgrade that has no toggle"
 	)
+end
+
+tests["buying a switchable upgrade turns it on"] = function()
+	local profile = SaveData.default()
+	profile.static = 1000
+	assert(Progression.buyUpgrade(profile, "radar"), "could not buy the radar")
+	assert(Progression.effects(profile).radarLevel == 1, "a newly bought radar should be on")
 end
 
 tests["cosmetics are bought once, then equip for free"] = function()
@@ -134,25 +143,24 @@ tests["the streak pays once a day and never resets"] = function()
 	end
 end
 
-tests["noise: running and scanning are loud, upgrades and stillness are quiet"] = function()
-	local still = Noise.radius(0, false, false, false, 0)
-	local walk = Noise.radius(Config.Player.walkSpeed, false, false, false, 0)
-	local sprint = Noise.radius(Config.Player.sprintSpeed, false, false, false, 0)
-	local scan = Noise.radius(0, true, false, false, 0)
-	local focus = Noise.radius(0, true, true, false, 0)
-	assert(still == 0, "standing still and silent should make no noise")
+tests["noise: scattering dots is silent, crouching is silent, running and the sweep are loud"] = function()
+	local walkSpeed, sprintSpeed, crouchSpeed =
+		Config.Player.walkSpeed, Config.Player.sprintSpeed, Config.Player.crouchSpeed
+	local still = Noise.radius(0, false, false, false, 0, 0)
+	local walk = Noise.radius(walkSpeed, false, false, false, 0, 0)
+	local sprint = Noise.radius(sprintSpeed, false, false, false, 0, 0)
+	local crouch = Noise.radius(crouchSpeed, false, true, false, 0, 0)
+	local sweep = Noise.radius(0, true, false, false, 0, 0)
+	assert(still == 0, "standing still should make no noise")
+	assert(crouch == 0, "crouch-walking should make no noise")
 	assert(walk > 0 and sprint > walk, "sprinting should be louder than walking")
+	assert(sweep > sprint, "the sweep should be the loudest thing a player does")
+	assert(Noise.radius(sprintSpeed, false, false, false, 3, 0) < sprint, "soft soles do nothing")
+	assert(Noise.radius(0, true, false, false, 0, 3) < sweep, "the quiet shutter does nothing")
+	assert(Noise.radius(walkSpeed, false, false, true, 0, 0) > walk, "wading should be louder")
 	assert(
-		focus > scan and scan > walk,
-		"focus should be louder than a sweep, a sweep louder than walking"
-	)
-	assert(
-		Noise.radius(Config.Player.sprintSpeed, false, false, false, 3) < sprint,
-		"soft soles do nothing"
-	)
-	assert(
-		Noise.radius(Config.Player.walkSpeed, false, false, true, 0) > walk,
-		"wading should be louder"
+		Noise.radius(crouchSpeed, false, true, true, 0, 0) > 0,
+		"even crouched, wading should be heard"
 	)
 end
 

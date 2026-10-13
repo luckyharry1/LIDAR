@@ -6,51 +6,101 @@ local Config = {}
 
 Config.SaveVersion = 2
 
--- The LIDAR gun. These ten values shape the feel more than anything else.
+-- The LIDAR gun. Left click scatters a fast stream of tiny, permanent dots inside a cone;
+-- right click fires one loud top-to-bottom sweep that draws a whole grid at once.
 Config.Lidar = {
-	dotsPerSecond = 55, -- wide sweep drip rate
-	focusDotsPerSecond = 160, -- hold-to-focus rate
-	coneHalfAngleDeg = 17, -- wide sweep cone
-	focusConeHalfAngleDeg = 4.5, -- focused cone
-	maxRange = 110, -- studs
-	maxLiveDots = 3000, -- hard cap; oldest dot is recycled
-	dotSize = 0.11, -- studs at close range
-	dotSizeDistanceScale = 0.0055, -- extra size per stud of distance so far dots stay readable
-	dotSizeMax = 0.6,
-	specialDotScale = 1.7, -- friend and enemy dots are larger
-	terrainLifetime = 16, -- seconds
-	friendLifetime = 9,
-	enemyLifetime = 3.2, -- enemies fade fast so they feel elusive
+	dotsPerSecond = 320, -- scatter rate
+	coneHalfAngleDeg = 26, -- default spread
+	coneMinDeg = 8, -- the scroll wheel narrows the spread down to this
+	coneMaxDeg = 40, -- and widens it up to this
+	coneMaxWideDeg = 56, -- with the Wide Lens upgrade
+	coneStepDeg = 4,
+	maxRange = 150, -- studs
+
+	-- How many permanent dots the world can hold, by the quality setting. When the budget is
+	-- full the oldest dot is reused, so the live count can never exceed it.
+	dotBudget = { low = 12000, medium = 36000, high = 72000 },
+	budgetPerPhosphorLevel = 0.15, -- the Phosphor upgrade adds this share per level
+	fadingDots = 1600, -- separate small pool for dots that fade (people, monsters, footprints)
+
+	dotSize = 0.06, -- studs at close range
+	dotSizeDistanceScale = 0.0016, -- extra size per stud of distance so far dots stay readable
+	dotSizeMax = 0.3,
+	itemDotScale = 0.5, -- items and objects are drawn with finer dots
+	markDotScale = 1.6, -- people, monsters and footprints are a little larger
+
+	-- Dots are not stacked: one per grid cell, with the grid chosen by how far away the
+	-- surface was when it was scanned (close surfaces get fine detail).
+	gridNear = 0.5,
+	gridMid = 1,
+	gridFar = 2,
+	gridNearRange = 14, -- studs within which the near grid is used
+	gridMidRange = 45,
+	gridItem = 0.14,
+
+	friendLifetime = 2.5, -- seconds; people fade fast, the world stays
+	enemyLifetime = 1.2,
+	enemyDotChance = 0.3, -- share of rays that mark a monster: glimpses, not silhouettes
 	fadeExponent = 2.2, -- transparency = age ^ exponent
-	fadeStagger = 4, -- each dot's fade is refreshed every N frames
-	heatPerSecondFocus = 0.3, -- focus fills the heat meter in ~3.3 s
-	coolPerSecond = 0.22,
-	overheatLockSeconds = 2.2,
+	fadeStagger = 3, -- each fading dot is refreshed every N frames
 	mimicDotDelay = 0.35, -- the Mimic's tell: its dots land late
-	beamCount = 5, -- faint scan lines from the muzzle
-	beamTransparency = 0.7,
-	sharedScanRate = 0.35, -- share of a teammate's dots drawn when shared scans are on
+
+	sweepRows = 60, -- lines in one sweep
+	sweepColumns = 76, -- rays per line
+	sweepSeconds = 1.3, -- time from the top line to the bottom line
+	sweepUpDeg = 30,
+	sweepDownDeg = 36,
+	sweepHalfWidthDeg = 46,
+	sweepRechargeSeconds = 7,
+
+	radarSeconds = { 8, 5 }, -- Pulse Radar interval by upgrade level
+	radarRays = 240,
+	radarPitchDeg = 16, -- the pulse fans this far above and below level
+
+	beamCount = 26, -- laser lines from the muzzle to fresh dots
+	beamTransparency = 0.5,
+	beamSeconds = 0.06,
+	teammateBeams = 12,
+	teammateShare = 0.6, -- teammates' scanners are redrawn locally at this share of the rate
 	scanStateHz = 8, -- how often the client reports its scan state to the server
+	echoRevealHits = 140, -- dots that must land on a hidden object before it reveals itself
 }
 
--- Dot palettes as RGB triples. `alt` is the colourblind-safe white/blue/orange set.
+-- Footprints and breath: how monsters and teammates give themselves away.
+Config.Tracks = {
+	stride = 2.4, -- studs between prints
+	lifetime = 12, -- seconds a print lasts
+	range = 75, -- prints farther than this from the camera are not drawn
+	mistRange = 34, -- a monster this close breathes visible mist
+	mistInterval = 0.35,
+	auraRange = 46, -- the red edge-of-screen aura starts at this distance
+}
+
+-- Dot palettes as RGB triples. `alt` is the colourblind-safe set (blue friends, orange monsters).
 Config.Palettes = {
 	default = {
-		terrain = { 235, 240, 255 },
-		friend = { 70, 255, 120 },
-		enemy = { 255, 45, 45 },
-		objective = { 255, 215, 90 },
+		wall = { 196, 200, 210 },
+		floor = { 190, 160, 96 },
+		ceiling = { 104, 122, 156 },
+		water = { 50, 130, 255 },
+		friend = { 70, 235, 120 },
+		enemy = { 255, 50, 50 },
+		objective = { 255, 205, 80 },
+		hazard = { 200, 90, 255 },
 	},
 	alt = {
-		terrain = { 235, 240, 255 },
+		wall = { 196, 200, 210 },
+		floor = { 190, 160, 96 },
+		ceiling = { 104, 122, 156 },
+		water = { 150, 110, 255 },
 		friend = { 70, 150, 255 },
 		enemy = { 255, 150, 20 },
 		objective = { 255, 240, 140 },
+		hazard = { 200, 90, 255 },
 	},
 }
 
 Config.Tags = {
-	terrain = "Lidar_Terrain",
 	friend = "Lidar_Friend",
 	enemy = "Lidar_Enemy",
 	objective = "Lidar_Objective",
@@ -58,13 +108,16 @@ Config.Tags = {
 	disguised = "Lidar_Disguised",
 	rescue = "Lidar_Rescue",
 	anomaly = "Lidar_Anomaly",
+	echo = "Lidar_Echo",
+	water = "Lidar_Water",
+	hazard = "Lidar_Hazard", -- pit rims and alarm plates
+	sound = "Lidar_Sound", -- server-made sounds the client routes through its volume setting
 }
 
 Config.World = {
 	cellSize = 14, -- studs per maze cell
 	wallHeight = 11,
 	wallThickness = 1,
-	levelOrigin = { 0, 0, 0 },
 	loreOrigin = { 0, 0, -900 },
 	tutorialOrigin = { 1200, 0, 0 }, -- each player's tutorial room is offset from here
 	tutorialSpacing = 120,
@@ -72,45 +125,58 @@ Config.World = {
 	respawnSeconds = 2.2,
 	respawnGraceSeconds = 5, -- enemies ignore a freshly respawned player
 	promptDistance = 9,
+	pitSize = 6, -- studs across; leaves a ledge to walk round on every side
+	pitDepth = 16,
+	pitFallDepth = 7, -- falling this far below the floor counts as falling in
+	plateRadius = 2.4, -- stepping this close to an alarm plate sets it off
+	plateRearmSeconds = 12,
+	lampRange = 11, -- studs lit by a lantern: about one cell
+	echoLightRange = 11,
+	pitNoise = 3, -- cells; someone falling into a pit is heard this far
+	pitNoiseSeconds = 2,
 }
 
 Config.Player = {
 	walkSpeed = 10,
 	sprintSpeed = 17,
+	crouchSpeed = 5,
 	litWalkSpeed = 14,
 	jumpPower = 0, -- jumping is disabled in the maze
+	crouchCameraDrop = 1.7, -- studs the view lowers while crouched
 	cameraBobAmplitude = 0.06,
 	cameraBobFrequency = 7,
 }
 
--- Noise radii, in maze cells, heard by enemies.
+-- Noise radii, in maze cells, heard by enemies. Scattering dots is silent; the sweep is not.
 Config.Noise = {
 	walk = 0.5,
 	sprint = 3,
-	scan = 1,
-	focus = 2.4,
+	sweep = 4,
+	wade = 0.4, -- even crouched, moving through water is heard this far
 	ping = 3, -- a ping marker is also a decoy sound
 	pingSeconds = 2.5, -- how long the decoy keeps sounding
+	plate = 5, -- an alarm plate is very loud
+	plateSeconds = 3,
 	softSolesFactor = 0.7, -- per upgrade level, multiplies movement noise
+	quietShutterFactor = 0.82, -- per upgrade level, multiplies sweep noise
 	floodedFactor = 1.6, -- wading is loud
 	sprintSpeedThreshold = 13, -- studs/s above which movement counts as sprinting
 	walkSpeedThreshold = 2,
+	crouchSpeedLimit = 7, -- a client claiming to crouch must be moving no faster than this
 }
 
 -- Shared enemy behaviour. Per-enemy numbers are in data/Enemies.
 Config.Enemy = {
 	sleepCells = 12, -- enemies farther than this from every player do not think or move
 	thinkInterval = 0.25, -- seconds between sensing and repathing
-	patrolRadius = 4, -- how far, in cells, a patrol wanders from its post
-	startSafeCells = 1, -- patrols never idle within this many cells of the level start
+	startSafeCells = 1, -- roaming never ends within this many cells of the level start
 	stalkerConeDot = 0.8, -- how directly a scan must point at a Stalker to pin it
-	stalkerStareSeconds = 3, -- pin a Stalker this long and it withdraws to its post
-	stalkerFocusRate = 3, -- a focused beam pins this many times faster
-	spawnSpacingCells = 3, -- enemies start at least this many path cells apart when possible
-	spawnClearCells = 2.5, -- and at least this far from the level start in a straight line
+	stalkerStareSeconds = 2.5, -- pin a Stalker this long and it withdraws to its post
 	stalkerStareDecay = 0.5, -- how fast that progress drains while it is not pinned
 	stalkerWithdrawSpeed = 1.5, -- multiplier on its speed while it withdraws
 	stalkerCooldown = 18, -- seconds it stays dormant after withdrawing
+	spawnSpacingCells = 3, -- enemies start at least this many path cells apart when possible
+	spawnClearCells = 2.5, -- and at least this far from the level start in a straight line
 	mimicRevealDelay = 0.8, -- seconds between a Mimic turning red and starting to chase
 	mimicCooldown = 12,
 	stunSeconds = 4, -- after catching someone in co-op an enemy pauses, so it cannot camp
@@ -126,14 +192,15 @@ Config.Coop = {
 	pingCooldown = 1.5,
 	emoteCooldown = 1,
 	emotes = { "Here", "Wait", "Go", "Danger", "Thanks" },
+	markerDistance = 400, -- teammates' name markers show through walls up to this far
 }
 
 Config.Economy = {
 	cellBonus = 12, -- Static per battery cell collected
 	rescueBonus = 30,
-	keyVaultBonus = 25,
 	cleanClearMultiplier = 1.3, -- bonus for clearing without being caught
 	loreNoteBonus = 8,
+	echoBonus = 10, -- for revealing a hidden object
 	rareLoreBonus = 40,
 	dailyClearBonus = 50,
 	streakBonuses = { 10, 15, 20, 25, 30, 40, 60 }, -- cycles every seven visits
@@ -149,7 +216,7 @@ Config.Anomaly = {
 	chancePerLevel = 0.1,
 	minTier = 2,
 	rareLoreChance = 0.12,
-	bloomDots = 700,
+	bloomDots = 1400,
 	bloomSeconds = 5,
 }
 
@@ -167,6 +234,7 @@ Config.Net = {
 		ScanState = 14,
 		Ping = 1,
 		Emote = 2,
+		Reveal = 2,
 		BuyUpgrade = 4,
 		EquipCosmetic = 4,
 		SetSetting = 6,
@@ -180,21 +248,39 @@ Config.Telemetry = {
 	enabled = true,
 }
 
--- Sounds. Defaults are clips that ship inside the Roblox client, so no uploaded assets are needed.
+-- Sounds. The short interface clips ship inside the Roblox client. The atmosphere and monster
+-- sounds are from Roblox's licensed libraries (Pro Sound Effects, APM): see docs/ASSETS.md.
+-- Set any id to "" to silence it.
 Config.Audio = {
 	tick = "rbxasset://sounds/volume_slider.ogg",
 	thud = "rbxasset://sounds/action_jump_land.mp3",
 	air = "rbxasset://sounds/action_falling.ogg",
-	steps = "rbxasset://sounds/action_footsteps_plastic.mp3",
-	water = "rbxasset://sounds/impact_water.mp3",
 	wade = "rbxasset://sounds/action_swim.mp3",
 	rumble = "rbxasset://sounds/impact_explosion_03.mp3",
+	ping = "rbxasset://sounds/electronicpingshort.wav",
+	ambience = "rbxassetid://9125970426", -- low engine-room rumble with sporadic distant noises
+	drips = "rbxassetid://9112773041", -- water drips, creaks and distant metal
+	presence = "rbxassetid://9113586520", -- slow airy breathing, rises when something is near
+	heartbeat = "rbxassetid://9043365842",
+	bumps = "rbxassetid://9113136235", -- far-off bumps and creaks, played from random directions
+	wandererVoice = "rbxassetid://9112863181", -- rumbling breath
+	wandererStep = "rbxassetid://9114166413", -- one heavy footstep
+	listenerVoice = "rbxassetid://9119531802", -- ratchety clicks
+	stalkerVoice = "rbxassetid://9126147232", -- bending metal whine, only while it moves
+	caughtRoar = "rbxassetid://9113980319",
+	door = "rbxassetid://9114434781",
+	waterfall = "rbxassetid://9120552550",
 	masterVolume = 1,
-	tickInterval = 0.07, -- seconds between scan ticks
-	tickVolume = 0.16,
-	droneVolume = 0.2,
-	heartbeatDistance = 70, -- studs at which the heartbeat begins
-	heartbeatVolume = 0.55,
+	tickInterval = 0.05, -- seconds between scan ticks
+	tickVolume = 0.07,
+	ambienceVolume = 0.32,
+	dripsVolume = 0.22,
+	presenceVolume = 0.9,
+	heartbeatDistance = 60, -- studs at which the heartbeat begins
+	heartbeatVolume = 0.8,
+	bumpSeconds = { 14, 34 }, -- a distant bump plays at a random interval in this range
+	stingDistance = 26, -- a monster arriving this close triggers a sting
+	stingRearmSeconds = 14,
 }
 
 -- Monetisation placeholders. Zero means "not configured"; the game runs fine without them.
