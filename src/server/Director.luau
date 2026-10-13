@@ -57,6 +57,7 @@ type Member = {
 	sessionCatches: number,
 	sessionLore: number,
 	sessionDistance: number,
+	endingOffered: boolean, -- Ines has asked; one answer is accepted
 }
 
 type Collected = { key: boolean, cells: number, rescues: number, plate: boolean, echoes: number }
@@ -596,7 +597,7 @@ local function wirePickup(level: World.Level, pickup: World.Pickup)
 				if inLevel(other) then
 					profileOf(other).plates[tostring(index)] = true
 					Data.touch(otherPlayer)
-					Remotes.send(otherPlayer, "OpenNote", "Survey plate", Lore.plates[index])
+					Remotes.send(otherPlayer, "OpenNote", Lore.plateTitle, Lore.plates[index])
 				end
 			end
 		end
@@ -743,21 +744,36 @@ local function enterLore(roomId: string, nextTier: number)
 			end
 			local profile = profileOf(member)
 			local text = Lore.notes[note.id]
+			-- The guest book signs in whoever is in the room right now.
+			local names = {}
+			for otherPlayer, other in members do
+				if other.stage == "lore" then
+					table.insert(names, otherPlayer.DisplayName)
+				end
+			end
+			table.sort(names)
+			local body = Lore.fill(text.body, { party = table.concat(names, "\n") })
 			if not profile.lore[note.id] then
 				profile.lore[note.id] = true
 				member.sessionLore += 1
 				grant(member, Config.Economy.loreNoteBonus, "LoreNote")
 				sendProfile(member)
 			end
-			Remotes.send(player, "OpenNote", text.title, text.body)
+			Remotes.send(player, "OpenNote", text.title, body)
 			if
 				note.id == lore.room.notes[#lore.room.notes]
 				and lore.room.id == "stairwell"
 				and not profile.endingSeen
 			then
 				profile.endingSeen = true
+				member.endingOffered = true
 				Data.touch(player)
-				Remotes.send(player, "Ending", Lore.ending.title, Lore.ending.body)
+				Remotes.send(
+					player,
+					"Ending",
+					Lore.ending.title,
+					Lore.endingBody(profile.stats.deaths)
+				)
 			end
 		end)
 	end
@@ -1033,6 +1049,7 @@ local function onPlayerAdded(player: Player)
 		sessionCatches = 0,
 		sessionLore = 0,
 		sessionDistance = 0,
+		endingOffered = false,
 	}
 	members[player] = member
 	Telemetry.funnel(player, "Joined")
@@ -1213,11 +1230,18 @@ local function onReveal(player: Player, echoId: number)
 	for otherPlayer, other in members do
 		if inLevel(other) then
 			local profile = profileOf(other)
-			local line = Lore.echoes[profile.echoes % #Lore.echoes + 1]
+			local tape = Lore.echoes[profile.echoes % #Lore.echoes + 1]
 			profile.echoes += 1
 			other.sessionLore += 1
 			grant(other, Config.Economy.echoBonus, "Echo")
-			Remotes.send(otherPlayer, "Echo", echo.id, echo.position, Lore.echoSpeaker, line)
+			Remotes.send(
+				otherPlayer,
+				"Echo",
+				echo.id,
+				echo.position,
+				if tape.speaker ~= "" then tape.speaker else Lore.echoSpeaker,
+				tape.line
+			)
 			sendProfile(other)
 		end
 	end
@@ -1291,6 +1315,40 @@ local function onSetSetting(player: Player, key: string, value: any)
 	local settings = profileOf(member).settings :: { [string]: any }
 	settings[key] = value
 	Data.touch(player)
+end
+
+-- The finale's choice, answered once. "stay" keeps the lamp: the Lamp Room's door leads on
+-- into the Relay, as it always has. "up" climbs the ladder: this player's run ends and they
+-- return to the title. Their checkpoint is kept, so they can go back down when they like.
+local function onChoose(player: Player, choice: string)
+	local member = members[player]
+	local lore = run.lore
+	if
+		member == nil
+		or not member.endingOffered
+		or member.stage ~= "lore"
+		or lore == nil
+		or lore.room.id ~= "stairwell"
+	then
+		return
+	end
+	member.endingOffered = false
+	Telemetry.custom(player, if choice == "up" then "EndingUp" else "EndingStay", run.tier)
+	if choice ~= "up" then
+		return
+	end
+	member.stage = "title"
+	member.starting = false
+	member.reviveProgress = 0
+	member.respawnCFrame = nil
+	local character = player.Character
+	if character then
+		player.Character = nil
+		character:Destroy()
+	end
+	task.spawn(Data.save, player)
+	endRunIfEmpty()
+	sendStateAll()
 end
 
 local function onFunnel(player: Player, step: string)
@@ -1484,6 +1542,7 @@ function Director.start()
 	Remotes.on("ToggleUpgrade", onToggleUpgrade)
 	Remotes.on("SetSetting", onSetSetting)
 	Remotes.on("Funnel", onFunnel)
+	Remotes.on("Choose", onChoose)
 
 	Players.PlayerAdded:Connect(onPlayerAdded)
 	Players.PlayerRemoving:Connect(onPlayerRemoving)

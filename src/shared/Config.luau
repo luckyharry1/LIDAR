@@ -241,6 +241,7 @@ Config.Net = {
 		Start = 2,
 		Funnel = 4,
 		ToggleUpgrade = 6,
+		Choose = 2,
 	},
 }
 

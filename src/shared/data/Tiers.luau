@@ -1,5 +1,6 @@
 --!strict
 -- Authored difficulty tiers. Adding a tier is a data change: append a row.
+-- Names are the story's floors (docs/story/01-story-bible.md): two tiers to a floor.
 -- Past the last authored tier, Difficulty.forTier() derives endless tiers from the final row.
 
 export type Tier = {
@@ -26,7 +27,7 @@ export type Tier = {
 
 local Tiers: { Tier } = {
 	{
-		name = "Intake",
+		name = "The Annex",
 		width = 5,
 		height = 5,
 		loopChance = 0.12,
@@ -46,7 +47,7 @@ local Tiers: { Tier } = {
 		reward = 30,
 	},
 	{
-		name = "Records",
+		name = "The Annex",
 		width = 5,
 		height = 6,
 		loopChance = 0.1,
@@ -67,7 +68,7 @@ local Tiers: { Tier } = {
 		loreRoomAfter = "office",
 	},
 	{
-		name = "Switchboard",
+		name = "The Flooded Wing",
 		width = 6,
 		height = 6,
 		loopChance = 0.12,
@@ -87,7 +88,7 @@ local Tiers: { Tier } = {
 		reward = 55,
 	},
 	{
-		name = "Flooded Stacks",
+		name = "The Flooded Wing",
 		width = 6,
 		height = 7,
 		loopChance = 0.1,
@@ -108,7 +109,7 @@ local Tiers: { Tier } = {
 		loreRoomAfter = "cistern",
 	},
 	{
-		name = "Drafting Hall",
+		name = "The Overgrowth",
 		width = 7,
 		height = 7,
 		loopChance = 0.08,
@@ -128,7 +129,7 @@ local Tiers: { Tier } = {
 		reward = 85,
 	},
 	{
-		name = "The Long Gallery",
+		name = "The Overgrowth",
 		width = 7,
 		height = 8,
 		loopChance = 0.07,
@@ -149,7 +150,7 @@ local Tiers: { Tier } = {
 		loreRoomAfter = "breakroom",
 	},
 	{
-		name = "Unmeasured",
+		name = "The Foundation",
 		width = 8,
 		height = 8,
 		loopChance = 0.07,
@@ -169,7 +170,7 @@ local Tiers: { Tier } = {
 		reward = 120,
 	},
 	{
-		name = "Datum",
+		name = "The Foundation",
 		width = 8,
 		height = 9,
 		loopChance = 0.06,

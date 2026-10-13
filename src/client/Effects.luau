@@ -17,6 +17,7 @@ local Enemies = require(ReplicatedStorage.Shared.data.Enemies)
 local Hud = require(script.Parent.Hud)
 local Input = require(script.Parent.Input)
 local Lidar = require(script.Parent.Lidar)
+local Lore = require(ReplicatedStorage.Shared.data.Lore)
 local Maze = require(ReplicatedStorage.Shared.pure.Maze)
 local Net = require(ReplicatedStorage.Shared.Net)
 local State = require(script.Parent.State)
@@ -93,8 +94,10 @@ local function onCaught(enemyKind: string, downed: boolean)
 	Effects.pulse(1, 0.4)
 	shakeUntil = os.clock() + SHAKE_SECONDS
 	local def = Enemies[enemyKind]
+	local entity = Lore.entities[enemyKind]
 	if def then
-		Hud.toast("Caught by a " .. def.displayName .. ".", "warn")
+		local name = if entity then entity.name else def.displayName
+		Hud.toast("Caught by " .. name .. ".", "warn")
 		Hud.toast(def.rule, "info")
 	end
 	if downed then

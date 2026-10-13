@@ -72,12 +72,38 @@ Merged in from the cloud session (branch `claude/lucid-noether-kgfglb`, based on
    lore room, recorders, pits, plates, lanterns, crouch, sweep, radar, phone layout.
 3. Things never yet run by anyone: two real players together, real DataStore saves,
    the daily board with more than one entry.
-4. Story text: a separate project thread ("LIDAR story and lore") is writing the final
-   recorder lines, notes and waterfall-room story. All written story lives in
-   `src/shared/data/Lore.luau` (`Lore.notes`, `Lore.rooms`, `Lore.echoes`, `Lore.plates`,
-   `Lore.ending`); dropping new text in there is the whole integration. `docs/LORE.md`
-   should then be regenerated from it.
+4. Story text: done, see "Story in the build" below. What is left is the part of the story
+   that needs new objects in the maze (see its open items).
 5. Report to Vasco, then ask before pushing.
+
+## Story in the build
+
+The story thread's text ("The Understory", `docs/story/`) is now the game's text.
+`src/shared/data/Lore.luau` no longer holds prose: it builds every note, tape, page and card
+from `LoreText.luau` at load time, so regenerating `LoreText.luau` with the story thread's
+`build_text.py` updates the game. `tests/LoreTests.luau` checks the wiring (every room has
+three real notes, one tape per recorder, no stray placeholders, the finale on the last note).
+
+| In the game | From the story |
+| --- | --- |
+| Lit rooms (ids unchanged) | office = The Night Desk, cistern = The Falls, breakroom = The Bunk Room, stairwell = The Lamp Room, landing = Relay Floor. Three notes each (the layouts have three spots). |
+| Tier names and level cards | Two tiers to a floor: B3 The Annex, B4 The Flooded Wing, B5 The Overgrowth, B6 The Foundation; endless tiers are "Relay Floor N"; the daily is "Tonight's floor". |
+| Maze recorders (12) | `rec.*`, three per floor, in story order, each with its own speaker. |
+| Survey plates | The manual's pages 1 to 11 with the crew's margin notes; page 12 is in the Lamp Room. |
+| Monster names | the Pacer, the Hush, the Echo, the Still (field guide shows the manual page, then the plain rule). |
+| Radio (`client/Radio`, new) | Base reports on a new floor, after a catch, on a clear, at the Night Desk, now and then in the dark. Near a disguised Echo a false "Base?" gives directions; real Base never does. Nothing says so. |
+| Tutorial hints | Staff notices and manual rules, with the control in brackets. |
+| Finale | After page 12, Ines speaks (she counts your falls) and asks: climb the ladder or take the lamp. Each has its end card. "Take the lamp" carries on into the Relay as before; "Climb the ladder" ends that player's run and returns them to the title with their checkpoint kept (new `Choose` remote, validated and rate limited, accepted once). |
+
+Open items, for Vasco to decide (not filled in):
+
+- "Night Shift +": the bible says the run after climbing the ladder is harder. How much
+  harder is not written anywhere, so climbing currently just returns you to the title.
+- The story's objects in the maze: reveal objects (`rev.*`), lamp-bags, posters and signs
+  (`sign.*`), the floor items and gates (fuse, valve wheel, rope, crank, lamp core), the
+  secret alcove behind the Falls. They need world props and placement rules; the text exists.
+- The bible introduces the Still on tier 7; `Tiers.luau` has the Stalker from tier 6.
+- Lines not used yet: `note.bunk.letters`, `rev.desk.board`, `rev.falls.*`, `tip.*`, `item.*`.
 
 ## v2 design in one page
 

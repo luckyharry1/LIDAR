@@ -39,7 +39,7 @@ function Difficulty.forTier(tier: number): Tier
 		enemies[kind] = math.min((enemies[kind] or 0) + 1, ENDLESS_ENEMY_CAP)
 	end
 	return {
-		name = "Unmapped " .. extra,
+		name = "Relay Floor " .. extra, -- the story's endless floors, lit by those before you
 		width = math.min(last.width + math.floor(extra / 2), ENDLESS_MAX_SIZE),
 		height = math.min(last.height + math.ceil(extra / 2), ENDLESS_MAX_SIZE),
 		loopChance = last.loopChance,

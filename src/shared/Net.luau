@@ -21,6 +21,7 @@ Net.clientToServer = {
 	"SetSetting", -- (key: string, value: any)
 	"Start", -- (mode: "continue" | "new" | "daily")
 	"Funnel", -- (step: string) onboarding steps only the client can observe
+	"Choose", -- (choice: "up" | "stay") the finale: climb the ladder or keep the lamp
 }
 
 -- Server to client.

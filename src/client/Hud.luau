@@ -12,6 +12,7 @@ local TweenService = game:GetService("TweenService")
 local Avatar = require(script.Parent.Avatar)
 local Config = require(ReplicatedStorage.Shared.Config)
 local Lidar = require(script.Parent.Lidar)
+local Lore = require(ReplicatedStorage.Shared.data.Lore)
 local Maze = require(ReplicatedStorage.Shared.pure.Maze)
 local Net = require(ReplicatedStorage.Shared.Net)
 local State = require(script.Parent.State)
@@ -754,6 +755,19 @@ local function update(dt: number)
 	end
 end
 
+-- The story's card for the floor a level is on: the daily floor, a Relay floor past the
+-- authored tiers, or the section (B3 The Annex, and so on).
+local function levelCard(server: State.ServerState): (string, string)
+	if server.mode == "daily" then
+		return Lore.dailyCard.title, Lore.dailyCard.subtitle
+	end
+	local section = Lore.sectionFor(server.tier)
+	if section == nil then
+		return server.tierName, Lore.relayCard.subtitle
+	end
+	return section.card.title, section.floor .. "  /  " .. section.card.subtitle
+end
+
 function Hud.toggleMap()
 	mapLarge = not mapLarge
 end
@@ -770,8 +784,7 @@ function Hud.start()
 				or previous.stage ~= "level" and previous.stage ~= "downed"
 			)
 		then
-			local prefix = if server.mode == "daily" then "Daily survey" else "Tier " .. server.tier
-			Hud.titleCard(server.tierName, prefix)
+			Hud.titleCard(levelCard(server))
 		end
 	end)
 	State.onProfile(refreshInfo)

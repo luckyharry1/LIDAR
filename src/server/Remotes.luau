@@ -125,6 +125,9 @@ local VALIDATORS: { [string]: Validator } = {
 	Funnel = function(step)
 		return isShortString(step)
 	end,
+	Choose = function(choice)
+		return choice == "up" or choice == "stay"
+	end,
 }
 
 -- Fail at startup, not at the first call, if a remote is missing its validator or limit.

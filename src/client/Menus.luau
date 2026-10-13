@@ -15,6 +15,7 @@ local Dots = require(script.Parent.Dots)
 local DotRules = require(ReplicatedStorage.Shared.pure.DotRules)
 local Enemies = require(ReplicatedStorage.Shared.data.Enemies)
 local Input = require(script.Parent.Input)
+local Lore = require(ReplicatedStorage.Shared.data.Lore)
 local Net = require(ReplicatedStorage.Shared.Net)
 local Progression = require(ReplicatedStorage.Shared.pure.Progression)
 local State = require(script.Parent.State)
@@ -51,6 +52,9 @@ local settingsRows: Frame
 local guideBody: TextLabel
 local startRequested = false
 local noteQueue: { { title: string, body: string } } = {}
+local endingTitle: TextLabel
+local endingBody: TextLabel
+local pendingEnding: { title: string, body: string }? = nil
 
 local function send(name: string, ...: any)
 	(Net.get(name) :: RemoteEvent):FireServer(...)
@@ -266,7 +270,7 @@ local function buildTitle()
 		Parent = frame,
 	})
 	Ui.label({
-		Text = "A SURVEY OF THE DARK",
+		Text = "THE UNDERSTORY",
 		TextSize = Ui.text.body,
 		TextColor3 = Ui.colors.dim,
 		TextXAlignment = Enum.TextXAlignment.Center,
@@ -557,7 +561,10 @@ local function refreshGuide()
 	for _, kind in kinds do
 		local def = Enemies[kind]
 		if State.profile.met[kind] then
-			table.insert(lines, string.upper(def.displayName) .. "\n" .. def.rule)
+			-- The manual's page for it (with the crew's margin note), then the plain rule.
+			local entity = Lore.entities[kind]
+			local page = if entity then entity.page else string.upper(def.displayName)
+			table.insert(lines, page .. "\n" .. def.rule)
 		else
 			table.insert(lines, "UNKNOWN\nSomething you have not met yet.")
 		end
@@ -670,12 +677,70 @@ local function buildNote()
 	(noteBody.Parent :: ScrollingFrame).ScrollBarImageColor3 = Ui.colors.paperInk
 	closeButton(frame, "note", "PUT IT BACK")
 	windows.note.onClose = function()
-		-- If another page arrived while this one was open, show it next.
+		-- If another page arrived while this one was open, show it next; then Ines, if she
+		-- is waiting; then, after the ladder, the title.
 		local nextNote = table.remove(noteQueue, 1)
 		if nextNote then
 			task.defer(Menus.showNote, nextNote.title, nextNote.body)
+		elseif pendingEnding ~= nil then
+			local ending = pendingEnding
+			pendingEnding = nil
+			task.defer(Menus.showEnding, ending.title, ending.body)
+		elseif State.server.stage == "title" then
+			task.defer(Menus.open, "title")
 		end
 	end
+end
+
+--------------------------------------------------------------------------------------------
+-- The finale: Ines speaks, then the choice. There is no close button: it is answered once.
+
+local function choose(choice: string)
+	send("Choose", choice)
+	Menus.close()
+	local card = Lore.ending.cards[choice]
+	if card then
+		task.defer(Menus.showNote, card.title, card.body)
+	end
+end
+
+local function buildEnding()
+	local frame = window("ending", 600, 380)
+	endingTitle = heading(frame, "")
+	endingBody = scrollBody(frame, UDim2.fromOffset(0, 44), UDim2.new(1, 0, 1, -100), {
+		TextSize = Ui.text.body,
+		LineHeight = 1.15,
+	})
+	local up = Ui.button({
+		Text = Lore.ending.choices.up,
+		AnchorPoint = Vector2.new(0, 1),
+		Position = UDim2.fromScale(0, 1),
+		Size = UDim2.new(0.5, -6, 0, 38),
+		Parent = frame,
+	}, function()
+		choose("up")
+	end, Ui.colors.line)
+	Ui.button({
+		Text = Lore.ending.choices.stay,
+		AnchorPoint = Vector2.new(1, 1),
+		Position = UDim2.fromScale(1, 1),
+		Size = UDim2.new(0.5, -6, 0, 38),
+		Parent = frame,
+	}, function()
+		choose("stay")
+	end, Ui.colors.gold)
+	windows.ending.first = up
+end
+
+-- Ines's last words and the choice. Waits for the page the player is reading to be put back.
+function Menus.showEnding(title: string, body: string)
+	if current == "note" then
+		pendingEnding = { title = title, body = body }
+		return
+	end
+	endingTitle.Text = string.upper(title)
+	setBody(endingBody, body)
+	Menus.open("ending")
 end
 
 function Menus.showNote(title: string, body: string)
@@ -701,7 +766,7 @@ local function summaryText(summary: any): string
 		table.insert(lines, `SURVEYORS       {reward.rescues}`)
 	end
 	if reward.plate > 0 then
-		table.insert(lines, `SURVEY PLATE    {reward.plate}`)
+		table.insert(lines, `MANUAL PAGE     {reward.plate}`)
 	end
 	table.insert(
 		lines,
@@ -935,6 +1000,7 @@ function Menus.start()
 	buildReport()
 	buildBoard()
 	buildEmotes()
+	buildEnding()
 
 	State.onProfile(function()
 		Menus.applyCosmetics()
@@ -949,6 +1015,14 @@ function Menus.start()
 				Menus.close()
 			end
 		elseif server.stage == "title" then
+			if previous.stage ~= "title" then
+				-- Back from the dark (the ladder): the title comes back, ready to start again.
+				startRequested = false
+				titleButtons.Visible = true
+				if current == nil then
+					Menus.open("title")
+				end
+			end
 			refreshTitle()
 		end
 		if
@@ -968,7 +1042,7 @@ function Menus.start()
 		Menus.open("bench")
 	end);
 	(Net.get("OpenNote") :: RemoteEvent).OnClientEvent:Connect(Menus.showNote);
-	(Net.get("Ending") :: RemoteEvent).OnClientEvent:Connect(Menus.showNote);
+	(Net.get("Ending") :: RemoteEvent).OnClientEvent:Connect(Menus.showEnding);
 	(Net.get("LevelCleared") :: RemoteEvent).OnClientEvent:Connect(onLevelCleared);
 	(Net.get("DailyBoard") :: RemoteEvent).OnClientEvent:Connect(onDailyBoard)
 
