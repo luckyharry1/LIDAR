@@ -8,15 +8,15 @@ Config.SaveVersion = 2
 
 -- The LIDAR gun. These ten values shape the feel more than anything else.
 Config.Lidar = {
-	dotsPerSecond = 70, -- wide sweep drip rate
-	focusDotsPerSecond = 190, -- hold-to-focus rate
+	dotsPerSecond = 55, -- wide sweep drip rate
+	focusDotsPerSecond = 160, -- hold-to-focus rate
 	coneHalfAngleDeg = 17, -- wide sweep cone
 	focusConeHalfAngleDeg = 4.5, -- focused cone
 	maxRange = 110, -- studs
 	maxLiveDots = 3000, -- hard cap; oldest dot is recycled
-	dotSize = 0.16, -- studs at close range
-	dotSizeDistanceScale = 0.011, -- extra size per stud of distance so far dots stay readable
-	dotSizeMax = 0.9,
+	dotSize = 0.11, -- studs at close range
+	dotSizeDistanceScale = 0.0055, -- extra size per stud of distance so far dots stay readable
+	dotSizeMax = 0.6,
 	specialDotScale = 1.7, -- friend and enemy dots are larger
 	terrainLifetime = 16, -- seconds
 	friendLifetime = 9,
@@ -28,7 +28,7 @@ Config.Lidar = {
 	overheatLockSeconds = 2.2,
 	mimicDotDelay = 0.35, -- the Mimic's tell: its dots land late
 	beamCount = 5, -- faint scan lines from the muzzle
-	beamTransparency = 0.82,
+	beamTransparency = 0.7,
 	sharedScanRate = 0.35, -- share of a teammate's dots drawn when shared scans are on
 	scanStateHz = 8, -- how often the client reports its scan state to the server
 }
@@ -56,6 +56,8 @@ Config.Tags = {
 	objective = "Lidar_Objective",
 	litZone = "Lidar_LitZone",
 	disguised = "Lidar_Disguised",
+	rescue = "Lidar_Rescue",
+	anomaly = "Lidar_Anomaly",
 }
 
 Config.World = {
