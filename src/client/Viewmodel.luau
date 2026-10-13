@@ -1,27 +1,64 @@
 --!strict
--- The scanner in the player's hands. In the dark only its status light shows (and the gun's
--- silhouette against the dots); in a lit room the whole housing is visible. The light runs
--- from pale to red with heat, so the meter can be read without looking away from the dots.
+-- The scanner in the player's hands. In the dark only its pinprick status light shows (and
+-- the gun's silhouette against the dots); in a lit room the whole housing is visible. The
+-- light runs from pale to red with heat, so the meter can be read without looking away.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
+local Atmosphere = require(script.Parent.Atmosphere)
 local Avatar = require(script.Parent.Avatar)
 local Lidar = require(script.Parent.Lidar)
 local State = require(script.Parent.State)
 local Upgrades = require(ReplicatedStorage.Shared.data.Upgrades)
 
 type Piece = { part: Part, offset: CFrame }
+type Spec = {
+	size: { number },
+	at: { number },
+	color: { number }?, -- nil: takes the housing colour (and any equipped skin)
+	shape: Enum.PartType?,
+	turn: number?, -- yaw in degrees (cylinders lie along x, so 90 points them forward)
+	pitch: number?,
+}
 
-local REST = CFrame.new(0.85, -0.78, -1.5)
-local DEFAULT_HOUSING = Color3.fromRGB(46, 48, 54)
+-- Where the gun sits relative to the camera, and how big it is drawn.
+local REST = CFrame.new(0.5, -0.46, -1.15)
+local SCALE = 0.5
+local DEFAULT_HOUSING = { 96, 100, 108 }
+local DARK = { 34, 36, 40 }
 local COOL_LIGHT = Color3.fromRGB(200, 220, 255)
-local LIGHT_SIZE = 0.014 -- a pinprick: it must never compete with the dots
 local HOT_LIGHT = Color3.fromRGB(255, 60, 40)
-local SWAY = 0.035
-local KICK = 0.012 -- how far the gun jitters while scanning
+local LIGHT_SIZE = 0.014 -- a pinprick: it must never compete with the dots
+local LIGHT_OFFSET = CFrame.new(0, 0.115, 0.2)
+local SWAY = 0.018
+local KICK = 0.006 -- how far the gun jitters while scanning
+local FOCUS_PULL = 0.03 -- the gun draws back a touch while focusing
 local FIRST_PERSON_DISTANCE = 1.2 -- beyond this the camera is in third person: hide the gun
+local LOWERED_ABOVE = 0.2 -- how lit it must be before the scanner is put away
+
+-- Sizes and positions are in gun-local studs before SCALE; z is negative toward the muzzle.
+local SPECS: { Spec } = {
+	{ size = { 0.34, 0.4, 1.2 }, at = { 0, 0, 0 } }, -- body
+	{ size = { 0.24, 0.5, 0.28 }, at = { 0, -0.4, 0.34 }, pitch = -12 }, -- grip
+	{ size = { 0.3, 0.12, 0.7 }, at = { 0, 0.26, 0.05 } }, -- top rail
+	{
+		size = { 0.5, 0.26, 0.26 },
+		at = { 0, 0.02, -0.82 },
+		color = DARK,
+		shape = Enum.PartType.Cylinder,
+		turn = 90,
+	}, -- barrel
+	{
+		size = { 0.07, 0.48, 0.48 },
+		at = { 0, 0.02, -1.1 },
+		color = DARK,
+		shape = Enum.PartType.Cylinder,
+		turn = 90,
+	}, -- emitter dish
+	{ size = { 0.36, 0.08, 0.3 }, at = { 0, -0.24, -0.3 }, color = DARK }, -- trigger guard
+}
 
 local Viewmodel = {}
 
@@ -33,9 +70,8 @@ local housing: { Part } = {}
 local light: Part
 local swayTime = 0
 
-local function piece(
+local function newPart(
 	size: Vector3,
-	offset: CFrame,
 	color: Color3,
 	material: Enum.Material,
 	shape: Enum.PartType?
@@ -51,46 +87,27 @@ local function piece(
 	part.Material = material
 	part.Shape = shape or Enum.PartType.Block
 	part.Parent = model
-	table.insert(pieces, { part = part, offset = offset })
 	return part
 end
 
+local function rgb(triple: { number }): Color3
+	return Color3.fromRGB(triple[1], triple[2], triple[3])
+end
+
 local function build()
-	local metal = Enum.Material.Metal
-	table.insert(
-		housing,
-		piece(Vector3.new(0.34, 0.42, 1.25), CFrame.new(0, 0, 0), DEFAULT_HOUSING, metal)
-	)
-	table.insert(
-		housing,
-		piece(
-			Vector3.new(0.26, 0.5, 0.3),
-			CFrame.new(0, -0.4, 0.35) * CFrame.Angles(math.rad(-12), 0, 0),
-			DEFAULT_HOUSING,
-			metal
-		)
-	)
-	piece(
-		Vector3.new(0.5, 0.3, 0.3),
-		CFrame.new(0, 0.02, -0.85) * CFrame.Angles(0, math.rad(90), 0),
-		Color3.fromRGB(26, 26, 30),
-		metal,
-		Enum.PartType.Cylinder
-	)
-	piece(
-		Vector3.new(0.08, 0.46, 0.46),
-		CFrame.new(0, 0.02, -1.12) * CFrame.Angles(0, math.rad(90), 0),
-		Color3.fromRGB(80, 84, 92),
-		metal,
-		Enum.PartType.Cylinder
-	)
-	light = piece(
-		Vector3.one * LIGHT_SIZE,
-		CFrame.new(0, 0.225, 0.42),
-		COOL_LIGHT,
-		Enum.Material.Neon,
-		Enum.PartType.Ball
-	)
+	for _, spec in SPECS do
+		local size = Vector3.new(spec.size[1], spec.size[2], spec.size[3]) * SCALE
+		local part =
+			newPart(size, rgb(spec.color or DEFAULT_HOUSING), Enum.Material.Metal, spec.shape)
+		local offset = CFrame.new(spec.at[1] * SCALE, spec.at[2] * SCALE, spec.at[3] * SCALE)
+			* CFrame.Angles(math.rad(spec.pitch or 0), math.rad(spec.turn or 0), 0)
+		table.insert(pieces, { part = part, offset = offset })
+		if spec.color == nil then
+			table.insert(housing, part)
+		end
+	end
+	light = newPart(Vector3.one * LIGHT_SIZE, COOL_LIGHT, Enum.Material.Neon, Enum.PartType.Ball)
+	table.insert(pieces, { part = light, offset = LIGHT_OFFSET })
 end
 
 local function update(dt: number)
@@ -102,7 +119,10 @@ local function update(dt: number)
 		and head ~= nil
 		and head:IsA("BasePart")
 		and (camera.CFrame.Position - head.Position).Magnitude < FIRST_PERSON_DISTANCE
-	local visible = firstPerson and (stage == "tutorial" or stage == "level" or stage == "lore")
+	-- In a lit room the scanner is lowered: there is nothing to scan and it would only be in the way.
+	local visible = firstPerson
+		and Atmosphere.lit < LOWERED_ABOVE
+		and (stage == "tutorial" or stage == "level")
 	if not visible or camera == nil then
 		if model.Parent ~= nil then
 			model.Parent = nil
@@ -114,31 +134,28 @@ local function update(dt: number)
 	end
 
 	swayTime += dt * (if Avatar.moving then 6 else 1.2)
-	local sway = CFrame.new(
-		math.sin(swayTime * 0.5) * SWAY,
-		math.abs(math.cos(swayTime)) * SWAY * (if Avatar.moving then 1 else 0.3),
-		0
-	)
-	local kick = if Lidar.firing
-		then CFrame.new(
+	local bob = if Avatar.moving then 1 else 0.3
+	local sway =
+		CFrame.new(math.sin(swayTime * 0.5) * SWAY, math.abs(math.cos(swayTime)) * SWAY * bob, 0)
+	local kick = CFrame.new()
+	if Lidar.firing then
+		kick = CFrame.new(
 			(math.random() - 0.5) * KICK,
 			(math.random() - 0.5) * KICK,
-			if Lidar.focusing then 0.04 else 0
+			if Lidar.focusing then FOCUS_PULL else 0
 		)
-		else CFrame.new()
+	end
 	local base = camera.CFrame * REST * sway * kick
 	for _, entry in pieces do
 		entry.part.CFrame = base * entry.offset
 	end
 	light.Color = COOL_LIGHT:Lerp(HOT_LIGHT, Lidar.heat)
-	light.Transparency = if Lidar.firing then 0.1 else 0.5
+	light.Transparency = if Lidar.firing then 0.35 else 0.7
 end
 
 local function applySkin()
 	local skin = Upgrades.cosmeticById[State.profile.cosmetics.gun]
-	local color = if skin
-		then Color3.fromRGB(skin.color[1], skin.color[2], skin.color[3])
-		else DEFAULT_HOUSING
+	local color = rgb(if skin then skin.color else DEFAULT_HOUSING)
 	for _, part in housing do
 		part.Color = color
 	end

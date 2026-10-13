@@ -168,6 +168,7 @@ Config.Net = {
 		Ping = 1,
 		Emote = 2,
 		BuyUpgrade = 4,
+		EquipCosmetic = 4,
 		SetSetting = 6,
 		Start = 2,
 		Funnel = 4,

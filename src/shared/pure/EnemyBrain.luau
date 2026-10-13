@@ -34,6 +34,8 @@ export type Enemy = {
 	speedScale: number,
 	senseScale: number, -- multiplies hearing and sight range
 	home: Maze.Cell,
+	restX: number, -- where it stands when idle: the centre of its home cell unless set otherwise
+	restZ: number,
 	x: number,
 	z: number,
 	state: string,
@@ -64,8 +66,8 @@ local function distance(ax: number, az: number, bx: number, bz: number): number
 end
 
 function EnemyBrain.reset(enemy: Enemy)
-	enemy.x = enemy.home.x - 0.5
-	enemy.z = enemy.home.y - 0.5
+	enemy.x = enemy.restX
+	enemy.z = enemy.restZ
 	enemy.state = IDLE_STATE[enemy.kind]
 	enemy.path = {}
 	enemy.timer = 0
@@ -92,6 +94,8 @@ function EnemyBrain.new(
 		speedScale = speedScale,
 		senseScale = senseScale,
 		home = cell,
+		restX = cell.x - 0.5,
+		restZ = cell.y - 0.5,
 		x = 0,
 		z = 0,
 		state = "",
@@ -109,6 +113,14 @@ function EnemyBrain.new(
 	}
 	EnemyBrain.reset(enemy)
 	return enemy
+end
+
+-- Moves an enemy's idle spot within its home cell (a Mimic sits against a wall, as a real
+-- stranded surveyor does) and puts it there.
+function EnemyBrain.setRest(enemy: Enemy, x: number, z: number)
+	enemy.restX = x
+	enemy.restZ = z
+	EnemyBrain.reset(enemy)
 end
 
 -- Pause an enemy after it catches someone in co-op so it cannot camp the spot.
@@ -427,7 +439,10 @@ local function stepMimic(
 			followPath(enemy, scaled(enemy, def.chaseSpeed, cellSize), dt)
 		end
 	elseif enemy.state == "return" then
-		if followPath(enemy, scaled(enemy, def.chaseSpeed * MIMIC_RETURN_SPEED, cellSize), dt) then
+		local speed = scaled(enemy, def.chaseSpeed * MIMIC_RETURN_SPEED, cellSize)
+		if
+			followPath(enemy, speed, dt) and moveToward(enemy, enemy.restX, enemy.restZ, speed, dt)
+		then
 			enemy.state = "cooldown"
 			enemy.timer = Config.Enemy.mimicCooldown
 			enemy.disguised = true

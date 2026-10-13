@@ -276,8 +276,9 @@ function Maze.generate(seed: number, width: number, height: number, options: Opt
 
 	-- Rooms: clear every interior wall of a few small blocks to make open halls.
 	for _ = 1, options.rooms do
-		local w = math.min(rng:int(ROOM_MIN, ROOM_MAX), width)
-		local h = math.min(rng:int(ROOM_MIN, ROOM_MAX), height)
+		-- A room never spans more than half the maze, so small levels keep their corridors.
+		local w = math.min(rng:int(ROOM_MIN, ROOM_MAX), math.max(ROOM_MIN, width // 2))
+		local h = math.min(rng:int(ROOM_MIN, ROOM_MAX), math.max(ROOM_MIN, height // 2))
 		local rx = rng:int(1, width - w + 1)
 		local ry = rng:int(1, height - h + 1)
 		for y = ry, ry + h - 1 do

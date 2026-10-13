@@ -17,7 +17,7 @@ local EASE_OUT_SECONDS = 0.9 -- lit to dark
 local DARK_FOG_START = 36
 local DARK_FOG_END = 210 -- black fog: distant dots dim with range, which reads as depth
 local LIT_FOG = 100000
-local LIT_AMBIENT_SCALE = 0.62
+local LIT_AMBIENT_SCALE = 0.8
 local DARK_BLOOM = { intensity = 0.55, size = 14, threshold = 1 }
 local LIT_BLOOM = { intensity = 0.15, size = 18, threshold = 1.6 }
 local LIT_ZOOM = 14
@@ -87,9 +87,9 @@ local function apply(t: number)
 	bloom.Intensity = lerp(DARK_BLOOM.intensity, LIT_BLOOM.intensity, eased)
 	bloom.Size = lerp(DARK_BLOOM.size, LIT_BLOOM.size, eased)
 	bloom.Threshold = lerp(DARK_BLOOM.threshold, LIT_BLOOM.threshold, eased)
-	correction.Saturation = lerp(-0.05, 0.12, eased)
+	correction.Saturation = lerp(-0.05, -0.1, eased)
 	correction.Contrast = lerp(0.08, 0.02, eased)
-	correction.TintColor = Color3.new(1, 1, 1):Lerp(Color3.new(1, 0.97, 0.92), eased)
+	correction.Brightness = lerp(0, 0.04, eased)
 end
 
 local function setCamera(lit: boolean)
@@ -131,7 +131,9 @@ function Atmosphere.start()
 				task.spawn(listener, zone)
 			end
 		end
-		local target = if zone then 1 else 0
+		-- Studio playtest aid (see server/Dev): light the maze so its geometry can be inspected.
+		local devLit = RunService:IsStudio() and workspace:GetAttribute("DevLit") == true
+		local target = if zone or devLit then 1 else 0
 		if Atmosphere.lit ~= target then
 			local rate = if target == 1 then 1 / EASE_IN_SECONDS else 1 / EASE_OUT_SECONDS
 			Atmosphere.lit = math.clamp(

@@ -4,6 +4,7 @@
 local Lighting = game:GetService("Lighting")
 
 local Data = require(script.Parent.Data)
+local Dev = require(script.Parent.Dev)
 local Director = require(script.Parent.Director)
 local Enemies = require(script.Parent.Enemies)
 
@@ -42,3 +43,4 @@ prepareWorld()
 Data.start()
 Enemies.start()
 Director.start()
+Dev.start()

@@ -47,7 +47,7 @@ local RELAY_STALE_SECONDS = 0.5
 local MAX_RAYS_PER_FRAME = 40
 local BEAM_SECONDS = 0.09
 local BEAM_WIDTH = 0.02
-local MUZZLE_OFFSET = CFrame.new(0.75, -0.62, -2.1)
+local MUZZLE_OFFSET = CFrame.new(0.5, -0.45, -1.72) -- matches the view model's emitter dish
 local SCAN_CELL_HITS = 3 -- dots needed in a cell before the map counts it as scanned
 
 local Lidar = {}

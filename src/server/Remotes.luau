@@ -119,6 +119,12 @@ local VALIDATORS: { [string]: Validator } = {
 	end,
 }
 
+-- Fail at startup, not at the first call, if a remote is missing its validator or limit.
+for _, name in Net.clientToServer do
+	assert(VALIDATORS[name] ~= nil, "remote " .. name .. " has no validator")
+	assert(Config.Net.rateLimits[name] ~= nil, "remote " .. name .. " has no rate limit")
+end
+
 -- Registers the handler for a client-to-server remote. Invalid or over-rate calls are dropped.
 function Remotes.on(name: string, handler: Handler)
 	local remote = instances[name]

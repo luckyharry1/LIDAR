@@ -71,13 +71,13 @@ function Ui.new(className: string, properties: { [string]: any }?, children: { I
 	return instance
 end
 
--- A ScreenGui that respects notches and scales with the viewport.
+-- A ScreenGui that keeps clear of notches and the Roblox top bar, and scales with the viewport.
 function Ui.screen(name: string, displayOrder: number): ScreenGui
 	local gui = Ui.new("ScreenGui", {
 		Name = name,
 		ResetOnSpawn = false,
 		DisplayOrder = displayOrder,
-		ScreenInsets = Enum.ScreenInsets.DeviceSafeInsets,
+		ScreenInsets = Enum.ScreenInsets.CoreUISafeInsets,
 		ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
 	})
 	local uiScale = Ui.new("UIScale", { Scale = currentScale(), Parent = gui })

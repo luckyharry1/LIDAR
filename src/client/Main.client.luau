@@ -19,8 +19,12 @@ local Viewmodel = require(script.Parent.Viewmodel)
 
 -- Core interface the game does not use; SetCoreGuiEnabled can fail while the core scripts
 -- are still loading, so retry a few times.
-local HIDDEN_CORE =
-	{ Enum.CoreGuiType.Backpack, Enum.CoreGuiType.Health, Enum.CoreGuiType.EmotesMenu }
+local HIDDEN_CORE = {
+	Enum.CoreGuiType.Backpack,
+	Enum.CoreGuiType.Health,
+	Enum.CoreGuiType.EmotesMenu,
+	Enum.CoreGuiType.PlayerList,
+}
 local CORE_RETRIES = 8
 
 task.spawn(function()

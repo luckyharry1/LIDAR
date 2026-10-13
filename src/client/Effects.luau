@@ -287,7 +287,7 @@ local function bloom(zone: BasePart)
 					Vector3.new(math.random() - 0.5, math.random() - 0.5, math.random() - 0.5)
 				if direction.Magnitude > 0.05 then
 					local hit = workspace:Raycast(start, direction.Unit * 60, zoneParams)
-					if hit and inside(zone, hit.Position - hit.Normal * 0.5) then
+					if hit and inside(zone, hit.Position + hit.Normal * 0.5) then
 						Dots.spawn(
 							hit.Position + hit.Normal * 0.04,
 							"terrain",

@@ -116,6 +116,8 @@ function Enemies.spawn(
 					local outward = Vector3.new(d.dx, 0, d.dy)
 					local seat = center + outward * (CELL / 2 - REST_FROM_WALL)
 					runtime.restCFrame = CFrame.lookAt(seat, seat - outward)
+					local relative = (seat - level.origin) / CELL
+					EnemyBrain.setRest(brain, relative.X, relative.Z)
 					break
 				end
 			end

@@ -1266,6 +1266,61 @@ local function tickMembers()
 	end
 end
 
+--------------------------------------------------------------------------------------------
+-- Playtest shortcuts. Only server/Dev calls these, and only in Studio.
+
+Director.dev = {}
+
+local function devPullEveryoneIn()
+	for _, member in members do
+		if member.tutorial then
+			member.tutorial.model:Destroy()
+			member.tutorial = nil
+		end
+		profileOf(member).tutorialDone = true
+		if member.stage == "title" or member.stage == "tutorial" then
+			member.stage = "level"
+		end
+	end
+	if not run.active then
+		run.active = true
+		run.mode = "run"
+		run.seedBase = random:NextInteger(1, SEED_SPAN)
+		run.plateFound = false
+		run.weeklyShown = false
+	end
+end
+
+function Director.dev.jumpToTier(tier: number)
+	if run.phase ~= "transition" then
+		devPullEveryoneIn()
+		beginLevel(tier)
+	end
+end
+
+function Director.dev.enterLore(roomId: string)
+	if run.phase ~= "transition" and Lore.rooms[roomId] ~= nil then
+		devPullEveryoneIn()
+		for _, member in members do
+			member.stage = "level"
+		end
+		enterLore(roomId, run.tier + 1)
+	end
+end
+
+function Director.dev.clearLevel()
+	if run.phase == "level" then
+		completeLevel()
+	end
+end
+
+function Director.dev.grant(amount: number)
+	for _, member in members do
+		grant(member, amount, "Dev")
+		sendProfile(member)
+	end
+end
+
 function Director.start()
 	Players.CharacterAutoLoads = false
 

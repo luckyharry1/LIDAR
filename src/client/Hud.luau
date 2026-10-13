@@ -52,6 +52,7 @@ local downedFill: Frame
 local photoLabel: TextLabel
 local mapTimer = 0
 local mapLarge = false
+local hidden = false -- photo mode
 
 local function tween(instance: Instance, seconds: number, goal: { [string]: any })
 	TweenService
@@ -132,6 +133,8 @@ end
 -- Photo mode hides the interface so the dots can be captured on their own.
 function Hud.setVisible(visible: boolean)
 	gui.Enabled = visible
+	hidden = not visible
+	crosshair.Visible = visible and State.server.stage ~= "title" and State.server.stage ~= "downed"
 end
 
 function Hud.photoNotice(on: boolean)
@@ -146,6 +149,7 @@ local function build()
 		BackgroundColor3 = Color3.new(0, 0, 0),
 		BackgroundTransparency = 1,
 		BorderSizePixel = 0,
+		ZIndex = 5, -- above the crosshair, which lives in the same overlay
 		Parent = fadeGui,
 	})
 	photoLabel = Ui.label({
@@ -165,7 +169,7 @@ local function build()
 		Position = UDim2.fromScale(0.5, 0.5),
 		Size = UDim2.fromOffset(8, 8),
 		BackgroundTransparency = 1,
-		Parent = gui,
+		Parent = fadeGui, -- the overlay ignores insets, so this is the true screen centre
 	}, {
 		Ui.new("UICorner", { CornerRadius = UDim.new(1, 0) }),
 		Ui.new("UIStroke", { Color = Ui.colors.line, Transparency = 0.35, Thickness = 1.2 }),
@@ -371,7 +375,7 @@ local function refreshInfo()
 	local server = State.server
 	local stage = server.stage
 	local playing = stage ~= "title"
-	crosshair.Visible = playing and stage ~= "downed"
+	crosshair.Visible = playing and stage ~= "downed" and not hidden
 	heatLabel.Visible = playing
 	heatFill.Parent.Visible = playing
 	staticLabel.Visible = playing

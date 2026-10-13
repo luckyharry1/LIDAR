@@ -123,6 +123,7 @@ end
 
 local function closeButton(parent: Frame, name: string, text: string): TextButton
 	local button = Ui.button({
+		Name = "Close",
 		Text = text,
 		AnchorPoint = Vector2.new(1, 1),
 		Position = UDim2.fromScale(1, 1),
