@@ -1,5 +1,5 @@
 --!strict
--- Builds the lit lore rooms: warm, human-scale, safe. Each theme is a layout table of props
+-- Builds the lit lore rooms: bright, human-scale, safe. Each theme is a layout table of props
 -- and note positions, so a new room is mostly data. Coordinates are room-local, measured from
 -- the centre of the floor; the entrance is on the south wall (+z) and the exit on the north.
 --
@@ -30,6 +30,8 @@ type Layout = {
 	notes: { NoteSpot }, -- in the same order as the room's note list
 	raisedEntrance: boolean?, -- true: players arrive on a landing and walk down stairs
 	flicker: boolean?,
+	stone: boolean?, -- true: slate walls and floor instead of plaster and boards
+	extras: ((origin: Vector3, parent: Instance) -> ())?, -- anything the kits cannot express
 }
 
 local HALF_X = 20
@@ -44,6 +46,255 @@ local LANDING_DEPTH = 5
 local STEP_DEPTH = 1.6
 local PANEL_OFFSETS = { -11, 0, 11 }
 local FLICKER_MIN, FLICKER_MAX = 0.05, 0.6
+
+-- The waterfall in the Cistern comes down the west wall into a railed pool.
+local FALL_X = -16.2 -- room-local position of the sheet of water
+local FALL_TOP = 9.8
+local FALL_WIDTH = 5
+local POOL_EAST = -11 -- the pool runs from the west wall to here
+local POOL_HALF_Z = 7
+local POOL_SURFACE = 0.6
+local RIM_HEIGHT = 0.9
+local RAIL_HEIGHT = 3.2
+local ROCK = Color3.fromRGB(70, 82, 84)
+local WATER = Color3.fromRGB(110, 200, 255)
+local MOSS = Color3.fromRGB(64, 132, 70)
+local MIST_TEXTURE = "rbxasset://textures/particles/smoke_main.dds"
+
+local function mist(parent: BasePart, falling: boolean)
+	local emitter = Instance.new("ParticleEmitter")
+	emitter.Texture = MIST_TEXTURE
+	emitter.Color = ColorSequence.new(Color3.fromRGB(210, 240, 255))
+	emitter.LightEmission = 0.5
+	emitter.Rotation = NumberRange.new(0, 360)
+	emitter.RotSpeed = NumberRange.new(-30, 30)
+	if falling then
+		emitter.EmissionDirection = Enum.NormalId.Bottom
+		emitter.Rate = 70
+		emitter.Lifetime = NumberRange.new(0.8, 1.1)
+		emitter.Speed = NumberRange.new(3, 5)
+		emitter.Acceleration = Vector3.new(0, -22, 0)
+		emitter.SpreadAngle = Vector2.new(5, 5)
+		emitter.Size = NumberSequence.new(0.9, 1.7)
+		emitter.Transparency = NumberSequence.new(0.45, 1)
+	else
+		emitter.EmissionDirection = Enum.NormalId.Top
+		emitter.Rate = 26
+		emitter.Lifetime = NumberRange.new(1.6, 2.6)
+		emitter.Speed = NumberRange.new(1, 2.2)
+		emitter.SpreadAngle = Vector2.new(50, 50)
+		emitter.Size = NumberSequence.new(1.4, 4.2)
+		emitter.Transparency = NumberSequence.new(0.7, 1)
+	end
+	emitter.Parent = parent
+end
+
+local function buildWaterfall(origin: Vector3, parent: Instance)
+	local model = Build.model("Waterfall", parent)
+	local function block(
+		name: string,
+		size: Vector3,
+		position: Vector3,
+		yaw: number,
+		color: Color3,
+		material: Enum.Material,
+		collide: boolean
+	): Part
+		return Build.part({
+			name = name,
+			size = size,
+			cframe = CFrame.new(origin + position) * CFrame.Angles(0, math.rad(yaw), 0),
+			color = color,
+			material = material,
+			collide = collide,
+			parent = model,
+		})
+	end
+	local slate = Enum.Material.Slate
+	local neon = Enum.Material.Neon
+	local wallX = -HALF_X
+	-- The rock face, a lip for the water to leave from, and boulders either side of it.
+	block(
+		"Rock",
+		Vector3.new(2.6, ROOM_HEIGHT, 16),
+		Vector3.new(wallX + 1.3, ROOM_HEIGHT / 2, 0),
+		0,
+		ROCK,
+		slate,
+		true
+	)
+	block(
+		"Lip",
+		Vector3.new(4.2, 1.6, FALL_WIDTH + 2),
+		Vector3.new(wallX + 2.1, FALL_TOP + 0.6, 0),
+		0,
+		ROCK,
+		slate,
+		true
+	)
+	block(
+		"Boulder",
+		Vector3.new(3.6, 5, 4),
+		Vector3.new(wallX + 2.4, 2.5, -6.4),
+		12,
+		ROCK,
+		slate,
+		true
+	)
+	block(
+		"Boulder",
+		Vector3.new(3.2, 7, 3.6),
+		Vector3.new(wallX + 2.2, 3.5, 6.6),
+		-9,
+		ROCK,
+		slate,
+		true
+	)
+	block(
+		"Boulder",
+		Vector3.new(2.2, 2, 2.6),
+		Vector3.new(wallX + 4.4, 1, 5.2),
+		30,
+		ROCK,
+		slate,
+		true
+	)
+
+	-- The fall itself: a bright sheet with two paler streaks, and mist where it lands.
+	local fallHeight = FALL_TOP - POOL_SURFACE
+	local fallMiddle = POOL_SURFACE + fallHeight / 2
+	local sheet = block(
+		"Fall",
+		Vector3.new(0.5, fallHeight, FALL_WIDTH),
+		Vector3.new(FALL_X, fallMiddle, 0),
+		0,
+		WATER,
+		neon,
+		false
+	)
+	sheet.Transparency = 0.45
+	for _, z in { -1.3, 1.1 } do
+		local streak = block(
+			"Streak",
+			Vector3.new(0.6, fallHeight, 0.7),
+			Vector3.new(FALL_X, fallMiddle, z),
+			0,
+			Color3.fromRGB(225, 245, 255),
+			neon,
+			false
+		)
+		streak.Transparency = 0.6
+	end
+	local head = block(
+		"FallHead",
+		Vector3.new(0.4, 0.4, FALL_WIDTH),
+		Vector3.new(FALL_X, FALL_TOP, 0),
+		0,
+		WATER,
+		neon,
+		false
+	)
+	head.Transparency = 1
+	mist(head, true)
+	local foot = block(
+		"FallFoot",
+		Vector3.new(1.4, 0.2, FALL_WIDTH + 1),
+		Vector3.new(FALL_X + 0.6, POOL_SURFACE + 0.2, 0),
+		0,
+		WATER,
+		neon,
+		false
+	)
+	foot.Transparency = 1
+	mist(foot, false)
+	Build.loop(sheet, Config.Audio.waterfall, 0.6, 1, 70)
+
+	-- The pool, lit from below, inside a low stone rim with a rail on the room side.
+	local poolWidth = POOL_EAST - wallX
+	local poolMiddle = wallX + poolWidth / 2
+	local pool = block(
+		"Pool",
+		Vector3.new(poolWidth, POOL_SURFACE, POOL_HALF_Z * 2),
+		Vector3.new(poolMiddle, POOL_SURFACE / 2, 0),
+		0,
+		Color3.fromRGB(40, 150, 200),
+		Enum.Material.SmoothPlastic,
+		false
+	)
+	pool.Transparency = 0.25
+	Build.pointLight(pool, Color3.fromRGB(90, 220, 255), 1.6, 24)
+	block(
+		"Rim",
+		Vector3.new(1, RIM_HEIGHT, POOL_HALF_Z * 2 + 2),
+		Vector3.new(POOL_EAST + 0.5, RIM_HEIGHT / 2, 0),
+		0,
+		ROCK,
+		slate,
+		true
+	)
+	for _, sign in { -1, 1 } do
+		block(
+			"Rim",
+			Vector3.new(poolWidth, RIM_HEIGHT, 1),
+			Vector3.new(poolMiddle, RIM_HEIGHT / 2, sign * (POOL_HALF_Z + 0.5)),
+			0,
+			ROCK,
+			slate,
+			true
+		)
+	end
+	local railColor = Color3.fromRGB(70, 74, 80)
+	for z = -6, 6, 4 do
+		block(
+			"Post",
+			Vector3.new(0.25, RAIL_HEIGHT, 0.25),
+			Vector3.new(POOL_EAST + 0.5, RAIL_HEIGHT / 2, z),
+			0,
+			railColor,
+			Enum.Material.Metal,
+			true
+		)
+	end
+	block(
+		"Rail",
+		Vector3.new(0.25, 0.25, POOL_HALF_Z * 2 - 1),
+		Vector3.new(POOL_EAST + 0.5, RAIL_HEIGHT, 0),
+		0,
+		railColor,
+		Enum.Material.Metal,
+		true
+	)
+
+	-- Moss where the spray reaches.
+	local grass = Enum.Material.Grass
+	block(
+		"Moss",
+		Vector3.new(5, 0.1, 4),
+		Vector3.new(POOL_EAST + 3.6, 0.05, -4.5),
+		14,
+		MOSS,
+		grass,
+		false
+	)
+	block(
+		"Moss",
+		Vector3.new(3.4, 0.1, 5),
+		Vector3.new(POOL_EAST + 2.8, 0.05, 4.8),
+		-20,
+		MOSS,
+		grass,
+		false
+	)
+	block(
+		"Moss",
+		Vector3.new(4.2, 0.12, 1),
+		Vector3.new(wallX + 2.3, FALL_TOP + 1.46, 0.4),
+		0,
+		MOSS,
+		grass,
+		false
+	)
+end
 
 local LAYOUTS: { [string]: Layout } = {
 	office = {
@@ -90,25 +341,27 @@ local LAYOUTS: { [string]: Layout } = {
 			{ x = 11.6, y = 4.2, z = -14.7, yaw = 180, flat = false },
 		},
 	},
-	nursery = {
+	cistern = {
+		stone = true,
+		extras = buildWaterfall,
 		props = {
-			{ kit = "seedlings", x = -12, z = -15, yaw = 180 },
-			{ kit = "seedlings", x = 12, z = -15, yaw = 180 },
-			{ kit = "seedlings", x = -20, z = -1, yaw = -90 },
-			{ kit = "plant", x = -17.5, z = 15, yaw = 0 },
-			{ kit = "plant", x = 17.5, z = 15, yaw = 0 },
-			{ kit = "plant", x = -8, z = 15, yaw = 0 },
-			{ kit = "plant", x = 20, z = -3, yaw = 90 },
-			{ kit = "shelf", x = 20, z = -9, yaw = 90 },
 			{ kit = "bench", x = 20, z = 6, yaw = 90 },
-			{ kit = "table", x = 0, z = 3.7, yaw = 0 },
-			{ kit = "chair", x = 0, z = 7.4, yaw = 0 },
-			{ kit = "rug", x = 0, z = 5, yaw = 0 },
+			{ kit = "table", x = 9, z = 15, yaw = 0 },
+			{ kit = "chair", x = 9, z = 10.2, yaw = 180 },
+			{ kit = "plant", x = 16.5, z = 15, yaw = 0 },
+			{ kit = "seedlings", x = 12, z = -15, yaw = 180 },
+			{ kit = "fern", x = -14, z = 15, yaw = 0 },
+			{ kit = "fern", x = -9, z = -15, yaw = 180 },
+			{ kit = "fern", x = 20, z = -4, yaw = 90 },
+			{ kit = "flowers", x = -8, z = 15, yaw = 0 },
+			{ kit = "flowers", x = -15, z = -15, yaw = 180 },
+			{ kit = "flowers", x = 20, z = -10, yaw = 90 },
+			{ kit = "flowers", x = 5.5, z = -15, yaw = 180 },
 		},
 		notes = {
-			{ x = -10.4, y = 3.42, z = -13.4, yaw = 15, flat = true },
-			{ x = 12, y = 5.4, z = -13.6, yaw = 180, flat = false },
-			{ x = 0.6, y = 3.02, z = 2.2, yaw = -20, flat = true },
+			{ x = -10.3, y = 2.2, z = 3, yaw = -90, flat = false },
+			{ x = -5.4, y = 4.4, z = -14.7, yaw = 180, flat = false },
+			{ x = 9.6, y = 3.02, z = 13.2, yaw = -20, flat = true },
 		},
 	},
 	stairwell = {
@@ -155,7 +408,7 @@ local function at(origin: Vector3, x: number, y: number, z: number, yaw: number)
 	return CFrame.new(origin + Vector3.new(x, y, z)) * CFrame.Angles(0, math.rad(yaw), 0)
 end
 
-local function buildShell(room: Lore.Room, origin: Vector3, parent: Instance)
+local function buildShell(room: Lore.Room, layout: Layout, origin: Vector3, parent: Instance)
 	local wallColor = Build.rgb(room.wall)
 	local function slab(
 		name: string,
@@ -179,7 +432,7 @@ local function buildShell(room: Lore.Room, origin: Vector3, parent: Instance)
 		Vector3.new(spanX, 1, spanZ),
 		Vector3.new(0, -0.5, 0),
 		Build.rgb(room.floor),
-		Enum.Material.WoodPlanks
+		if layout.stone then Enum.Material.Slate else Enum.Material.WoodPlanks
 	)
 	slab(
 		"Ceiling",
@@ -188,7 +441,7 @@ local function buildShell(room: Lore.Room, origin: Vector3, parent: Instance)
 		wallColor,
 		Enum.Material.SmoothPlastic
 	)
-	local plaster = Enum.Material.SmoothPlastic
+	local plaster = if layout.stone then Enum.Material.Slate else Enum.Material.SmoothPlastic
 	slab(
 		"WallN",
 		Vector3.new(spanX, ROOM_HEIGHT, WALL),
@@ -377,8 +630,11 @@ function LoreRooms.build(roomId: string, origin: Vector3): LoreRoom
 	assert(layout ~= nil, "no layout for theme " .. room.theme)
 
 	local model = Build.model("LoreRoom_" .. roomId, workspace)
-	buildShell(room, origin, model)
+	buildShell(room, layout, origin, model)
 	buildLights(room, layout, origin, model)
+	if layout.extras then
+		layout.extras(origin, model)
+	end
 
 	local entranceHeight = if layout.raisedEntrance then LANDING_HEIGHT else 0
 	if layout.raisedEntrance then

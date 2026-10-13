@@ -12,8 +12,9 @@ local ENDLESS_ENEMY_INTERVAL = 2 -- one more enemy every this many tiers, rotati
 local ENDLESS_ENEMY_ORDER = { "wanderer", "listener", "mimic", "stalker" }
 local ENDLESS_SPEED_STEP = 0.02
 local ENDLESS_SPEED_CAP = 1.3
-local ENDLESS_HEAT_STEP = 0.03
-local ENDLESS_HEAT_CAP = 1.5
+local ENDLESS_SWEEP_STEP = 0.03
+local ENDLESS_SWEEP_CAP = 1.5
+local ENDLESS_HAZARD_INTERVAL = 3 -- one more pit and plate every this many tiers
 local ENDLESS_REWARD_STEP = 20
 local ENDLESS_LORE_INTERVAL = 3
 
@@ -53,7 +54,11 @@ function Difficulty.forTier(tier: number): Tier
 		objectives = last.objectives,
 		exitLocked = true,
 		flooded = last.flooded,
-		heatScale = math.min(last.heatScale + ENDLESS_HEAT_STEP * extra, ENDLESS_HEAT_CAP),
+		lamps = last.lamps,
+		echoes = last.echoes,
+		pits = last.pits + math.floor(extra / ENDLESS_HAZARD_INTERVAL),
+		plates = last.plates + math.floor(extra / ENDLESS_HAZARD_INTERVAL),
+		sweepScale = math.min(last.sweepScale + ENDLESS_SWEEP_STEP * extra, ENDLESS_SWEEP_CAP),
 		reward = last.reward + ENDLESS_REWARD_STEP * extra,
 		loreRoomAfter = if extra % ENDLESS_LORE_INTERVAL == 0 then "landing" else nil,
 	}

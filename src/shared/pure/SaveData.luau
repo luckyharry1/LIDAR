@@ -11,12 +11,19 @@ export type Profile = {
 	upgrades: { [string]: number },
 	toggles: { [string]: boolean },
 	cosmetics: { owned: { [string]: boolean }, dots: string, gun: string },
-	settings: { palette: string, sharedScans: boolean, scanMode: string, volume: number },
+	settings: {
+		palette: string,
+		sharedScans: boolean,
+		scanMode: string,
+		volume: number,
+		dotQuality: string, -- "auto" picks by device; otherwise a key of Config.Lidar.dotBudget
+	},
 	tutorialDone: boolean,
 	checkpointTier: number,
 	bestTier: number,
 	lore: { [string]: boolean },
 	plates: { [string]: boolean },
+	echoes: number, -- recorder lines heard so far; the next recorder plays the next line
 	met: { [string]: boolean },
 	stats: { levels: number, deaths: number, rescues: number, runs: number, distance: number },
 	streak: { day: number, count: number },
@@ -30,6 +37,7 @@ local MAX_TIER = 10000
 local MAX_COUNT = 1000000000
 local PALETTES = { default = true, alt = true }
 local SCAN_MODES = { auto = true, hold = true, toggle = true }
+local DOT_QUALITIES = { auto = true, low = true, medium = true, high = true }
 
 local SaveData = {}
 
@@ -40,12 +48,19 @@ function SaveData.default(): Profile
 		upgrades = {},
 		toggles = {},
 		cosmetics = { owned = {}, dots = "", gun = "" },
-		settings = { palette = "default", sharedScans = true, scanMode = "auto", volume = 1 },
+		settings = {
+			palette = "default",
+			sharedScans = true,
+			scanMode = "auto",
+			volume = 1,
+			dotQuality = "auto",
+		},
 		tutorialDone = false,
 		checkpointTier = 1,
 		bestTier = 0,
 		lore = {},
 		plates = {},
+		echoes = 0,
 		met = {},
 		stats = { levels = 0, deaths = 0, rescues = 0, runs = 0, distance = 0 },
 		streak = { day = 0, count = 0 },
@@ -139,11 +154,15 @@ function SaveData.load(raw: any): Profile
 	if type(settings.volume) == "number" and settings.volume == settings.volume then
 		profile.settings.volume = math.clamp(settings.volume, 0, 1)
 	end
+	profile.settings.dotQuality = if DOT_QUALITIES[settings.dotQuality]
+		then settings.dotQuality
+		else "auto"
 	profile.tutorialDone = boolean(data.tutorialDone, false)
 	profile.checkpointTier = number(data.checkpointTier, 1, 1, MAX_TIER)
 	profile.bestTier = number(data.bestTier, 0, 0, MAX_TIER)
 	profile.lore = flags(data.lore)
 	profile.plates = flags(data.plates)
+	profile.echoes = number(data.echoes, 0, 0, MAX_COUNT)
 	profile.met = flags(data.met)
 	local stats = tableOf(data.stats)
 	for key in profile.stats do

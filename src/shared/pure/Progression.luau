@@ -7,11 +7,11 @@ local SaveData = require("./SaveData")
 local Upgrades = require("../data/Upgrades")
 
 export type Effects = {
-	heatRateMul: number,
-	coolMul: number,
-	lifetimeMul: number,
+	sweepRechargeMul: number, -- multiplies the sweep's recharge time
+	shutterLevel: number, -- Quiet Shutter levels (each makes the sweep quieter)
+	phosphorLevel: number, -- each level raises the dot budget
 	wideLens: boolean,
-	coneMul: number,
+	radarLevel: number, -- 0 when not owned or switched off
 	pingLifetime: number,
 	decoy: boolean,
 	wayfinder: number,
@@ -33,6 +33,9 @@ export type Reward = {
 	plate: number,
 	clean: number,
 }
+
+local CAPACITOR_FACTOR = 0.85 -- sweep recharge time multiplier per Capacitor level
+local MARKER_SECONDS = 8 -- extra ping lifetime per Echo Beacon level
 
 local Progression = {}
 
@@ -108,15 +111,13 @@ function Progression.effects(profile: SaveData.Profile): Effects
 	local function level(id: string): number
 		return profile.upgrades[id] or 0
 	end
-	local byId = Upgrades.byId
-	local wideLens = level("lens") > 0 and profile.toggles.lens == true
 	return {
-		heatRateMul = byId.battery.perLevel ^ level("battery"),
-		coolMul = 1 + byId.cooling.perLevel * level("cooling"),
-		lifetimeMul = 1 + byId.persistence.perLevel * level("persistence"),
-		wideLens = wideLens,
-		coneMul = if wideLens then byId.lens.perLevel else 1,
-		pingLifetime = Config.Coop.pingLifetime + byId.marker.perLevel * level("marker"),
+		sweepRechargeMul = CAPACITOR_FACTOR ^ level("battery"),
+		shutterLevel = level("cooling"),
+		phosphorLevel = level("persistence"),
+		wideLens = level("lens") > 0,
+		radarLevel = if profile.toggles.radar == true then level("radar") else 0,
+		pingLifetime = Config.Coop.pingLifetime + MARKER_SECONDS * level("marker"),
 		decoy = level("marker") > 0,
 		wayfinder = level("wayfinder"),
 		solesLevel = level("soles"),

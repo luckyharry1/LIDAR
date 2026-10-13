@@ -3,8 +3,10 @@
 -- it has "scanned", while the real enemy state machines hunt it. Used by tests to show every
 -- tier can be cleared and that nothing deadlocks. It models the rules, not the feel.
 --
--- The bot plays the way the game teaches: it goes quiet near a Wanderer and routes around it,
--- hides at the wall when a Listener is close, stares a Stalker down, and runs from a chase.
+-- The bot plays the way the game teaches: it scans all the time (scattering dots is silent),
+-- crouches when something is near, presses into the wall to let roaming monsters pass, keeps
+-- its dots on a Stalker until it withdraws, walks away from a Wanderer and runs from a Mimic.
+-- It ignores pits and alarm plates, which a player sees and walks round.
 
 local Config = require("../src/shared/Config")
 local EnemyBrain = require("../src/shared/pure/EnemyBrain")
@@ -26,18 +28,14 @@ local DT = 0.1
 local SCAN_CELLS = 5 -- how far down a straight corridor a scan teaches the bot
 local SENSE_CELLS = 6 -- how far the bot notices an enemy it has a clear line to
 local HEAR_CELLS = 1.5 -- how close a moving enemy must be to be heard through walls
-local QUIET_CELLS = 4 -- stop scanning when a Listener is this close
-local LISTENER_HIDE_CELLS = 1.3 -- stand still at the wall when a Listener is this close
-local LISTENER_CLEAR_CELLS = 1.6 -- and stay hidden until it is this far away again
-local LISTENER_FREEZE_CELLS = 0.95 -- closer than this even a step to the wall is heard
-local PATROL_HIDE_CELLS = 1.3 -- also hide from a Wanderer that has not noticed the bot
+local QUIET_CELLS = 3.5 -- crouch when a roaming monster is this close
+local LISTENER_HIDE_CELLS = 1.3 -- press into the wall when a Listener is this close
+local LISTENER_CLEAR_CELLS = 1.6 -- and stay there until it is this far away again
+local PATROL_HIDE_CELLS = 1.3 -- the same for a Wanderer that has not noticed the bot
 local HIDE_PATH_CELLS = 2 -- but only when it is also this few steps away on foot
-local MEMORY_SECONDS = 30 -- how long the bot remembers where it met a Listener or Wanderer
-local MEMORY_CELLS = 5 -- and how near that spot it keeps the scanner off
-local HUNTER_FREEZE_CELLS = 1 -- with a hunting Wanderer this close, do not even step to the wall
 local LANE_OFFSET = 0.36 -- how far off the centre line the bot walks to slip past something
 local LANE_CELLS = 1.5 -- it does that when the thing is this close
-local STARE_SAFE_CELLS = 1.3 -- with a Listener or hunting Wanderer nearer than this, run instead of pinning a Stalker
+local STARE_SAFE_CELLS = 1.3 -- with a hunting Wanderer nearer than this, run instead of pinning a Stalker
 local FLEE_CELLS = 2 -- run when something fast is coming and is this close
 local EVADE_CELLS = 3 -- walk away quietly when a Wanderer on your trail is this close
 local FLEE_SECONDS = 2.5
@@ -58,6 +56,7 @@ function Sim.run(tier: number, seed: number, maxSeconds: number, trace: ((string
 	local rng = Rng.new(seed + SEED_SALT)
 	local walk = Config.Player.walkSpeed
 	local sprint = Config.Player.sprintSpeed
+	local crouch = Config.Player.crouchSpeed
 
 	local function indexOf(cell: Maze.Cell): number
 		return Maze.index(maze, cell.x, cell.y)
@@ -66,7 +65,6 @@ function Sim.run(tier: number, seed: number, maxSeconds: number, trace: ((string
 	local enemies: { EnemyBrain.Enemy } = {}
 	local spotsMimic: { [number]: boolean } = {}
 	local mimicPosts: { [number]: Maze.Cell } = {}
-	local heardX, heardZ, heardAt = 0, 0, -math.huge -- where a Listener or Wanderer was last noticed
 	for _, spawn in plan.enemies do
 		table.insert(
 			enemies,
@@ -97,7 +95,7 @@ function Sim.run(tier: number, seed: number, maxSeconds: number, trace: ((string
 		z = maze.start.y - 0.5,
 		noise = 0,
 		scanning = true,
-		focusing = false,
+		crouching = false,
 		lookX = 0,
 		lookZ = 1,
 		active = true,
@@ -117,9 +115,6 @@ function Sim.run(tier: number, seed: number, maxSeconds: number, trace: ((string
 	local function learn()
 		local here = Maze.cellOf(maze, bot.x, bot.z)
 		known[indexOf(here)] = true
-		if not bot.scanning then
-			return
-		end
 		for _, name in Maze.DIR_NAMES do
 			local d = Maze.DIRS[name]
 			local cx, cy = here.x, here.y
@@ -282,6 +277,7 @@ function Sim.run(tier: number, seed: number, maxSeconds: number, trace: ((string
 			local nearHunter = math.huge -- a Wanderer on the bot's trail: walk away quietly
 			local nearPatrol = math.huge -- a Wanderer that has not noticed the bot
 			local nearListener = math.huge
+			local nearRoamer = math.huge -- any Wanderer in view that has not noticed the bot
 			local stalkerInSight: EnemyBrain.Enemy? = nil
 			local stalkerDistance = math.huge
 			local hereDist: { [number]: number }? = nil -- path steps from the bot, built on demand
@@ -304,18 +300,12 @@ function Sim.run(tier: number, seed: number, maxSeconds: number, trace: ((string
 					local reachable = (hereDist :: { [number]: number })[indexOf(cell)]
 						<= HIDE_PATH_CELLS
 					if enemy.kind == "listener" then
-						heardX, heardZ, heardAt = enemy.x, enemy.z, elapsed
+						-- Crouched, the bot is silent: a Listener can only bump into it.
 						if reachable or enemy.state == "hunt" then
 							nearListener = math.min(nearListener, d)
 						end
-						-- Walking is audible to a Listener a cell away, so its surroundings are
-						-- off limits even when the bot is taking risks.
-						for _, around in
-							{ cell, table.unpack(Maze.neighbors(maze, cell.x, cell.y)) }
-						do
-							blocked[indexOf(around)] = true
-							occupied[indexOf(around)] = true
-						end
+						blocked[indexOf(cell)] = true
+						occupied[indexOf(cell)] = true
 					elseif enemy.kind == "stalker" then
 						-- A hunting Stalker is faced and scanned whether or not it is in view yet,
 						-- so it is pinned the moment it rounds the corner.
@@ -332,13 +322,12 @@ function Sim.run(tier: number, seed: number, maxSeconds: number, trace: ((string
 							mimicPosts[enemy.id] = enemy.home -- it never moves while disguised
 						end
 					elseif enemy.state == "chase" or enemy.state == "investigate" then
-						heardX, heardZ, heardAt = enemy.x, enemy.z, elapsed
 						dangerous = true
 						nearHunter = math.min(nearHunter, d)
 					else
-						heardX, heardZ, heardAt = enemy.x, enemy.z, elapsed
-						-- A patrolling Wanderer cannot sense a silent walker: just keep out of
-						-- its cell and press into the wall when it comes close.
+						-- A roaming Wanderer cannot see a crouched player: keep out of its cell
+						-- and press into the wall when it comes close.
+						nearRoamer = math.min(nearRoamer, d)
 						if reachable then
 							nearPatrol = math.min(nearPatrol, d)
 						end
@@ -373,11 +362,9 @@ function Sim.run(tier: number, seed: number, maxSeconds: number, trace: ((string
 			-- Decide what to do this step.
 			local speed = walk
 			local mode = "explore"
-			-- Pinning a Stalker means standing still with the beam on. With a Listener or a
-			-- hunting Wanderer almost on top of the bot that is fatal, so then it runs instead.
-			local canStare = stalkerInSight ~= nil
-				and nearListener > STARE_SAFE_CELLS
-				and nearHunter > STARE_SAFE_CELLS
+			-- Pinning a Stalker means standing still with dots on it. With a hunting Wanderer
+			-- almost on top of the bot that is fatal, so then it runs instead.
+			local canStare = stalkerInSight ~= nil and nearHunter > STARE_SAFE_CELLS
 			if stalkerInSight ~= nil and not canStare then
 				table.insert(dangers, stalkerInSight)
 				nearChaser = math.min(nearChaser, stalkerDistance)
@@ -403,18 +390,11 @@ function Sim.run(tier: number, seed: number, maxSeconds: number, trace: ((string
 				or nearPatrol <= PATROL_HIDE_CELLS
 			then
 				mode = "hide"
-			elseif #dangers > 0 or nearListener <= QUIET_CELLS or nearPatrol <= QUIET_CELLS then
+			elseif #dangers > 0 or nearListener <= QUIET_CELLS or nearRoamer <= QUIET_CELLS then
 				mode = "sneak"
-			elseif elapsed - heardAt <= MEMORY_SECONDS then
-				-- Something that follows scans was here a moment ago: keep the scanner off nearby.
-				local dx, dz = heardX - bot.x, heardZ - bot.z
-				if dx * dx + dz * dz <= MEMORY_CELLS ^ 2 then
-					mode = "sneak"
-				end
 			end
 			lastMode = mode
-			bot.scanning = mode == "stare" or mode == "explore"
-			bot.focusing = mode == "stare" -- the focused beam pins it fastest
+			bot.crouching = mode == "sneak" or mode == "hide"
 			if risk > 0 then
 				risk -= DT
 			end
@@ -469,20 +449,18 @@ function Sim.run(tier: number, seed: number, maxSeconds: number, trace: ((string
 			local moved = 0
 			if mode == "flee" then
 				speed = sprint
+			elseif mode == "sneak" then
+				speed = crouch
 			end
-			if
-				mode == "hide"
-				and nearListener > LISTENER_FREEZE_CELLS
-				and nearHunter > HUNTER_FREEZE_CELLS
-			then
+			if mode == "hide" then
 				local tx, tz = hereCell.x - 0.5 - HIDE_OFFSET, hereCell.y - 0.5 - HIDE_OFFSET
 				local dx, dz = tx - bot.x, tz - bot.z
 				local d = math.sqrt(dx * dx + dz * dz)
-				local budget = walk / cellSize * DT
+				local budget = crouch / cellSize * DT
 				if d > budget then
 					bot.x += dx / d * budget
 					bot.z += dz / d * budget
-					moved = walk
+					moved = crouch
 				else
 					bot.x, bot.z = tx, tz
 				end
@@ -517,13 +495,13 @@ function Sim.run(tier: number, seed: number, maxSeconds: number, trace: ((string
 				end
 				moved = speed
 			end
-			if stalkerInSight ~= nil and bot.scanning then
+			if stalkerInSight ~= nil then
 				bot.lookX, bot.lookZ = stalkerInSight.x - bot.x, stalkerInSight.z - bot.z
 			end
 			local here = Maze.cellOf(maze, bot.x, bot.z)
 			local hereIndex = indexOf(here)
 			bot.noise =
-				Noise.radius(moved, bot.scanning, bot.focusing, plan.flooded[hereIndex] == true, 0)
+				Noise.radius(moved, false, bot.crouching, plan.flooded[hereIndex] == true, 0, 0)
 
 			-- Pick up whatever is in this cell; leave through the exit when allowed.
 			for id, objective in remaining do

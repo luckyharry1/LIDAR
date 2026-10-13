@@ -85,6 +85,30 @@ tests["every tier places valid, non-overlapping contents"] = function()
 			for index in plan.flooded do
 				assert(not used[index], "flooded cell under an objective, enemy, start or exit")
 			end
+			local extras = {
+				{ name = "lamp", cells = plan.lamps, count = def.lamps },
+				{ name = "echo", cells = plan.echoes, count = def.echoes },
+				{ name = "pit", cells = plan.pits, count = def.pits },
+				{ name = "plate", cells = plan.plates, count = def.plates },
+			}
+			for _, extra in extras do
+				assert(#extra.cells == extra.count, `wrong {extra.name} count at tier {tier}`)
+				for _, cell in extra.cells do
+					local index = Maze.index(maze, cell.x, cell.y)
+					assert(
+						not used[index],
+						`{extra.name} overlaps something at tier {tier} seed {seed}`
+					)
+					assert(not plan.flooded[index], extra.name .. " placed in a flooded cell")
+					used[index] = true
+				end
+			end
+			for _, cell in plan.pits do
+				assert(
+					startDist[Maze.index(maze, cell.x, cell.y)] >= 2,
+					"a pit next to the level start"
+				)
+			end
 			assert(Maze.isSolvable(maze), "unsolvable level")
 		end
 	end

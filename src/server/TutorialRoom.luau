@@ -1,6 +1,7 @@
 --!strict
 -- The first thing a new player stands in: one small dark room with a baffle wall and a door
 -- at the far end. The client's tutorial prompts do the teaching; this only builds the space.
+-- Like the maze, it is invisible: it can only be scanned.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -82,11 +83,14 @@ function TutorialRoom.build(origin: Vector3): Tutorial
 		parent = model,
 	})
 
+	local exitPrompt = Build.prompt(door, "Open", "Door", 0.4)
+	Build.hide(model)
+
 	local spawnPoint = origin + Vector3.new(0, SPAWN_HEIGHT, HALF_Z - 4)
 	return {
 		model = model,
 		spawnCFrame = CFrame.lookAt(spawnPoint, spawnPoint + Vector3.new(0, 0, -1)),
-		exitPrompt = Build.prompt(door, "Open", "Door", 0.4),
+		exitPrompt = exitPrompt,
 		exitDoor = door,
 	}
 end

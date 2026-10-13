@@ -86,6 +86,40 @@ function Build.pointLight(
 	return light
 end
 
+-- Makes everything under `root` invisible and unlit. The maze is never seen, only scanned:
+-- its parts still stop rays and feet, but draw nothing, so dots show through the walls.
+function Build.hide(root: Instance)
+	for _, descendant in root:GetDescendants() do
+		if descendant:IsA("BasePart") then
+			descendant.Transparency = 1
+		elseif descendant:IsA("Light") then
+			descendant.Enabled = false
+		end
+	end
+end
+
+-- A looping positional sound. Tagged so each client can route it through its volume setting.
+function Build.loop(
+	parent: BasePart,
+	id: string,
+	volume: number,
+	speed: number,
+	maxDistance: number
+): Sound
+	local sound = Instance.new("Sound")
+	sound.SoundId = id
+	sound.Looped = true
+	sound.Volume = volume
+	sound.PlaybackSpeed = speed
+	sound.RollOffMode = Enum.RollOffMode.InverseTapered
+	sound.RollOffMinDistance = 6
+	sound.RollOffMaxDistance = maxDistance
+	CollectionService:AddTag(sound, Config.Tags.sound)
+	sound.Parent = parent
+	sound:Play()
+	return sound
+end
+
 -- Welds every part in a model to its root and unanchors them, so moving the anchored root
 -- moves the whole thing with a single replicated CFrame.
 function Build.weldTo(root: BasePart, model: Model)

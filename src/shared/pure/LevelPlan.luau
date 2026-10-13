@@ -1,7 +1,7 @@
 --!strict
 -- Turns (tier, seed) into a complete, deterministic level description: maze, landmarks,
--- flooded cells, objectives, enemy spawns and an optional anomaly. Server and clients both
--- build the same plan from the same two numbers.
+-- flooded cells, objectives, enemy spawns, lanterns, hidden recorders, pits, alarm plates and
+-- an optional anomaly. Server and clients both build the same plan from the same two numbers.
 
 local Config = require("../Config")
 local Difficulty = require("./Difficulty")
@@ -23,6 +23,10 @@ export type LevelPlan = {
 	objectives: { Objective },
 	enemies: { EnemySpawn },
 	exitLocked: boolean,
+	lamps: { Cell }, -- lanterns: small pools of real light
+	echoes: { Cell }, -- hidden recorders that reveal themselves when scanned enough
+	pits: { Cell }, -- holes in the floor, with a ledge all the way round
+	plates: { Cell }, -- alarm plates
 	anomaly: Anomaly?,
 	beaconCell: Cell, -- halfway along the main path; a checkpoint for pass owners
 }
@@ -38,6 +42,21 @@ local OPTIONAL_KINDS = { "cell", "rescue", "cell" }
 local OBJECTIVE_RULE = {
 	minDistance = 2,
 	preferDeadEnd = true,
+	spacing = 0,
+	clearOfStart = false,
+	bypassable = false,
+}
+-- The first lantern sits close to the start: a fixed point to navigate back to.
+local FIRST_LAMP_RULE = {
+	minDistance = 1,
+	preferDeadEnd = false,
+	spacing = 0,
+	clearOfStart = false,
+	bypassable = false,
+}
+local SCATTER_RULE = {
+	minDistance = 3,
+	preferDeadEnd = false,
 	spacing = 0,
 	clearOfStart = false,
 	bypassable = false,
@@ -203,6 +222,24 @@ function LevelPlan.build(tier: number, seed: number, options: BuildOptions): Lev
 		end
 	end
 
+	-- Lanterns, recorders, pits and alarm plates. Each takes its own cell.
+	local lamps: { Cell } = {}
+	for i = 1, def.lamps do
+		table.insert(lamps, take(if i == 1 then FIRST_LAMP_RULE else SCATTER_RULE))
+	end
+	local echoes: { Cell } = {}
+	for _ = 1, def.echoes do
+		table.insert(echoes, take(SCATTER_RULE))
+	end
+	local pits: { Cell } = {}
+	for _ = 1, def.pits do
+		table.insert(pits, take(SCATTER_RULE))
+	end
+	local plates: { Cell } = {}
+	for _ = 1, def.plates do
+		table.insert(plates, take(SCATTER_RULE))
+	end
+
 	-- Flooded cells and landmarks.
 	local flooded: { [number]: boolean } = {}
 	local features: { [number]: string } = {}
@@ -242,6 +279,10 @@ function LevelPlan.build(tier: number, seed: number, options: BuildOptions): Lev
 		objectives = objectives,
 		enemies = enemies,
 		exitLocked = def.exitLocked,
+		lamps = lamps,
+		echoes = echoes,
+		pits = pits,
+		plates = plates,
 		anomaly = anomaly,
 		beaconCell = beaconCell,
 	}
