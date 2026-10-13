@@ -3,8 +3,10 @@
 Living log of where the build is. Update it whenever a slice lands, so a fresh session can
 pick up from exactly here.
 
-Last updated: 13 Oct 2026, during the v2 rework (branch `claude/project-thread-btlp2q`,
-local only, nothing pushed).
+Last updated: 13 Oct 2026, during the v2 rework. The v2 work is on two pushed branches:
+`claude/project-thread-btlp2q` (rules, data, server, client core, story docs) and
+`claude/lucid-noether-kgfglb`, which merges it and adds the client slices, the story
+integration and the docs. Nothing is merged into `main` yet.
 
 ## Where things stand
 
@@ -31,7 +33,7 @@ a friend and asked for a rework ("v2"). The feedback, in short:
 | Client controls and menus | `Input`, `Avatar`, `Viewmodel`, `Atmosphere`, `Ui`, `Menus`, `Title` | Written (cloud session), type-checked. Not yet run in Studio. |
 | Client presence and sound | `Audio`, `Presence` (new), `Effects` | Written (cloud session), type-checked. Not yet run in Studio. |
 | Client HUD and teaching | `Hud`, `Tutorial` | Written (cloud session), type-checked. Not yet run in Studio. |
-| Docs | `README`, `docs/DESIGN`, `LORE`, `ASSETS`, `TESTING`, `PUBLISHING`, `DECISIONS` | In progress (helper E). |
+| Docs | `README`, `docs/DESIGN`, `LORE`, `ASSETS`, `TESTING`, `PUBLISHING`, `DECISIONS` | Written (cloud session). `docs/LORE.md` is generated: `lune run scripts/lore > docs/LORE.md`. |
 | Integration and playtest | everything | Not started. Main session only (Studio). |
 
 All client slices are now written to the contracts below, so the place should run again; it
@@ -104,6 +106,12 @@ Open items, for Vasco to decide (not filled in):
   secret alcove behind the Falls. They need world props and placement rules; the text exists.
 - The bible introduces the Still on tier 7; `Tiers.luau` has the Stalker from tier 6.
 - Lines not used yet: `note.bunk.letters`, `rev.desk.board`, `rev.falls.*`, `tip.*`, `item.*`.
+- Tapes play in story order, one per recorder revealed, but tiers 1 to 4 have one recorder
+  each while every floor has three tapes, so some tapes play a floor late (Hollis's Annex
+  tape on B4). Recorders 1, 2, 1, 2, ... per tier would line them up; that is a change to
+  `Tiers.luau`, so it is left for you.
+- Balance, from the bot simulation (`docs/DESIGN.md`, "What to tune first"): tier 7, the only
+  tier with two Wanderers, averages about four catches per run against about one elsewhere.
 
 ## v2 design in one page
 

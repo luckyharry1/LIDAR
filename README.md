@@ -11,7 +11,7 @@ LIDAR is a co-op horror maze for Roblox. It is a Rojo project written in Luau.
 
 The game is in the middle of a rework called v2. `docs/PROGRESS.md` is the source of truth for what is finished, what has actually been run and what has not. Read it first.
 
-Nothing has been published to Roblox, and the working branch has not been pushed.
+Nothing has been published to Roblox. The v2 work is on the branches `claude/project-thread-btlp2q` and `claude/lucid-noether-kgfglb` (the second carries the first plus the client slices, the story integration and the docs); neither is merged into `main` yet.
 
 ## What you need
 
@@ -53,6 +53,8 @@ Saving in Studio only works when Studio has access to API services (see `docs/PU
 | --- | --- |
 | `./scripts/check.sh` | Everything: `stylua --check src tests`, `selene src tests`, `lune run tests/run`, then `rojo build -o build/LIDAR.rbxl` |
 | `lune run tests/run` | Only the unit tests and the bot simulation |
+| `./scripts/typecheck.sh` | Optional: a strict type check against Roblox's API types with luau-lsp (see `docs/TESTING.md`; not part of CI) |
+| `lune run scripts/lore > docs/LORE.md` | Regenerates `docs/LORE.md` from the story text the game uses |
 
 The GitHub workflow in `.github/workflows/check.yml` runs `./scripts/check.sh` on every push and pull request.
 
@@ -71,12 +73,16 @@ These come from the Input contract in `docs/PROGRESS.md`.
 | Crouch | Left Ctrl (hold) or C (toggle) | B (toggle) | CROUCH button (toggle) |
 | Sprint | Left Shift (hold) | L3 (toggle) | RUN button |
 | Interact with a door, pickup, note or the workbench | E | X | The on-screen prompt |
+| Ping a spot for the party | G or middle mouse | Y | PING button (in a level) |
+| Emote wheel | B | D-pad down | SAY button (with a party) |
+| Photo mode: freeze the dots, hide the interface | P | D-pad right | - |
+| Wayfinder map, small or large | M | D-pad left | - |
 
 Things to know:
 
 - Sprinting cancels crouching, and crouching cancels sprinting.
 - Jumping is disabled in the maze.
-- Ping, emote, photo and map are also actions in the Input contract, but the contract does not fix their keys. Look in `src/client/Input.luau` once the v2 client has landed.
+- On touch, SCAN follows the scan-mode setting (a toggle by default); RUN and CROUCH always toggle.
 
 ## Dev commands (Studio only)
 
