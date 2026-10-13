@@ -133,7 +133,9 @@ function Maze.generate(seed: number, width: number, height: number, options: Opt
 		for x = 1, width do
 			for _, name in { "E", "S" } do
 				local d = DIRS[name]
-				if inBounds(maze, x + d.dx, y + d.dy) and not maze.open[index(width, x, y)][name] then
+				if
+					inBounds(maze, x + d.dx, y + d.dy) and not maze.open[index(width, x, y)][name]
+				then
 					if rng:next() < options.loopChance then
 						link(maze, x, y, name)
 					end
@@ -150,7 +152,10 @@ function Maze.generate(seed: number, width: number, height: number, options: Opt
 				rng:shuffle(names)
 				for _, name in names do
 					local d = DIRS[name]
-					if inBounds(maze, x + d.dx, y + d.dy) and not maze.open[index(width, x, y)][name] then
+					if
+						inBounds(maze, x + d.dx, y + d.dy)
+						and not maze.open[index(width, x, y)][name]
+					then
 						link(maze, x, y, name)
 						break
 					end

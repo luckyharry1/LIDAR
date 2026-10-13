@@ -1,1 +1,5 @@
 std = "roblox"
+
+[lints]
+# Selene does not understand Luau string requires.
+incorrect_standard_library_use = "allow"
