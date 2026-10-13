@@ -670,6 +670,16 @@ local function beginLevel(tier: number)
 		leaving = true
 		level.exitPrompt.Enabled = false
 		toastStage("Exit found. Leaving together.", "good", "level", "downed")
+		for otherPlayer, other in members do
+			if inLevel(other) then
+				Remotes.send(
+					otherPlayer,
+					"Objective",
+					"exit",
+					{ position = level.exitDoor.Position, by = player.UserId }
+				)
+			end
+		end
 		task.delay(Config.World.transitionSeconds, function()
 			if run.level == level then
 				completeLevel()
