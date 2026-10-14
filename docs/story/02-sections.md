@@ -4,6 +4,28 @@ Tier numbers follow build-prompt.md (8 tiers + endless). Entity intro order: Wan
 
 Vasco's direction applied everywhere: a **journey** (items, gates, varied terrain, secrets), **mostly breath, rarely terror** (encounters only sometimes), objects that **reveal themselves** when scanned enough (lighting nearby floor and wall, with a short bit of lore), small **lit spots** (lamp-bags), traps and pitfalls, blue water, and one vibrant lit waterfall safe area.
 
+## Pacing and playtime (design targets, not measured)
+
+From build-prompt.md: a small reward every 20 to 40 s, a level clear every 3 to 5 min. At ~3 to 4 min per level, tier 4 ends about **12 to 16 min** into a first run, so the Falls would be a long wait for a first exhale. Vasco (2026-10-13) likes the T4 Falls and wants small lore havens as clear breaks from monsters. So:
+
+- **A lit break after every level**, alternating small and large:
+
+| After | Break | Size |
+|---|---|---|
+| T1 | The Copy Room | haven (about 1 min, mini checkpoint, one lore drop) |
+| T2 | The Night Desk | big lit room |
+| T3 | The Dry Booth | haven |
+| T4 | **The Falls** | big lit room (the main exhale, about 14 min in) |
+| T5 | The Potting Shed | haven |
+| T6 | The Bunk Room | big lit room |
+| T7 | The Archive Nook | haven |
+| T8 | The Lamp Room | finale |
+
+- **Havens**: a single small lit room or nook, no enemies, a lamp, one readable lore drop, optional radio line, mini checkpoint. Ids: `card.haven.*`, `note.haven.*`, `radio.haven.1`.
+- **Lit spots in the dark** (mid-level): `rev.nook.1` to `rev.nook.4`, lamp-bags that ignite when scanned enough. These are the "bag with the aura of a lightbulb" Vasco asked for. Place one every ~60 to 90 s of travel.
+- Result: a lit break roughly every 3 to 4 min, a small lore drop every ~60 to 90 s, scares rare in between.
+- If the Falls should come sooner, it can move to after T3 and the Dry Booth becomes the T4 haven; only the card order changes.
+
 ## Recurring devices
 
 - **Lamp-bags** (`item.lampbag`): a bulb in a canvas sack. Crew breadcrumbs. Scan one enough and it ignites, lighting about 6 to 8 studs of floor and wall in warm amber. Hung at every important turn. Some are dead (no glow); a dead bag still reveals a name tag (`rev.*` flavour). Never use green for them (green means friend).

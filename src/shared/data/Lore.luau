@@ -15,6 +15,7 @@ export type Room = {
 	id: string,
 	title: string, -- shown as a title card on entry
 	subtitle: string,
+	size: string, -- "haven": a small lit room after a level; "room": a big one
 	theme: string, -- which layout the builder uses
 	wall: { number }, -- RGB
 	floor: { number },
@@ -80,6 +81,11 @@ function Lore.fill(template: string, values: { [string]: string | number }): str
 end
 
 Lore.notes = {
+	-- The havens: one small lit room after each odd tier, one page to read in each.
+	haven_copy = { title = "Page in the copier tray", body = text("note.haven.copy") },
+	haven_booth = { title = "Shift log, pump house", body = text("note.haven.booth") },
+	haven_shed = { title = "Seed packets", body = text("note.haven.shed") },
+	haven_nook = { title = "Card index", body = text("note.haven.nook") },
 	-- The Night Desk, after tier 2: the first exhale. Crew 7 has done this before.
 	desk_signin = { title = "Sign-in sheet", body = text("note.desk.signin") },
 	desk_self = { title = "Torn note, under the lamp", body = text("note.desk.self") },
@@ -88,6 +94,7 @@ Lore.notes = {
 	falls_ines = { title = "Tape, on a ledge", body = tape("rec.falls.1") },
 	falls_lena = { title = "Tape, under the camp stove", body = tape("rec.falls.2") },
 	falls_guestbook = { title = "Guest book", body = text("note.falls.guestbook") },
+	falls_behind = { title = "Chalk drawing, behind the water", body = text("rev.falls.behind") },
 	-- The Bunk Room, after tier 6: the quiet, sad one. What the red things were.
 	bunk_board = { title = "Corkboard", body = text("note.bunk.board") },
 	bunk_pim = { title = "Folded note, under a bunk", body = text("note.bunk.pim") },
@@ -104,6 +111,10 @@ Lore.notes = {
 
 -- Room ids and themes are the builder's (src/server/LoreRooms); every layout has three note
 -- spots, so every room has three notes.
+local copyCard = card("card.haven.copy")
+local boothCard = card("card.haven.booth")
+local shedCard = card("card.haven.shed")
+local nookCard = card("card.haven.nook")
 local deskCard = card("card.desk")
 local fallsCard = card("card.falls")
 local bunkCard = card("card.bunk")
@@ -111,8 +122,53 @@ local lampCard = card("card.lamp")
 local relayCard = card("card.relay")
 
 Lore.rooms = {
+	copyroom = {
+		id = "copyroom",
+		size = "haven",
+		title = copyCard.title,
+		subtitle = copyCard.subtitle,
+		theme = "copyroom",
+		wall = { 200, 190, 170 },
+		floor = { 112, 96, 80 },
+		light = { 255, 226, 186 },
+		notes = { "haven_copy" },
+	},
+	drybooth = {
+		id = "drybooth",
+		size = "haven",
+		title = boothCard.title,
+		subtitle = boothCard.subtitle,
+		theme = "drybooth",
+		wall = { 150, 168, 160 },
+		floor = { 84, 92, 88 },
+		light = { 255, 232, 190 },
+		notes = { "haven_booth" },
+	},
+	pottingshed = {
+		id = "pottingshed",
+		size = "haven",
+		title = shedCard.title,
+		subtitle = shedCard.subtitle,
+		theme = "pottingshed",
+		wall = { 150, 170, 140 },
+		floor = { 110, 90, 66 },
+		light = { 255, 236, 190 },
+		notes = { "haven_shed" },
+	},
+	archivenook = {
+		id = "archivenook",
+		size = "haven",
+		title = nookCard.title,
+		subtitle = nookCard.subtitle,
+		theme = "archivenook",
+		wall = { 170, 164, 150 },
+		floor = { 92, 88, 82 },
+		light = { 255, 214, 160 },
+		notes = { "haven_nook" },
+	},
 	office = {
 		id = "office",
+		size = "room",
 		title = deskCard.title,
 		subtitle = deskCard.subtitle,
 		theme = "office",
@@ -123,16 +179,18 @@ Lore.rooms = {
 	},
 	cistern = {
 		id = "cistern",
+		size = "room",
 		title = fallsCard.title,
 		subtitle = fallsCard.subtitle,
 		theme = "cistern",
 		wall = { 96, 118, 124 },
 		floor = { 84, 96, 92 },
 		light = { 170, 230, 255 },
-		notes = { "falls_guestbook", "falls_ines", "falls_lena" },
+		notes = { "falls_guestbook", "falls_ines", "falls_lena", "falls_behind" },
 	},
 	breakroom = {
 		id = "breakroom",
+		size = "room",
 		title = bunkCard.title,
 		subtitle = bunkCard.subtitle,
 		theme = "breakroom",
@@ -143,6 +201,7 @@ Lore.rooms = {
 	},
 	stairwell = {
 		id = "stairwell",
+		size = "room",
 		title = lampCard.title,
 		subtitle = lampCard.subtitle,
 		theme = "stairwell",
@@ -153,6 +212,7 @@ Lore.rooms = {
 	},
 	landing = {
 		id = "landing",
+		size = "room",
 		title = Lore.fill(relayCard.title, { n = "" }):gsub("%s+$", ""),
 		subtitle = relayCard.subtitle,
 		theme = "landing",
@@ -230,6 +290,7 @@ Lore.radio = {
 	speaker = speakerOf("radio.base.1"),
 	fakeSpeaker = speakerOf("radio.fake.1"),
 	desk = spoken("radio.desk.1"), -- the first time at the Night Desk
+	haven = spoken("radio.haven.1"), -- in any small haven
 	lit = spoken("radio.base.1"), -- idle in a lit room
 	floor = spoken("radio.base.2"), -- a new floor: fill {floor}
 	cleared = spoken("radio.base.5"),

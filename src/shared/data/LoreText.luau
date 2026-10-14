@@ -180,6 +180,19 @@ local entries: { Entry } = {
 	{ id = "ping.danger", kind = "system", section = "any", where = "Ping wheel label", lines = { "Danger" } },
 	{ id = "ping.item", kind = "system", section = "any", where = "Ping wheel label", lines = { "Found" } },
 	{ id = "ping.tap", kind = "system", section = "any", where = "Ping wheel label", lines = { "Two taps" } },
+	{ id = "card.haven.copy", kind = "card", section = "annex", where = "Haven card after tier 1", lines = { "THE COPY ROOM", "the machine is still warm" }, title = "The Copy Room" },
+	{ id = "note.haven.copy", kind = "note", section = "annex", where = "Page in the copier tray, Copy Room", lines = { "A page, still warm from the machine.", "A map of the corridor just left.", "Drawn from the other side." } },
+	{ id = "card.haven.booth", kind = "card", section = "flood", where = "Haven card after tier 3", lines = { "THE DRY BOOTH", "pump house, lamp on" }, title = "The Dry Booth" },
+	{ id = "note.haven.booth", kind = "note", section = "flood", where = "Shift log on the booth wall", lines = { "SHIFT LOG  PUMP HOUSE", "Water level: up.", "Water level: up.", "Water level: we stopped writing it down." } },
+	{ id = "card.haven.shed", kind = "card", section = "over", where = "Haven card after tier 5", lines = { "THE POTTING SHED", "a lantern, a bench, a window" }, title = "The Potting Shed" },
+	{ id = "note.haven.shed", kind = "note", section = "over", where = "Seed packets on the bench", lines = { "Seed packets, labelled in a careful hand.", "TOMATO. BEAN. SOMETHING ELSE.", "Someone planted all three." } },
+	{ id = "card.haven.nook", kind = "card", section = "found", where = "Haven card after tier 7", lines = { "THE ARCHIVE NOOK", "one lamp between the shelves" }, title = "The Archive Nook" },
+	{ id = "note.haven.nook", kind = "note", section = "found", where = "Card index with one drawer open", lines = { "Card index, one drawer open.", "Every card says SEEN.", "The last one says SEEN BY: ____." } },
+	{ id = "radio.haven.1", kind = "radio", section = "any", where = "Radio in any small haven", lines = { "Base to Seven. Rest.", "I have you." }, speaker = "Base" },
+	{ id = "rev.nook.1", kind = "reveal", section = "any", where = "Lamp-bag on a hook, mug beneath it (mid-level lit spot)", lines = { "A lamp-bag on a hook.", "A mug beneath it. Still warm." }, glow = { color = "amber", radius = 6 } },
+	{ id = "rev.nook.2", kind = "reveal", section = "any", where = "Lamp-bag over a folding stool", lines = { "A stool. A bag of light.", "Somebody sat here and waited." }, glow = { color = "amber", radius = 6 } },
+	{ id = "rev.nook.3", kind = "reveal", section = "any", where = "Lamp-bag taped to a corner", lines = { "J.B. 3/7.", "He hung one at every turn." }, glow = { color = "amber", radius = 7 } },
+	{ id = "rev.nook.4", kind = "reveal", section = "any", where = "Lamp-bag with a tag, burnt out", lines = { "The bulb is dead.", "The tag reads: KEEP GOING." }, glow = { color = "dim amber", radius = 4 } },
 }
 
 local byId: { [string]: Entry } = {}

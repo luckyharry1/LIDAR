@@ -88,12 +88,27 @@ end
 
 -- Makes everything under `root` invisible and unlit. The maze is never seen, only scanned:
 -- its parts still stop rays and feet, but draw nothing, so dots show through the walls.
+-- Printed text (a sign's SurfaceGui) goes dark with it.
 function Build.hide(root: Instance)
 	for _, descendant in root:GetDescendants() do
 		if descendant:IsA("BasePart") then
 			descendant.Transparency = 1
-		elseif descendant:IsA("Light") then
-			descendant.Enabled = false
+		elseif descendant:IsA("Light") or descendant:IsA("SurfaceGui") then
+			(descendant :: any).Enabled = false
+		end
+	end
+end
+
+-- The opposite of hide for one object: it draws, and its lights and printed text come on.
+-- A part marked with the attribute "Marker" (a bare place to hang a light) stays invisible.
+function Build.show(root: Instance)
+	for _, descendant in root:GetDescendants() do
+		if descendant:IsA("BasePart") then
+			if descendant:GetAttribute("Marker") ~= true then
+				descendant.Transparency = 0
+			end
+		elseif descendant:IsA("Light") or descendant:IsA("SurfaceGui") then
+			(descendant :: any).Enabled = true
 		end
 	end
 end

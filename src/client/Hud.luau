@@ -605,9 +605,10 @@ local function refreshInfo()
 		tierLabel.Text = prefix .. "  " .. string.upper(server.tierName)
 		local parts = {}
 		if server.locked then
+			local gate = if server.gateName ~= "" then string.upper(server.gateName) else "KEY"
 			local key = if server.hasKey
-				then `<font color="#60f08c">KEY FOUND</font>`
-				else "KEY NEEDED"
+				then `<font color="#60f08c">{gate} FOUND</font>`
+				else `{gate} NEEDED`
 			table.insert(parts, key)
 		end
 		if server.cellsTotal > 0 then
@@ -617,7 +618,7 @@ local function refreshInfo()
 			table.insert(parts, `SURVEYORS {server.rescues}/{server.rescuesTotal}`)
 		end
 		if server.echoesTotal > 0 then
-			table.insert(parts, `RECORDERS {server.echoes}/{server.echoesTotal}`)
+			table.insert(parts, `HIDDEN {server.echoes}/{server.echoesTotal}`)
 		end
 		objectiveLabel.Text = table.concat(parts, "   ")
 	elseif stage == "tutorial" then

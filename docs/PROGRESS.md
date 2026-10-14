@@ -8,6 +8,11 @@ Last updated: 13 Oct 2026, during the v2 rework. The v2 work is on two pushed br
 `claude/lucid-noether-kgfglb`, which merges it and adds the client slices, the story
 integration and the docs. Nothing is merged into `main` yet.
 
+**Story places slice (cloud thread, 14 Oct 2026, branch `claude/story-places`, based on
+`claude/lucid-noether-kgfglb`):** the lit havens, lamp-bags along the way, scan-to-reveal story
+objects, posters, gate items and the secret alcove are written. See "Story places" below. None of
+it has been run in Studio. `scripts/check.sh` could not run in full in the cloud (see there).
+
 ## Where things stand
 
 v1 (commits up to `41db249` on `main`) is a complete, playable loop that was verified in
@@ -101,17 +106,57 @@ Open items, for Vasco to decide (not filled in):
 
 - "Night Shift +": the bible says the run after climbing the ladder is harder. How much
   harder is not written anywhere, so climbing currently just returns you to the title.
-- The story's objects in the maze: reveal objects (`rev.*`), lamp-bags, posters and signs
-  (`sign.*`), the floor items and gates (fuse, valve wheel, rope, crank, lamp core), the
-  secret alcove behind the Falls. They need world props and placement rules; the text exists.
 - The bible introduces the Still on tier 7; `Tiers.luau` has the Stalker from tier 6.
-- Lines not used yet: `note.bunk.letters`, `rev.desk.board`, `rev.falls.*`, `tip.*`, `item.*`.
+- Lines not used yet: `note.bunk.letters`, `rev.desk.board`, `rev.falls.hammock`, `rev.bunk.*`,
+  `rev.lamp.*` placed as props, `tip.*`, `item.*` other than the gate items. (`rev.desk.mugs` is the
+  Night Desk's first note; `rev.falls.behind` is now the Falls' fourth note.)
 - Tapes play in story order, one per recorder revealed, but tiers 1 to 4 have one recorder
   each while every floor has three tapes, so some tapes play a floor late (Hollis's Annex
   tape on B4). Recorders 1, 2, 1, 2, ... per tier would line them up; that is a change to
   `Tiers.luau`, so it is left for you.
 - Balance, from the bot simulation (`docs/DESIGN.md`, "What to tune first"): tier 7, the only
   tier with two Wanderers, averages about four catches per run against about one elsewhere.
+
+## Story places (cloud thread; not yet seen in Studio)
+
+Everything below is code and data only. It type-checks (`luau-lsp`, no new complaints), formats
+(`stylua`), passes the Lune tests (79) and builds with Rojo, but **none of it has been run or
+looked at in Studio**. Expect a first round of fixes there: sizes, positions, light ranges.
+
+| Piece | Where | What it does |
+| --- | --- | --- |
+| Havens | `Tiers.loreRoomAfter`, `Lore.rooms`, `LoreRooms.LAYOUTS`, `StoryKits` | A lit, monster-free break after every level. Odd tiers get a small haven (Copy Room T1, Dry Booth T3, Potting Shed T5, Archive Nook T7: 20 to 22 studs wide, a lamp, a bench, one page); even tiers keep the big rooms (Night Desk, Falls, Bunk Room, Lamp Room). Each is a checkpoint (the existing `enterLore` logic). Base says one line the first time you enter a haven (`radio.haven.1`, `client/Radio`). |
+| Secret alcove | `LoreRooms.buildWaterfall`, cistern layout | A niche in the rock behind the Falls (walk through the water sheet): a chalk drawing of the building and a fourth note, `rev.falls.behind`. |
+| Lamp-bags | `LevelPlan` (`lamps`, `nooks`), `World.buildLamps` | 2 to 4 per level (`Tiers.lamps`), the first near the start, the rest at even steps along the shortest route, so one is met about every minute. Four variants (`rev.nook.1` to `4`): mug, stool, plain, and a burnt-out one (never on the first two tiers, never the first bag) that is invisible until scanned. Scanning a lit bag says its tag line. |
+| Hidden story objects | `data/Places.luau`, `LevelPlan.reveals`, `World.buildReveals`, `StoryKits` | Two per tier from tier 1 to 8 (one on tier 6): desk lamp, whiteboard, kettle and tea bags, coat, headphones, valve station, dinghy, life ring, grow light, tap-code plate, camp stove, chalk arrows, camera, cornerstone. Invisible; scanned enough (`Config.Lidar.echoRevealHits` dots) they appear, light their corner (glow colour and radius from the story text) and say their lines through `Hud.dialogue`. They count on the HUD as `HIDDEN n/m` (was RECORDERS). |
+| Posters and stencils | `Places.tiers[n].signs`, `Props.sign`, `World.buildSigns` | The story's `sign.*` and `rule.09`, as paper on a wall with the text printed on it. Hidden like the objects; scanned, they get a small light of their own and also say their text. `at` puts a sign at the start, the exit, a pit, a plate, or anywhere. A sign for a trap the level lacks is left out. |
+| Gate items | `Tiers.gate`, `World.buildGateItem`, `World.gate` | The key objective is the story's item per tier: fuse (T2), valve wheel (T3), rope (T4), crank (T5), fuse (T6), lamp core (T7), brass key (T8 and endless). Tiers 2, 3 and 5 now have locked exits (they were open); tier 1 stays open. `State.server.gateName` carries the name; the HUD says "FUSE NEEDED". |
+| Hidden things in code | `World.Echo.kind` | `recorder`, `reveal`, `sign`, `nook` share one pipeline (the old recorder one): a tag, an `EchoId`, the client's dot count, the `Reveal` remote, `World.revealEcho`. Ids run in that order. A recorder still plays the next tape; the others say their own lines (empty speaker). |
+
+Placeholders and open points:
+
+- No placeholder lines: every line comes from `LoreText`. The copy of `LoreText.luau` in
+  `src/shared/data` is the story thread's newer one (adds `*.haven.*`, `rev.nook.*`,
+  `radio.haven.1`); `docs/story` is synced from `/mnt/project-files/lidar-game/story` too.
+- Not built: `rev.desk.board`, `rev.falls.hammock`, `rev.bunk.*` and `rev.lamp.postcard` as props
+  (the lit rooms read their notes at prompts instead); the Bunk Room's model that lights per
+  floor; the Falls guest book already signs in whoever is there. Items other than the gates
+  (chalk, tea, photographs, glow stick, flash bulb, map) have no pickups yet.
+- Tier 8's exit is still locked (the story says "no gate"); it uses the brass key.
+- Things to look at first in Studio: (1) a poster's text rendering on a transparent part and its
+  `SurfaceGui` light; (2) each reveal kit's size and facing against a wall (`lookAt` convention in
+  `Props`); (3) the niche behind the Falls; walking through the water sheet; (4) small havens'
+  doors, prompts and the `LitZone` size; (5) dead lamp-bags appearing on scan; (6) the number of
+  gold dots from reveal objects on the HUD; (7) light ranges (`GLOW_RANGE_PER_RADIUS` in `World`).
+- Dev commands (`src/server/Dev.luau`): `lore copyroom`, `lore drybooth`, `lore pottingshed`,
+  `lore archivenook` to visit a haven; `echo` reveals the next hidden thing in order; `lights on`
+  to see the layout of a level; `tier N`.
+
+How this slice was checked without Studio: `stylua --check`, `lune run tests/run` (79 passing,
+including new tests for lamp-bag spread and variants, and for every sign and hidden object
+resolving to story text), `rojo build`, and `luau-lsp analyze` against Roblox's types
+(`scripts/typecheck.sh`), which reports nothing new. `selene` could not run in the cloud (it needs
+Roblox's API dump from the internet); run `scripts/check.sh` on the PC before merging.
 
 ## v2 design in one page
 
@@ -291,5 +336,5 @@ Only what has actually been run is listed as verified.
 
 - Verified: the pure rules under Lune (67 tests, including a bot that plays every tier).
 - Verified in Studio (v1 only, before the rework): the whole loop for one player on PC.
-- Not yet verified for v2: anything in Studio.
+- Not yet verified for v2: anything in Studio (including the story places slice above).
 - Never verified: two players at once, real DataStore saves, phone or gamepad hardware.

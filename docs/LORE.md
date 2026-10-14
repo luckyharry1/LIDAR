@@ -24,7 +24,7 @@ by people who assumed the reader already knew:
 
 | Where | What the player meets |
 | --- | --- |
-| Lit rooms | Three notes each: sign-in sheets, tapes, a corkboard, a guest book. Read at a prompt. |
+| Lit rooms | A lit break after every level: small havens with one page each, big rooms with three or four (sign-in sheets, tapes, a corkboard, a guest book). Read at a prompt. |
 | Hidden recorders | Scan one enough and it reveals itself and plays the next tape, in story order. |
 | Manual pages | The rare gold page in a maze: one numbered rule from the survey manual, with the crew's margin notes. |
 | The radio | Base reports and counts. Near a disguised Echo a false Base gives directions; real Base never does. |
@@ -44,9 +44,78 @@ Tapes are numbered in the order a player hears them if they find every recorder.
 
 > Day one. Hollis was right. There is a stair under B3. It is not on any plan. We brought lamps. Joss thinks they will do.
 
+**Hidden object** (tier 1):
+
+> A desk lamp.\
+> Still warm.
+
+**Hidden object** (tier 1):
+
+> SURVEY RULES v1\
+> 1. Do not go alone.\
+> (someone struck out ALONE)
+
+**Sign** (tier 1, start):
+
+> STAFF NOTICE\
+> If lights are out: remain calm,\
+> locate the rig, and look.
+
+**Sign** (tier 1, start):
+
+> WHITE  structure\
+> GREEN  crew\
+> RED    unaccounted for
+
+**Sign** (tier 1, start):
+
+> HOLD TO RECORD.
+
+**Sign** (tier 1, any):
+
+> EXIT ->\
+> (the arrow points at a wall)
+
+#### Lit room: THE COPY ROOM
+
+*the machine is still warm*
+
+**Page in the copier tray**
+
+> A page, still warm from the machine.\
+> A map of the corridor just left.\
+> Drawn from the other side.
+
 **Tape 2** (tier 2), Joss Berrow, Crew 1:
 
 > Lamp-bags work. Bulb, cell, sack. Hang one at every turn, you find your way home. Ines says the walls move when we are not looking. I say prove it.
+
+**Hidden object** (tier 2):
+
+> Tea bags in a row on the shelf.\
+> One for every night someone stayed.
+
+**Hidden object** (tier 2):
+
+> A custodian's coat.\
+> The pocket is empty.\
+> Whatever he carried, he took.
+
+**Sign** (tier 2, any):
+
+> MEETING MOVED TO B3\
+> ATTENDANCE: MANDATORY\
+> ATTENDEES: 6 of 7
+
+**Sign** (tier 2, any):
+
+> WHOEVER KEEPS TAKING THE LAST TEA:\
+> WE CAN HEAR YOU.
+
+**Sign** (tier 2, pit):
+
+> MIND THE EDGE.\
+> (there is no floor)
 
 #### Lit room: THE NIGHT DESK
 
@@ -83,9 +152,73 @@ Tapes are numbered in the order a player hears them if they find every recorder.
 
 > Hollis, nights. Doing my rounds. Fourth floor lights are out again. Fifth too. I will just check the stairs. Back in a minute.
 
+**Hidden object** (tier 3):
+
+> Headphones. Gain all the way up.\
+> He would not leave them.
+
+**Hidden object** (tier 3):
+
+> A valve wheel station.\
+> The wheel is missing.\
+> A wheel-shaped clean patch in the dust.
+
+**Sign** (tier 3, any):
+
+> WET FLOOR.\
+> (it is now)
+
+**Sign** (tier 3, plate):
+
+> PLEASE DO NOT STEP ON THE PLATE.\
+> - Crew 2
+
+**Sign** (tier 3, pit):
+
+> DRAIN B4-7\
+> LOAD LIMIT: A PERSON, ONCE
+
+#### Lit room: THE DRY BOOTH
+
+*pump house, lamp on*
+
+**Shift log, pump house**
+
+> SHIFT LOG  PUMP HOUSE\
+> Water level: up.\
+> Water level: up.\
+> Water level: we stopped writing it down.
+
 **Tape 4** (tier 4), Tobi Wren, Crew 3:
 
 > Tobi Wren, sound. I can hear the building thinking. Gain up. It is so quiet down here. If I do not talk, nothing hears me.
+
+**Hidden object** (tier 4):
+
+> A dinghy. Crew 2 paddled this far.\
+> The oars are gone.\
+> So is the third seat.
+
+**Hidden object** (tier 4):
+
+> LIFE RING  B3.\
+> Hung before the water came.\
+> Who knew?
+
+**Sign** (tier 4, any):
+
+> DO NOT LINGER IN THE WATER.
+
+**Sign** (tier 4, any):
+
+> 9. Follow the water.\
+> It always ends somewhere lit.\
+> margin: nobody believed it. it was true. -L.S.
+
+**Sign** (tier 4, plate):
+
+> PLEASE DO NOT STEP ON THE PLATE.\
+> - Crew 2
 
 #### Lit room: THE FALLS
 
@@ -113,6 +246,12 @@ Tapes are numbered in the order a player hears them if they find every recorder.
 > Ravi plays the one song he knows. Badly.\
 > I did not know I could miss a sound this much.
 
+**Chalk drawing, behind the water**
+
+> A chalk drawing of the whole building.\
+> Stairs at the bottom. Falls near the top.\
+> A circle, at the very bottom. LAMP.
+
 ### B5: THE OVERGROWTH
 
 *please water me*, tiers 5 and 6.
@@ -125,6 +264,48 @@ Tapes are numbered in the order a player hears them if they find every recorder.
 
 > Joss, boiler room. The water was not here yesterday. Or it was here, and we were not looking. Ines has a theory. It is not a nice one.
 
+**Hidden object** (tier 5):
+
+> One grow light, still humming.\
+> One plant, still green.\
+> Someone waters it.
+
+**Hidden object** (tier 5):
+
+> Two taps. Wait. One.\
+> Cut into brass, so it would last.\
+> A greeting.
+
+**Sign** (tier 5, any):
+
+> PLEASE WATER ME.\
+> - P.
+
+**Sign** (tier 5, any):
+
+> STAFF MUST NOT FEED THE PLANTS.\
+> THEY HAVE BEEN FED.
+
+**Sign** (tier 5, pit):
+
+> ROPE REQUIRED.\
+> ROPE NOT PROVIDED.
+
+**Sign** (tier 5, plate):
+
+> TWO TAPS. WAIT. ONE.\
+> (or step around)
+
+#### Lit room: THE POTTING SHED
+
+*a lantern, a bench, a window*
+
+**Seed packets**
+
+> Seed packets, labelled in a careful hand.\
+> TOMATO. BEAN. SOMETHING ELSE.\
+> Someone planted all three.
+
 **Tape 7** (tier 6), Ravi Anand, Crew 2:
 
 > Ravi, signals. Two taps, a breath, one tap. It was just a greeting. Now I cannot stop hearing the first two.
@@ -132,6 +313,27 @@ Tapes are numbered in the order a player hears them if they find every recorder.
 **Tape 8** (tier 6), Ravi Anand, Crew 2:
 
 > It taps back perfectly. It does not get the pause. It never waits for the pause. That is how you know.
+
+**Hidden object** (tier 6):
+
+> Four mugs.\
+> Three are chipped.\
+> One says PIM.
+
+**Sign** (tier 6, any):
+
+> PLEASE WATER ME.\
+> - P.
+
+**Sign** (tier 6, pit):
+
+> ROPE REQUIRED.\
+> ROPE NOT PROVIDED.
+
+**Sign** (tier 6, plate):
+
+> TWO TAPS. WAIT. ONE.\
+> (or step around)
 
 #### Lit room: THE BUNK ROOM
 
@@ -174,6 +376,41 @@ Tapes are numbered in the order a player hears them if they find every recorder.
 
 > Last descent. I know where the Lamp goes. The Foundation is the first floor they built. Before the plan. Before the paper. It is not cruel. It is empty. Empty gets hungry for company.
 
+**Hidden object** (tier 7):
+
+> Chalk arrows. Fresh.\
+> I.C.
+
+**Hidden object** (tier 7):
+
+> A camera on a tripod, facing the corridor.\
+> The shutter is half pressed.\
+> Quill never finished the shot.
+
+**Sign** (tier 7, start):
+
+> CLEARANCE: NONE.\
+> NOBODY SAYS WHO SET THIS.
+
+**Sign** (tier 7, any):
+
+> KEEP LOOKING.
+
+**Sign** (tier 7, pit):
+
+> MARKED EDGE.\
+> JOSS PAINTED THE EDGE SO YOU WOULD FEEL IT FIRST.
+
+#### Lit room: THE ARCHIVE NOOK
+
+*one lamp between the shelves*
+
+**Card index**
+
+> Card index, one drawer open.\
+> Every card says SEEN.\
+> The last one says SEEN BY: ____.
+
 **Tape 11** (tier 8), Marlow Quill, Crew 4:
 
 > Quill, photography. Flash only works when it is not looking. Forty frames of the corridor. In frame thirty it is closer.
@@ -181,6 +418,31 @@ Tapes are numbered in the order a player hears them if they find every recorder.
 **Tape 12** (tier 8), Marlow Quill, Crew 4:
 
 > Keep watching. Then step. Never stare. It learns the stare. If you hear a shutter, do not turn. Wait for the second click.
+
+**Hidden object** (tier 8):
+
+> FOUNDATION STONE.\
+> The first thing built.\
+> Nobody remembers who laid it.
+
+**Hidden object** (tier 8):
+
+> Chalk arrows. Fresh.\
+> I.C.
+
+**Sign** (tier 8, any):
+
+> SHH
+
+**Sign** (tier 8, plate):
+
+> NOT HERE.\
+> - I.C.
+
+**Sign** (tier 8, pit):
+
+> MARKED EDGE.\
+> JOSS PAINTED THE EDGE SO YOU WOULD FEEL IT FIRST.
 
 #### Lit room: THE LAMP ROOM
 

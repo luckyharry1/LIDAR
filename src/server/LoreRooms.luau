@@ -32,11 +32,15 @@ type Layout = {
 	flicker: boolean?,
 	stone: boolean?, -- true: slate walls and floor instead of plaster and boards
 	extras: ((origin: Vector3, parent: Instance) -> ())?, -- anything the kits cannot express
+	halfX: number?, -- half the room's width and depth, and its height; the big rooms use
+	halfZ: number?, -- the defaults below, the small havens are smaller
+	height: number?,
 }
 
-local HALF_X = 20
+local HALF_X = 20 -- a big lit room is 40 by 30 studs and 12 high; a haven sets its own size
 local HALF_Z = 15
 local ROOM_HEIGHT = 12
+local HAVEN_PANELS = { -4.5, 4.5 } -- light panels in a haven (a big room uses PANEL_OFFSETS)
 local WALL = 1
 local DOOR_WIDTH = 5
 local DOOR_HEIGHT = 8.4
@@ -56,6 +60,8 @@ local POOL_HALF_Z = 7
 local POOL_SURFACE = 0.6
 local RIM_HEIGHT = 0.9
 local RAIL_HEIGHT = 3.2
+local FORD_HALF = 2.5 -- the gap in the pool's rim is twice this wide
+local ALCOVE_HEIGHT = 7 -- the niche behind the fall is 4 wide, 2 deep and this high
 local ROCK = Color3.fromRGB(70, 82, 84)
 local WATER = Color3.fromRGB(110, 200, 255)
 local MOSS = Color3.fromRGB(64, 132, 70)
@@ -114,10 +120,31 @@ local function buildWaterfall(origin: Vector3, parent: Instance)
 	local neon = Enum.Material.Neon
 	local wallX = -HALF_X
 	-- The rock face, a lip for the water to leave from, and boulders either side of it.
+	-- The rock face has a niche in it, behind the water: a secret alcove (see below).
+	for _, sign in { -1, 1 } do
+		block(
+			"Rock",
+			Vector3.new(2.6, ROOM_HEIGHT, 6),
+			Vector3.new(wallX + 1.3, ROOM_HEIGHT / 2, sign * 5),
+			0,
+			ROCK,
+			slate,
+			true
+		)
+	end
 	block(
-		"Rock",
-		Vector3.new(2.6, ROOM_HEIGHT, 16),
-		Vector3.new(wallX + 1.3, ROOM_HEIGHT / 2, 0),
+		"RockBack",
+		Vector3.new(0.6, ROOM_HEIGHT, 4),
+		Vector3.new(wallX + 0.3, ROOM_HEIGHT / 2, 0),
+		0,
+		ROCK,
+		slate,
+		true
+	)
+	block(
+		"RockTop",
+		Vector3.new(2, ROOM_HEIGHT - ALCOVE_HEIGHT, 4),
+		Vector3.new(wallX + 1.6, ALCOVE_HEIGHT + (ROOM_HEIGHT - ALCOVE_HEIGHT) / 2, 0),
 		0,
 		ROCK,
 		slate,
@@ -223,15 +250,20 @@ local function buildWaterfall(origin: Vector3, parent: Instance)
 	)
 	pool.Transparency = 0.25
 	Build.pointLight(pool, Color3.fromRGB(90, 220, 255), 1.6, 24)
-	block(
-		"Rim",
-		Vector3.new(1, RIM_HEIGHT, POOL_HALF_Z * 2 + 2),
-		Vector3.new(POOL_EAST + 0.5, RIM_HEIGHT / 2, 0),
-		0,
-		ROCK,
-		slate,
-		true
-	)
+	-- The rim and rail on the room side have a gap in the middle, a ford straight across the
+	-- pool to the sheet of water and the alcove behind it.
+	local sideLength = POOL_HALF_Z + 1 - FORD_HALF
+	for _, sign in { -1, 1 } do
+		block(
+			"Rim",
+			Vector3.new(1, RIM_HEIGHT, sideLength),
+			Vector3.new(POOL_EAST + 0.5, RIM_HEIGHT / 2, sign * (FORD_HALF + sideLength / 2)),
+			0,
+			ROCK,
+			slate,
+			true
+		)
+	end
 	for _, sign in { -1, 1 } do
 		block(
 			"Rim",
@@ -255,15 +287,18 @@ local function buildWaterfall(origin: Vector3, parent: Instance)
 			true
 		)
 	end
-	block(
-		"Rail",
-		Vector3.new(0.25, 0.25, POOL_HALF_Z * 2 - 1),
-		Vector3.new(POOL_EAST + 0.5, RAIL_HEIGHT, 0),
-		0,
-		railColor,
-		Enum.Material.Metal,
-		true
-	)
+	local railLength = POOL_HALF_Z - 0.5 - FORD_HALF
+	for _, sign in { -1, 1 } do
+		block(
+			"Rail",
+			Vector3.new(0.25, 0.25, railLength),
+			Vector3.new(POOL_EAST + 0.5, RAIL_HEIGHT, sign * (FORD_HALF + railLength / 2)),
+			0,
+			railColor,
+			Enum.Material.Metal,
+			true
+		)
+	end
 
 	-- Moss where the spray reaches.
 	local grass = Enum.Material.Grass
@@ -294,9 +329,155 @@ local function buildWaterfall(origin: Vector3, parent: Instance)
 		grass,
 		false
 	)
+
+	-- The alcove: a chalk drawing of the whole building on the back wall, stairs at the
+	-- bottom, the falls near the top, and a circle at the very bottom where the Lamp goes.
+	local chalk = Color3.fromRGB(236, 238, 232)
+	local backX = wallX + 0.64
+	block(
+		"Slate",
+		Vector3.new(0.08, 5.2, 3.6),
+		Vector3.new(backX, 3.3, 0),
+		0,
+		Color3.fromRGB(40, 48, 50),
+		slate,
+		false
+	)
+	for floor = 0, 5 do
+		block(
+			"ChalkFloor",
+			Vector3.new(0.04, 0.07, 2.4),
+			Vector3.new(backX + 0.06, 1.3 + floor * 0.65, -0.2),
+			0,
+			chalk,
+			Enum.Material.SmoothPlastic,
+			false
+		)
+	end
+	for _, z in { -1.4, 1 } do
+		block(
+			"ChalkWall",
+			Vector3.new(0.04, 3.3, 0.07),
+			Vector3.new(backX + 0.06, 2.95, z - 0.2),
+			0,
+			chalk,
+			Enum.Material.SmoothPlastic,
+			false
+		)
+	end
+	block(
+		"ChalkLamp",
+		Vector3.new(0.05, 0.6, 0.6),
+		Vector3.new(backX + 0.07, 0.9, -0.2),
+		0,
+		Color3.fromRGB(255, 232, 170),
+		neon,
+		false
+	).Shape =
+		Enum.PartType.Cylinder
+	block(
+		"ChalkFalls",
+		Vector3.new(0.05, 0.4, 0.4),
+		Vector3.new(backX + 0.07, 4.9, 0.4),
+		0,
+		WATER,
+		neon,
+		false
+	).Shape =
+		Enum.PartType.Cylinder
+	local glow = block(
+		"AlcoveLight",
+		Vector3.new(0.3, 0.3, 0.3),
+		Vector3.new(wallX + 1.6, 4.6, 0),
+		0,
+		chalk,
+		Enum.Material.SmoothPlastic,
+		false
+	)
+	glow.Transparency = 1
+	Build.pointLight(glow, Color3.fromRGB(255, 236, 200), 1.1, 12)
 end
 
 local LAYOUTS: { [string]: Layout } = {
+	-- The havens: one small lit room after each odd tier. A lamp, a bench, and one page.
+	copyroom = {
+		halfX = 11,
+		halfZ = 8.5,
+		height = 10,
+		props = {
+			{ kit = "copier", x = -6.5, z = -8.5, yaw = 180 },
+			{ kit = "desk", x = -11, z = 2.5, yaw = -90 },
+			{ kit = "chair", x = -6.6, z = 2.5, yaw = 90 },
+			{ kit = "board", x = -11, z = -4.5, yaw = -90 },
+			{ kit = "shelf", x = 11, z = -5, yaw = 90 },
+			{ kit = "bench", x = 11, z = 1, yaw = 90 },
+			{ kit = "lamp", x = 6.5, z = -8.5, yaw = 180 },
+			{ kit = "plant", x = 8.5, z = 8.5, yaw = 0 },
+			{ kit = "rug", x = 0, z = 0, yaw = 0 },
+		},
+		notes = {
+			{ x = -6.5, y = 2.56, z = -5, yaw = 10, flat = true },
+		},
+	},
+	drybooth = {
+		halfX = 10,
+		halfZ = 8,
+		height = 10,
+		props = {
+			{ kit = "gauge", x = -5.5, z = -8, yaw = 180 },
+			{ kit = "board", x = -10, z = -1.5, yaw = -90 },
+			{ kit = "desk", x = -10, z = 4, yaw = -90 },
+			{ kit = "chair", x = -5.4, z = 4, yaw = 90 },
+			{ kit = "kettle", x = 6, z = -8, yaw = 180 },
+			{ kit = "shelf", x = 10, z = -3, yaw = 90 },
+			{ kit = "bench", x = 10, z = 3.5, yaw = 90 },
+			{ kit = "lamp", x = -9, z = -8, yaw = 180 },
+			{ kit = "plant", x = 8, z = 8, yaw = 0 },
+			{ kit = "rug", x = 0, z = 0, yaw = 0 },
+		},
+		notes = {
+			{ x = -9.7, y = 4.4, z = -1.5, yaw = -90, flat = false },
+		},
+	},
+	pottingshed = {
+		halfX = 11,
+		halfZ = 8.5,
+		height = 10,
+		props = {
+			{ kit = "pottingbench", x = -3.5, z = -8.5, yaw = 180 },
+			{ kit = "plant", x = 6, z = -8.5, yaw = 180 },
+			{ kit = "fern", x = -11, z = -3, yaw = -90 },
+			{ kit = "fern", x = 9, z = 8.5, yaw = 0 },
+			{ kit = "flowers", x = 11, z = -5, yaw = 90 },
+			{ kit = "flowers", x = -11, z = 4, yaw = -90 },
+			{ kit = "lamp", x = 4, z = -8.5, yaw = 180 },
+			{ kit = "bench", x = 11, z = 1, yaw = 90 },
+			{ kit = "chair", x = 6.5, z = 0, yaw = -90 },
+			{ kit = "rug", x = 0, z = 0, yaw = 0 },
+		},
+		notes = {
+			{ x = -5.2, y = 3.2, z = -7, yaw = -15, flat = true },
+		},
+	},
+	archivenook = {
+		halfX = 10,
+		halfZ = 8.5,
+		height = 10,
+		props = {
+			{ kit = "shelf", x = -10, z = -5.5, yaw = -90 },
+			{ kit = "shelf", x = -10, z = -1, yaw = -90 },
+			{ kit = "cardindex", x = -10, z = 4.5, yaw = -90 },
+			{ kit = "shelf", x = 10, z = -5.5, yaw = 90 },
+			{ kit = "shelf", x = 10, z = -1, yaw = 90 },
+			{ kit = "bench", x = 10, z = 5, yaw = 90 },
+			{ kit = "desk", x = 5.5, z = -8.5, yaw = 180 },
+			{ kit = "chair", x = 5.5, z = -2.9, yaw = 0 },
+			{ kit = "lamp", x = 9, z = -8.5, yaw = 180 },
+		},
+		notes = {
+			{ x = -9, y = 4.68, z = 4.5, yaw = 80, flat = true },
+		},
+	},
 	office = {
 		props = {
 			{ kit = "desk", x = -12, z = -15, yaw = 180 },
@@ -362,6 +543,8 @@ local LAYOUTS: { [string]: Layout } = {
 			{ x = -10.3, y = 2.2, z = 3, yaw = -90, flat = false },
 			{ x = -5.4, y = 4.4, z = -14.7, yaw = 180, flat = false },
 			{ x = 9.6, y = 3.02, z = 13.2, yaw = -20, flat = true },
+			-- The fourth: a chalk drawing in the alcove behind the waterfall.
+			{ x = -19.3, y = 2.3, z = 1.5, yaw = -90, flat = false },
 		},
 	},
 	stairwell = {
@@ -409,6 +592,7 @@ local function at(origin: Vector3, x: number, y: number, z: number, yaw: number)
 end
 
 local function buildShell(room: Lore.Room, layout: Layout, origin: Vector3, parent: Instance)
+	local hx, hz, rh = layout.halfX or HALF_X, layout.halfZ or HALF_Z, layout.height or ROOM_HEIGHT
 	local wallColor = Build.rgb(room.wall)
 	local function slab(
 		name: string,
@@ -426,7 +610,7 @@ local function buildShell(room: Lore.Room, layout: Layout, origin: Vector3, pare
 			parent = parent,
 		})
 	end
-	local spanX, spanZ = HALF_X * 2 + WALL * 2, HALF_Z * 2 + WALL * 2
+	local spanX, spanZ = hx * 2 + WALL * 2, hz * 2 + WALL * 2
 	slab(
 		"Floor",
 		Vector3.new(spanX, 1, spanZ),
@@ -437,36 +621,36 @@ local function buildShell(room: Lore.Room, layout: Layout, origin: Vector3, pare
 	slab(
 		"Ceiling",
 		Vector3.new(spanX, 1, spanZ),
-		Vector3.new(0, ROOM_HEIGHT + 0.5, 0),
+		Vector3.new(0, rh + 0.5, 0),
 		wallColor,
 		Enum.Material.SmoothPlastic
 	)
 	local plaster = if layout.stone then Enum.Material.Slate else Enum.Material.SmoothPlastic
 	slab(
 		"WallN",
-		Vector3.new(spanX, ROOM_HEIGHT, WALL),
-		Vector3.new(0, ROOM_HEIGHT / 2, -HALF_Z - WALL / 2),
+		Vector3.new(spanX, rh, WALL),
+		Vector3.new(0, rh / 2, -hz - WALL / 2),
 		wallColor,
 		plaster
 	)
 	slab(
 		"WallS",
-		Vector3.new(spanX, ROOM_HEIGHT, WALL),
-		Vector3.new(0, ROOM_HEIGHT / 2, HALF_Z + WALL / 2),
+		Vector3.new(spanX, rh, WALL),
+		Vector3.new(0, rh / 2, hz + WALL / 2),
 		wallColor,
 		plaster
 	)
 	slab(
 		"WallW",
-		Vector3.new(WALL, ROOM_HEIGHT, spanZ),
-		Vector3.new(-HALF_X - WALL / 2, ROOM_HEIGHT / 2, 0),
+		Vector3.new(WALL, rh, spanZ),
+		Vector3.new(-hx - WALL / 2, rh / 2, 0),
 		wallColor,
 		plaster
 	)
 	slab(
 		"WallE",
-		Vector3.new(WALL, ROOM_HEIGHT, spanZ),
-		Vector3.new(HALF_X + WALL / 2, ROOM_HEIGHT / 2, 0),
+		Vector3.new(WALL, rh, spanZ),
+		Vector3.new(hx + WALL / 2, rh / 2, 0),
 		wallColor,
 		plaster
 	)
@@ -474,51 +658,29 @@ local function buildShell(room: Lore.Room, layout: Layout, origin: Vector3, pare
 	local trim = wallColor:Lerp(Color3.new(0, 0, 0), 0.35)
 	for _, y in { 0.4, 4 } do
 		local height = if y < 1 then 0.8 else 0.3
-		slab(
-			"TrimN",
-			Vector3.new(HALF_X * 2, height, 0.2),
-			Vector3.new(0, y, -HALF_Z + 0.1),
-			trim,
-			plaster
-		)
-		slab(
-			"TrimS",
-			Vector3.new(HALF_X * 2, height, 0.2),
-			Vector3.new(0, y, HALF_Z - 0.1),
-			trim,
-			plaster
-		)
-		slab(
-			"TrimW",
-			Vector3.new(0.2, height, HALF_Z * 2),
-			Vector3.new(-HALF_X + 0.1, y, 0),
-			trim,
-			plaster
-		)
-		slab(
-			"TrimE",
-			Vector3.new(0.2, height, HALF_Z * 2),
-			Vector3.new(HALF_X - 0.1, y, 0),
-			trim,
-			plaster
-		)
+		slab("TrimN", Vector3.new(hx * 2, height, 0.2), Vector3.new(0, y, -hz + 0.1), trim, plaster)
+		slab("TrimS", Vector3.new(hx * 2, height, 0.2), Vector3.new(0, y, hz - 0.1), trim, plaster)
+		slab("TrimW", Vector3.new(0.2, height, hz * 2), Vector3.new(-hx + 0.1, y, 0), trim, plaster)
+		slab("TrimE", Vector3.new(0.2, height, hz * 2), Vector3.new(hx - 0.1, y, 0), trim, plaster)
 	end
 end
 
 local function buildLights(room: Lore.Room, layout: Layout, origin: Vector3, parent: Instance)
 	local color = Build.rgb(room.light)
-	for _, x in PANEL_OFFSETS do
+	local rh = layout.height or ROOM_HEIGHT
+	local panels = if layout.halfX ~= nil then HAVEN_PANELS else PANEL_OFFSETS
+	for _, x in panels do
 		local panel = Build.part({
 			name = "LightPanel",
 			size = Vector3.new(5, 0.2, 2.2),
-			cframe = CFrame.new(origin + Vector3.new(x, ROOM_HEIGHT - 0.1, 0)),
+			cframe = CFrame.new(origin + Vector3.new(x, rh - 0.1, 0)),
 			color = color,
 			material = Enum.Material.Neon,
 			collide = false,
 			parent = parent,
 		})
 		local light = Build.pointLight(panel, color, 1.3, 34)
-		if layout.flicker and x == PANEL_OFFSETS[1] then
+		if layout.flicker and x == panels[1] then
 			-- One tired tube that never quite settles.
 			task.spawn(function()
 				local random = Random.new()
@@ -629,6 +791,7 @@ function LoreRooms.build(roomId: string, origin: Vector3): LoreRoom
 	local layout = LAYOUTS[room.theme]
 	assert(layout ~= nil, "no layout for theme " .. room.theme)
 
+	local hx, hz, rh = layout.halfX or HALF_X, layout.halfZ or HALF_Z, layout.height or ROOM_HEIGHT
 	local model = Build.model("LoreRoom_" .. roomId, workspace)
 	buildShell(room, layout, origin, model)
 	buildLights(room, layout, origin, model)
@@ -640,8 +803,8 @@ function LoreRooms.build(roomId: string, origin: Vector3): LoreRoom
 	if layout.raisedEntrance then
 		buildStairs(origin, model)
 	end
-	buildDoor(origin, HALF_Z, 0, "EntranceDoor", model, entranceHeight)
-	local exitDoor = buildDoor(origin, -HALF_Z, 180, "ExitDoor", model, 0)
+	buildDoor(origin, hz, 0, "EntranceDoor", model, entranceHeight)
+	local exitDoor = buildDoor(origin, -hz, 180, "ExitDoor", model, 0)
 	local exitPrompt = Build.prompt(exitDoor, "Continue", "Into the dark", 0.6)
 
 	local benchPrompt: ProximityPrompt? = nil
@@ -677,8 +840,8 @@ function LoreRooms.build(roomId: string, origin: Vector3): LoreRoom
 	-- The lit zone tells each client to bring the lights up while they stand inside it.
 	local zone = Build.part({
 		name = "LitZone",
-		size = Vector3.new(HALF_X * 2 + WALL * 2, ROOM_HEIGHT + 2, HALF_Z * 2 + WALL * 2),
-		cframe = CFrame.new(origin + Vector3.new(0, ROOM_HEIGHT / 2, 0)),
+		size = Vector3.new(hx * 2 + WALL * 2, rh + 2, hz * 2 + WALL * 2),
+		cframe = CFrame.new(origin + Vector3.new(0, rh / 2, 0)),
 		transparency = 1,
 		collide = false,
 		query = false,
@@ -689,7 +852,7 @@ function LoreRooms.build(roomId: string, origin: Vector3): LoreRoom
 	zone:SetAttribute("Title", room.title)
 	zone:SetAttribute("Subtitle", room.subtitle)
 
-	local spawnPoint = origin + Vector3.new(0, entranceHeight + SPAWN_HEIGHT, HALF_Z - 3)
+	local spawnPoint = origin + Vector3.new(0, entranceHeight + SPAWN_HEIGHT, hz - 3)
 	return {
 		model = model,
 		room = room,
