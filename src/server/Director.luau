@@ -185,6 +185,24 @@ local function objectiveTotals(): (number, number)
 	return cells, rescues
 end
 
+-- What opens this level's locked exit, as the story names it ("Fuse", "Valve Wheel").
+local function gateTitle(plan: LevelPlan.LevelPlan): string
+	local _, title = World.gate(plan)
+	return title
+end
+
+-- Hidden objects worth counting on the HUD: recorders and story objects. Posters and lamp-bag
+-- tags are found along the way and not counted.
+local function countFinds(level: World.Level): number
+	local total = 0
+	for _, echo in level.echoes do
+		if echo.kind == "recorder" or echo.kind == "reveal" then
+			total += 1
+		end
+	end
+	return total
+end
+
 local function sendState(member: Member)
 	local level = run.level
 	local lore = run.lore
@@ -205,12 +223,13 @@ local function sendState(member: Member)
 		allowPlate = level ~= nil and level.model:GetAttribute("AllowPlate") == true,
 		locked = level ~= nil and level.plan.exitLocked,
 		hasKey = run.collected.key,
+		gateName = if level and level.plan.exitLocked then gateTitle(level.plan) else "",
 		cells = run.collected.cells,
 		cellsTotal = cellsTotal,
 		rescues = run.collected.rescues,
 		rescuesTotal = rescuesTotal,
 		echoes = run.collected.echoes,
-		echoesTotal = if level then #level.echoes else 0,
+		echoesTotal = if level then countFinds(level) else 0,
 		loreRoom = if lore and member.stage == "lore" then lore.room.id else "",
 		partySize = countStage("level") + countStage("downed") + countStage("lore"),
 		checkpointTier = profile.checkpointTier,
@@ -581,7 +600,12 @@ local function wirePickup(level: World.Level, pickup: World.Pickup)
 		pickup.model:Destroy()
 		if kind == "key" then
 			run.collected.key = true
-			toastStage("Key found. The exit will open.", "good", "level", "downed")
+			toastStage(
+				`{gateTitle(level.plan)} found. The exit will open.`,
+				"good",
+				"level",
+				"downed"
+			)
 		elseif kind == "cell" then
 			run.collected.cells += 1
 			toastStage("Battery cell. The sweep is charged.", "good", "level", "downed")
@@ -666,7 +690,11 @@ local function beginLevel(tier: number)
 			return
 		end
 		if level.plan.exitLocked and not run.collected.key then
-			toast(player, "Locked. There is a key somewhere on this level.", "warn")
+			toast(
+				player,
+				`Locked. Something on this level opens it: the {gateTitle(level.plan)}.`,
+				"warn"
+			)
 			return
 		end
 		leaving = true
@@ -1228,25 +1256,30 @@ local function onReveal(player: Player, echoId: number)
 		return
 	end
 	World.revealEcho(level, echo)
-	run.collected.echoes += 1
-	Telemetry.custom(player, "EchoRevealed", run.tier)
-	-- Everyone in the level hears their own next line, so the story stays in order for each.
+	local counted = echo.kind == "recorder" or echo.kind == "reveal"
+	if counted then
+		run.collected.echoes += 1
+		Telemetry.custom(player, "EchoRevealed", run.tier)
+	end
+	-- Everyone in the level hears it. A recorder plays each player's own next tape, so the
+	-- story stays in order for each; every other hidden thing says its own few lines.
+	local own = table.concat(echo.lines, " ")
 	for otherPlayer, other in members do
 		if inLevel(other) then
-			local profile = profileOf(other)
-			local tape = Lore.echoes[profile.echoes % #Lore.echoes + 1]
-			profile.echoes += 1
-			other.sessionLore += 1
-			grant(other, Config.Economy.echoBonus, "Echo")
-			Remotes.send(
-				otherPlayer,
-				"Echo",
-				echo.id,
-				echo.position,
-				if tape.speaker ~= "" then tape.speaker else Lore.echoSpeaker,
-				tape.line
-			)
-			sendProfile(other)
+			local speaker, line = "", own
+			if echo.kind == "recorder" then
+				local profile = profileOf(other)
+				local tape = Lore.echoes[profile.echoes % #Lore.echoes + 1]
+				profile.echoes += 1
+				speaker = if tape.speaker ~= "" then tape.speaker else Lore.echoSpeaker
+				line = tape.line
+			end
+			if counted then
+				other.sessionLore += 1
+				grant(other, Config.Economy.echoBonus, "Echo")
+				sendProfile(other)
+			end
+			Remotes.send(otherPlayer, "Echo", echo.id, echo.position, speaker, line)
 		end
 	end
 	sendStateAll()

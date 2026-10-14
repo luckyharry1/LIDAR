@@ -14,17 +14,27 @@ local Build = require(script.Parent.Build)
 local Config = require(ReplicatedStorage.Shared.Config)
 local Figures = require(script.Parent.Figures)
 local LevelPlan = require(ReplicatedStorage.Shared.pure.LevelPlan)
+local LoreText = require(ReplicatedStorage.Shared.data.LoreText)
 local Maze = require(ReplicatedStorage.Shared.pure.Maze)
+local Places = require(ReplicatedStorage.Shared.data.Places)
 local Props = require(script.Parent.Props)
 local Rng = require(ReplicatedStorage.Shared.pure.Rng)
 
 export type Pickup = { objective: LevelPlan.Objective, model: Model, prompt: ProximityPrompt }
+-- A hidden thing that a scanner can find: a recorder, a story object, a poster, or a lamp-bag
+-- (already lit, so scanning it only brings out what is written on it). Ids run in that order.
+export type EchoKind = "recorder" | "reveal" | "sign" | "nook"
 export type Echo = {
 	id: number,
+	kind: EchoKind,
 	cell: Maze.Cell,
 	model: Model,
 	position: Vector3,
 	revealed: boolean,
+	lines: { string }, -- what it says when revealed (a recorder's tape is the Director's to pick)
+	glow: Places.Glow?, -- the light it gives off once revealed; nil for a recorder's own lamp
+	anchor: BasePart?, -- where that light hangs
+	dead: boolean, -- a burnt-out lamp-bag: hidden until scanned, then only a dim glow
 }
 export type Plate = { position: Vector3, rearmAt: number }
 export type Level = {
@@ -61,6 +71,12 @@ local SKIRTING_HEIGHT = 0.6
 local PROP_SIDE_REACH = INNER - 3.2 -- how far along a wall a prop may sit from its middle
 local LAMP_BRIGHTNESS = 2.4
 local ECHO_BRIGHTNESS = 2.2
+local GLOW_BRIGHTNESS = 2
+local GLOW_RANGE_PER_RADIUS = 1.7 -- a story object's glow radius is where it is clearly lit
+local LAMP_RADIUS = 6 -- the radius a Config.World.lampRange lantern stands for
+local SIGN_LIGHT = { color = { 255, 232, 196 }, radius = 5 }
+local SIGN_SLOTS = { 0, -4.3, 4.3 } -- where along a wall a second and third sign go
+local MARKER_OFFSET = CFrame.new(0, 4, -2.2) -- a hidden object's light hangs this far into the room
 local LAMP_COLOR = Color3.fromRGB(255, 226, 170)
 local PATCH_FLOOR = Color3.fromRGB(126, 118, 104)
 local PATCH_WALL = Color3.fromRGB(150, 152, 144)
@@ -455,63 +471,211 @@ local function buildPatch(maze: Maze.Maze, origin: Vector3, cell: Maze.Cell, par
 	end
 end
 
+-- A bare place to hang a light for something that is hidden: invisible even once revealed.
+local function addMarker(model: Model, at: CFrame): BasePart
+	local marker = Build.part({
+		name = "Marker",
+		size = Vector3.new(0.2, 0.2, 0.2),
+		cframe = at,
+		transparency = 1,
+		collide = false,
+		query = false,
+		parent = model,
+	})
+	marker:SetAttribute("Marker", true)
+	return marker
+end
+
+-- Marks a model so a scanner can find it: after enough dots land on it the client asks the
+-- server to reveal it. `gold` draws it with the fine dots items get.
+local function markScannable(model: Model, id: number, gold: boolean)
+	model:SetAttribute("EchoId", id)
+	CollectionService:AddTag(model, Config.Tags.echo)
+	if gold then
+		CollectionService:AddTag(model, Config.Tags.objective)
+	end
+end
+
+local function newEcho(
+	id: number,
+	kind: EchoKind,
+	cell: Maze.Cell,
+	model: Model,
+	lines: { string },
+	glow: Places.Glow?
+): Echo
+	return {
+		id = id,
+		kind = kind,
+		cell = cell,
+		model = model,
+		position = model:GetPivot().Position,
+		revealed = false,
+		lines = lines,
+		glow = glow,
+		anchor = nil,
+		dead = false,
+	}
+end
+
+-- Lamp-bags: a satchel with a bare bulb burning, lighting the patch of floor and wall round
+-- it. Scanning one brings out what is written on its tag. Some are burnt out: those are
+-- invisible until scanned, and then only glow dimly.
 local function buildLamps(
 	plan: LevelPlan.LevelPlan,
 	origin: Vector3,
 	parent: Instance,
-	rng: Rng.Rng
-)
-	for _, cell in plan.lamps do
-		local center = World.cellCenter(origin, cell)
-		local lantern = Props.place("lantern", againstWall(plan.maze, center, cell, rng), parent)
-		local bulb = lantern:FindFirstChild("Bulb") :: BasePart
-		Build.pointLight(bulb, LAMP_COLOR, LAMP_BRIGHTNESS, Config.World.lampRange)
-		buildPatch(plan.maze, origin, cell, parent)
-	end
-end
-
--- Hidden recorders: invisible until a scanner has put enough dots on them.
-local function buildEchoes(
-	plan: LevelPlan.LevelPlan,
-	origin: Vector3,
-	parent: Instance,
-	rng: Rng.Rng
+	rng: Rng.Rng,
+	firstId: number
 ): { Echo }
 	local echoes: { Echo } = {}
-	for id, cell in plan.echoes do
+	for index, cell in plan.lamps do
+		local variant = plan.nooks[index]
 		local center = World.cellCenter(origin, cell)
-		local model = Props.place("recorder", againstWall(plan.maze, center, cell, rng), parent)
-		model.Name = "Echo" .. id
-		model:SetAttribute("EchoId", id)
-		CollectionService:AddTag(model, Config.Tags.echo)
-		CollectionService:AddTag(model, Config.Tags.objective)
-		Build.hide(model)
-		table.insert(echoes, {
-			id = id,
-			cell = cell,
-			model = model,
-			position = model:GetPivot().Position,
-			revealed = false,
-		})
+		local base = againstWall(plan.maze, center, cell, rng)
+		local dead = variant == Places.deadNook
+		local lantern = Props.place("lantern", base, parent)
+		if variant == 1 then
+			Props.place("nookmug", base, lantern)
+		elseif variant == 2 then
+			Props.place("nookstool", base, lantern)
+		elseif dead then
+			Props.place("nooktag", base, lantern)
+		end
+		local glow = Places.nookGlow(variant)
+		local bulb = lantern:FindFirstChild("Bulb") :: BasePart
+		if dead then
+			bulb.Material = Enum.Material.SmoothPlastic
+			bulb.Color = Color3.fromRGB(60, 56, 50)
+		else
+			local range = Config.World.lampRange * glow.radius / LAMP_RADIUS
+			Build.pointLight(bulb, LAMP_COLOR, LAMP_BRIGHTNESS, range)
+			buildPatch(plan.maze, origin, cell, parent)
+		end
+		local echo =
+			newEcho(firstId + index - 1, "nook", cell, lantern, Places.nookLines(variant), glow)
+		echo.dead = dead
+		echo.anchor = bulb
+		markScannable(lantern, echo.id, false)
+		if dead then
+			Build.hide(lantern)
+		end
+		table.insert(echoes, echo)
 	end
 	return echoes
 end
 
--- A recorder has been scanned enough: it shows itself and lights its corner of the level.
+-- Hidden recorders: invisible until a scanner has put enough dots on them.
+local function buildRecorders(
+	plan: LevelPlan.LevelPlan,
+	origin: Vector3,
+	parent: Instance,
+	rng: Rng.Rng,
+	firstId: number
+): { Echo }
+	local echoes: { Echo } = {}
+	for index, cell in plan.echoes do
+		local id = firstId + index - 1
+		local center = World.cellCenter(origin, cell)
+		local model = Props.place("recorder", againstWall(plan.maze, center, cell, rng), parent)
+		model.Name = "Echo" .. id
+		markScannable(model, id, true)
+		Build.hide(model)
+		local echo = newEcho(id, "recorder", cell, model, {}, nil)
+		local lamp = model:FindFirstChild("Lamp")
+		echo.anchor = if lamp and lamp:IsA("BasePart") then lamp else nil
+		table.insert(echoes, echo)
+	end
+	return echoes
+end
+
+-- The story's hidden objects: a desk lamp, a coat, a dinghy. Invisible until scanned enough;
+-- then they light up their corner and say their lines.
+local function buildReveals(
+	plan: LevelPlan.LevelPlan,
+	origin: Vector3,
+	parent: Instance,
+	rng: Rng.Rng,
+	firstId: number
+): { Echo }
+	local echoes: { Echo } = {}
+	for index, reveal in plan.reveals do
+		local id = firstId + index - 1
+		local details = Places.reveal(reveal.id)
+		local center = World.cellCenter(origin, reveal.cell)
+		local base = againstWall(plan.maze, center, reveal.cell, rng)
+		local model = Props.place(details.kit, base, parent)
+		model.Name = "Reveal_" .. reveal.id
+		local echo = newEcho(id, "reveal", reveal.cell, model, details.lines, details.glow)
+		echo.anchor = addMarker(model, base * MARKER_OFFSET)
+		markScannable(model, id, true)
+		Build.hide(model)
+		table.insert(echoes, echo)
+	end
+	return echoes
+end
+
+-- Posters and stencils. They are paper on a wall: invisible until scanned, then readable by
+-- a small light of their own. Several signs in one cell take different walls and positions.
+local function buildSigns(
+	plan: LevelPlan.LevelPlan,
+	origin: Vector3,
+	parent: Instance,
+	firstId: number
+): { Echo }
+	local echoes: { Echo } = {}
+	local perCell: { [number]: number } = {}
+	for _, sign in plan.signs do
+		local closed = closedSides(plan.maze, sign.cell)
+		if #closed > 0 then
+			local index = Maze.index(plan.maze, sign.cell.x, sign.cell.y)
+			local count = perCell[index] or 0
+			perCell[index] = count + 1
+			local side = closed[count % #closed + 1]
+			local slot = SIGN_SLOTS[math.floor(count / #closed) % #SIGN_SLOTS + 1]
+			local center = World.cellCenter(origin, sign.cell)
+			local base = wallBase(center, side) * CFrame.new(slot, 0, 0)
+			local lines = Places.signLines(sign.id)
+			local model = Props.sign(base, lines, parent)
+			model.Name = "Sign_" .. sign.id
+			local echo = newEcho(firstId + #echoes, "sign", sign.cell, model, lines, SIGN_LIGHT)
+			echo.anchor = addMarker(model, base * MARKER_OFFSET)
+			markScannable(model, echo.id, false)
+			Build.hide(model)
+			table.insert(echoes, echo)
+		end
+	end
+	return echoes
+end
+
+-- A hidden thing has been scanned enough: it shows itself and lights its corner of the level.
+-- A lit lamp-bag is already showing; scanning it only brings out its tag, and a burnt-out one
+-- appears now, with a dim glow.
 function World.revealEcho(level: Level, echo: Echo)
 	echo.revealed = true
 	CollectionService:RemoveTag(echo.model, Config.Tags.echo)
-	for _, descendant in echo.model:GetDescendants() do
-		if descendant:IsA("BasePart") then
-			descendant.Transparency = 0
+	if echo.kind == "nook" and not echo.dead then
+		return
+	end
+	Build.show(echo.model)
+	local anchor = echo.anchor
+	if anchor ~= nil then
+		local glow = echo.glow
+		if glow ~= nil then
+			Build.pointLight(
+				anchor,
+				Build.rgb(glow.color),
+				GLOW_BRIGHTNESS,
+				glow.radius * GLOW_RANGE_PER_RADIUS
+			)
+		else
+			Build.pointLight(anchor, anchor.Color, ECHO_BRIGHTNESS, Config.World.echoLightRange)
 		end
 	end
-	local lamp = echo.model:FindFirstChild("Lamp")
-	if lamp and lamp:IsA("BasePart") then
-		Build.pointLight(lamp, lamp.Color, ECHO_BRIGHTNESS, Config.World.echoLightRange)
-	end
 	echo.model.Parent = level.lit
-	buildPatch(level.plan.maze, level.origin, echo.cell, level.lit)
+	if echo.kind ~= "sign" then
+		buildPatch(level.plan.maze, level.origin, echo.cell, level.lit)
+	end
 end
 
 -- The exit: a door set into a closed side of the exit cell (or free-standing if it has none).
@@ -561,8 +725,151 @@ local function buildExit(
 	return door, prompt
 end
 
+-- The thing that opens a locked exit, as the story names it for this level: a fuse, a valve
+-- wheel, a coil of rope, a crank, a lamp core, or a brass key. `at` is where it hovers.
+local function buildGateItem(gate: string, at: Vector3, parent: Instance)
+	local function part(
+		name: string,
+		size: Vector3,
+		offset: CFrame,
+		color: Color3,
+		shape: Enum.PartType?,
+		material: Enum.Material?
+	)
+		return Build.part({
+			name = name,
+			size = size,
+			cframe = CFrame.new(at) * offset,
+			color = color,
+			material = material,
+			shape = shape,
+			collide = false,
+			parent = parent,
+		})
+	end
+	local upright = CFrame.Angles(0, 0, math.rad(90))
+	local cylinder = Enum.PartType.Cylinder
+	local brass = Color3.fromRGB(196, 160, 84)
+	if gate == "fuse" then
+		part(
+			"Tube",
+			Vector3.new(1.6, 0.6, 0.6),
+			upright,
+			Color3.fromRGB(200, 214, 220),
+			cylinder,
+			Enum.Material.Glass
+		)
+		part(
+			"CapTop",
+			Vector3.new(0.3, 0.7, 0.7),
+			CFrame.new(0, 0.9, 0) * upright,
+			brass,
+			cylinder,
+			Enum.Material.Metal
+		)
+		part(
+			"CapBottom",
+			Vector3.new(0.3, 0.7, 0.7),
+			CFrame.new(0, -0.9, 0) * upright,
+			brass,
+			cylinder,
+			Enum.Material.Metal
+		)
+	elseif gate == "valve" then
+		local iron = Color3.fromRGB(86, 90, 92)
+		part("Wheel", Vector3.new(0.25, 2.4, 2.4), upright, iron, cylinder, Enum.Material.Metal)
+		part("SpokeA", Vector3.new(2.6, 0.18, 0.22), CFrame.new(), iron, nil, Enum.Material.Metal)
+		part("SpokeB", Vector3.new(0.22, 0.18, 2.6), CFrame.new(), iron, nil, Enum.Material.Metal)
+	elseif gate == "rope" then
+		local fibre = Color3.fromRGB(168, 142, 96)
+		for step = 0, 7 do
+			local angle = step / 8 * math.pi * 2
+			part(
+				"Coil",
+				Vector3.new(0.5, 0.5, 0.9),
+				CFrame.new(math.cos(angle) * 0.9, 0, math.sin(angle) * 0.9)
+					* CFrame.Angles(0, -angle, 0),
+				fibre,
+				nil,
+				Enum.Material.Fabric
+			)
+		end
+		part(
+			"End",
+			Vector3.new(0.3, 0.3, 1.2),
+			CFrame.new(1.2, -0.3, 0.8),
+			fibre,
+			nil,
+			Enum.Material.Fabric
+		)
+	elseif gate == "crank" then
+		local iron = Color3.fromRGB(86, 90, 92)
+		part("Shaft", Vector3.new(0.25, 1.6, 0.25), CFrame.new(), iron, nil, Enum.Material.Metal)
+		part(
+			"Arm",
+			Vector3.new(1.2, 0.22, 0.22),
+			CFrame.new(0.5, 0.8, 0),
+			iron,
+			nil,
+			Enum.Material.Metal
+		)
+		part(
+			"Knob",
+			Vector3.new(0.5, 0.5, 0.5),
+			CFrame.new(1.1, 0.8, 0),
+			Color3.fromRGB(122, 86, 56),
+			Enum.PartType.Ball,
+			Enum.Material.Wood
+		)
+	elseif gate == "core" then
+		local glass = part(
+			"Glass",
+			Vector3.new(1.3, 1.3, 1.3),
+			CFrame.new(),
+			Color3.fromRGB(214, 232, 255),
+			Enum.PartType.Ball,
+			Enum.Material.Neon
+		)
+		glass.Transparency = 0.25
+	else
+		local key = part(
+			"Key",
+			Vector3.new(0.3, 0.5, 1.5),
+			CFrame.Angles(0, math.rad(30), 0),
+			Color3.fromRGB(196, 160, 84),
+			nil,
+			Enum.Material.Metal
+		)
+		Build.part({
+			name = "Bow",
+			size = Vector3.new(0.3, 0.9, 0.9),
+			cframe = key.CFrame * CFrame.new(0, 0, 1),
+			shape = Enum.PartType.Cylinder,
+			collide = false,
+			parent = parent,
+		})
+	end
+end
+
+-- The story's name for a level's gate item and the line that goes with it ("Fuse", "Not
+-- blown. Just waiting."). Endless floors and any gate without an entry fall back to the key.
+function World.gate(plan: LevelPlan.LevelPlan): (string, string, string)
+	local gate = plan.def.gate or "key"
+	local entry = LoreText.get("item." .. gate)
+	if entry == nil then
+		gate = "key"
+		entry = LoreText.get("item.key")
+	end
+	local title = if entry and entry.title then entry.title else "Key"
+	local line = if entry then entry.lines[1] or "" else ""
+	local description = string.gsub(line, "^[^:]*:%s*", "")
+	return gate, title, description
+end
+
 local function buildPickup(
 	objective: LevelPlan.Objective,
+	gate: string,
+	gateTitle: string,
 	center: Vector3,
 	face: CFrame,
 	parent: Instance
@@ -583,23 +890,8 @@ local function buildPickup(
 			parent = model,
 		})
 		if objective.kind == "key" then
-			local key = Build.part({
-				name = "Key",
-				size = Vector3.new(0.3, 0.5, 1.5),
-				cframe = CFrame.new(center + Vector3.new(0, 2.9, 0))
-					* CFrame.Angles(0, math.rad(30), 0),
-				collide = false,
-				parent = model,
-			})
-			Build.part({
-				name = "Bow",
-				size = Vector3.new(0.3, 0.9, 0.9),
-				cframe = key.CFrame * CFrame.new(0, 0, 1),
-				shape = Enum.PartType.Cylinder,
-				collide = false,
-				parent = model,
-			})
-			prompt = Build.prompt(stand, "Take", "Key", 0.3)
+			buildGateItem(gate, center + Vector3.new(0, 3, 0), model)
+			prompt = Build.prompt(stand, "Take", gateTitle, 0.3)
 		elseif objective.kind == "cell" then
 			Build.part({
 				name = "Cell",
@@ -679,15 +971,25 @@ function World.buildLevel(plan: LevelPlan.LevelPlan, origin: Vector3): Level
 	local exitDoor, exitPrompt = buildExit(plan, origin, dark)
 
 	local pickups: { Pickup } = {}
+	local gate, gateTitle = World.gate(plan)
 	for _, objective in plan.objectives do
 		local center = World.cellCenter(origin, objective.cell)
 		local closed = closedSides(maze, objective.cell)
 		local face = if #closed > 0 then wallBase(center, closed[1]) else CFrame.new(center)
-		table.insert(pickups, buildPickup(objective, center, face, dark))
+		table.insert(pickups, buildPickup(objective, gate, gateTitle, center, face, dark))
 	end
-	local echoes = buildEchoes(plan, origin, dark, rng)
+	-- Hidden things get ids in this order: recorders, story objects, posters, then lamp-bags.
+	local echoes = buildRecorders(plan, origin, dark, rng, 1)
+	for _, echo in buildReveals(plan, origin, dark, rng, #echoes + 1) do
+		table.insert(echoes, echo)
+	end
+	for _, echo in buildSigns(plan, origin, dark, #echoes + 1) do
+		table.insert(echoes, echo)
+	end
 	Build.hide(dark)
-	buildLamps(plan, origin, lit, rng)
+	for _, echo in buildLamps(plan, origin, lit, rng, #echoes + 1) do
+		table.insert(echoes, echo)
+	end
 
 	-- Face the player down an open passage from the start cell.
 	local startCenter = World.cellCenter(origin, maze.start)

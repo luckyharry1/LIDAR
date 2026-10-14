@@ -16,13 +16,14 @@ export type Tier = {
 	objectives: { min: number, max: number },
 	exitLocked: boolean, -- true: the key is required to open the exit
 	flooded: number, -- share of cells that are flooded (loud to move through)
-	lamps: number, -- lanterns: small pools of real light
+	lamps: number, -- lamp-bags: small pools of real light, one every minute or so of the level
 	echoes: number, -- hidden objects that reveal themselves, and a line of story, when scanned
 	pits: number, -- holes in the floor
 	plates: number, -- alarm plates that make a loud noise when stepped on
 	sweepScale: number, -- above 1 the sweep recharges more slowly: resources tighten
 	reward: number, -- Static paid on clear
-	loreRoomAfter: string?, -- id of the lit safe room that follows this tier
+	gate: string?, -- the item that opens a locked exit, named by its story entry ("fuse" is item.fuse)
+	loreRoomAfter: string?, -- id of the lit safe room that follows this tier: a haven or a big lit room
 }
 
 local Tiers: { Tier } = {
@@ -39,12 +40,13 @@ local Tiers: { Tier } = {
 		objectives = { min = 1, max = 1 },
 		exitLocked = false,
 		flooded = 0,
-		lamps = 1,
+		lamps = 2,
 		echoes = 1,
 		pits = 0,
 		plates = 0,
 		sweepScale = 0.8,
 		reward = 30,
+		loreRoomAfter = "copyroom",
 	},
 	{
 		name = "The Annex",
@@ -57,14 +59,15 @@ local Tiers: { Tier } = {
 		enemySpeedScale = 0.85,
 		enemySenseScale = 0.85,
 		objectives = { min = 1, max = 2 },
-		exitLocked = false,
+		exitLocked = true,
 		flooded = 0,
-		lamps = 1,
+		lamps = 3,
 		echoes = 1,
 		pits = 1,
 		plates = 0,
 		sweepScale = 0.9,
 		reward = 40,
+		gate = "fuse",
 		loreRoomAfter = "office",
 	},
 	{
@@ -78,14 +81,16 @@ local Tiers: { Tier } = {
 		enemySpeedScale = 0.85,
 		enemySenseScale = 0.85,
 		objectives = { min = 1, max = 2 },
-		exitLocked = false,
+		exitLocked = true,
 		flooded = 0,
-		lamps = 1,
+		lamps = 3,
 		echoes = 1,
 		pits = 1,
 		plates = 1,
 		sweepScale = 1,
 		reward = 55,
+		gate = "valve",
+		loreRoomAfter = "drybooth",
 	},
 	{
 		name = "The Flooded Wing",
@@ -100,12 +105,13 @@ local Tiers: { Tier } = {
 		objectives = { min = 2, max = 2 },
 		exitLocked = true,
 		flooded = 0.18,
-		lamps = 2,
+		lamps = 3,
 		echoes = 1,
 		pits = 1,
 		plates = 1,
 		sweepScale = 1,
 		reward = 70,
+		gate = "rope",
 		loreRoomAfter = "cistern",
 	},
 	{
@@ -119,14 +125,16 @@ local Tiers: { Tier } = {
 		enemySpeedScale = 1,
 		enemySenseScale = 1,
 		objectives = { min = 2, max = 3 },
-		exitLocked = false,
+		exitLocked = true,
 		flooded = 0.08,
-		lamps = 2,
+		lamps = 3,
 		echoes = 2,
 		pits = 2,
 		plates = 1,
 		sweepScale = 1.05,
 		reward = 85,
+		gate = "crank",
+		loreRoomAfter = "pottingshed",
 	},
 	{
 		name = "The Overgrowth",
@@ -141,12 +149,13 @@ local Tiers: { Tier } = {
 		objectives = { min = 2, max = 3 },
 		exitLocked = true,
 		flooded = 0.08,
-		lamps = 2,
+		lamps = 3,
 		echoes = 2,
 		pits = 2,
 		plates = 2,
 		sweepScale = 1.1,
 		reward = 100,
+		gate = "fuse",
 		loreRoomAfter = "breakroom",
 	},
 	{
@@ -162,12 +171,14 @@ local Tiers: { Tier } = {
 		objectives = { min = 2, max = 3 },
 		exitLocked = true,
 		flooded = 0.12,
-		lamps = 2,
+		lamps = 3,
 		echoes = 2,
 		pits = 2,
 		plates = 2,
 		sweepScale = 1.15,
 		reward = 120,
+		gate = "core",
+		loreRoomAfter = "archivenook",
 	},
 	{
 		name = "The Foundation",
@@ -182,12 +193,13 @@ local Tiers: { Tier } = {
 		objectives = { min = 3, max = 3 },
 		exitLocked = true,
 		flooded = 0.12,
-		lamps = 3,
+		lamps = 4,
 		echoes = 2,
 		pits = 3,
 		plates = 2,
 		sweepScale = 1.2,
 		reward = 150,
+		gate = "key",
 		loreRoomAfter = "stairwell",
 	},
 }

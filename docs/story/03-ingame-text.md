@@ -101,6 +101,10 @@ Placeholders: `{deaths}` `{floor}` `{n}` `{party}`. Lines are separate lines of 
 | `rev.found.stone` | Foundation (B6, T7-8) | Cornerstone | FOUNDATION STONE.<br>The first thing built.<br>Nobody remembers who laid it. *(glow: amber, r=8)* |
 | `rev.found.chalk` | Foundation (B6, T7-8) | Chalk arrow trail | Chalk arrows. Fresh.<br>I.C. *(glow: amber, r=6)* |
 | `rev.lamp.postcard` | Lamp Room (finale) | Postcard pinned above the ladder | POSTCARD<br>The surface is loud.<br>Bring the others.<br>- Pim *(glow: amber, r=8)* |
+| `rev.nook.1` | Any floor | Lamp-bag on a hook, mug beneath it (mid-level lit spot) | A lamp-bag on a hook.<br>A mug beneath it. Still warm. *(glow: amber, r=6)* |
+| `rev.nook.2` | Any floor | Lamp-bag over a folding stool | A stool. A bag of light.<br>Somebody sat here and waited. *(glow: amber, r=6)* |
+| `rev.nook.3` | Any floor | Lamp-bag taped to a corner | J.B. 3/7.<br>He hung one at every turn. *(glow: amber, r=7)* |
+| `rev.nook.4` | Any floor | Lamp-bag with a tag, burnt out | The bulb is dead.<br>The tag reads: KEEP GOING. *(glow: dim amber, r=4)* |
 
 ## note
 
@@ -112,6 +116,10 @@ Placeholders: `{deaths}` `{floor}` `{n}` `{party}`. Lines are separate lines of 
 | `note.bunk.board` | Bunk Room (lit) | Corkboard: WHO'S STILL OUT | WHO'S STILL OUT<br>HOLLIS  rounds<br>WREN  listening<br>ANAND  tapping<br>QUILL  watching<br>ASHWORTH  (circled) *Note: Lines are crossed out in varying pens, 'ASHWORTH' is circled in green.* |
 | `note.bunk.letters` | Bunk Room (lit) | Letters pinned to a bunk | Dear Mum. We are fine. The pay is good.<br>I cannot tell you where. It is quiet here.<br>Dear Mum. We are fine. *Note: Repeated opening is intentional.* |
 | `note.bunk.pim` | Bunk Room (lit) | Folded note under a bunk | Gone to find the ladder.<br>Left my mug for luck.<br>- P. |
+| `note.haven.copy` | Annex (B3, T1-2) | Page in the copier tray, Copy Room | A page, still warm from the machine.<br>A map of the corridor just left.<br>Drawn from the other side. |
+| `note.haven.booth` | Flooded Wing (B4, T3-4) | Shift log on the booth wall | SHIFT LOG  PUMP HOUSE<br>Water level: up.<br>Water level: up.<br>Water level: we stopped writing it down. |
+| `note.haven.shed` | Overgrowth (B5, T5-6) | Seed packets on the bench | Seed packets, labelled in a careful hand.<br>TOMATO. BEAN. SOMETHING ELSE.<br>Someone planted all three. |
+| `note.haven.nook` | Foundation (B6, T7-8) | Card index with one drawer open | Card index, one drawer open.<br>Every card says SEEN.<br>The last one says SEEN BY: ____. |
 
 ## radio
 
@@ -130,6 +138,7 @@ Placeholders: `{deaths}` `{floor}` `{n}` `{party}`. Lines are separate lines of 
 | `radio.fake.2` | Overgrowth (B5, T5-6) | Radio near the Mimic ONLY | Base?: Put the rig down, Seven.<br>It is safe here. |
 | `radio.fake.3` | Overgrowth (B5, T5-6) | Radio near the Mimic ONLY | Base?: Base to Seven. Turn left.<br>Left. Now. |
 | `radio.fake.4` | Overgrowth (B5, T5-6) | Radio near the Mimic ONLY | Base?: Two taps.<br>(tap tap) ...Seven? *Note: It skips the beat.* |
+| `radio.haven.1` | Any floor | Radio in any small haven | Base: Base to Seven. Rest.<br>I have you. |
 
 ## npc
 
@@ -180,6 +189,10 @@ Placeholders: `{deaths}` `{floor}` `{n}` `{party}`. Lines are separate lines of 
 | `card.found` | Foundation (B6, T7-8) | Level card B6 | B6<br>THE FOUNDATION<br>before the plan |
 | `card.relay` | The Relay (endless) | Endless floor card | RELAY FLOOR {n}<br>lit once before |
 | `card.relay.daily` | The Relay (endless) | Daily seed card | TONIGHT'S FLOOR<br>same for everyone |
+| `card.haven.copy` | Annex (B3, T1-2) | Haven card after tier 1 | THE COPY ROOM<br>the machine is still warm |
+| `card.haven.booth` | Flooded Wing (B4, T3-4) | Haven card after tier 3 | THE DRY BOOTH<br>pump house, lamp on |
+| `card.haven.shed` | Overgrowth (B5, T5-6) | Haven card after tier 5 | THE POTTING SHED<br>a lantern, a bench, a window |
+| `card.haven.nook` | Foundation (B6, T7-8) | Haven card after tier 7 | THE ARCHIVE NOOK<br>one lamp between the shelves |
 
 ## item
 

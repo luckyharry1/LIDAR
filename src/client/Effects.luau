@@ -266,7 +266,9 @@ end
 -- A hidden recorder revealed itself: its line is spoken to everyone in the level.
 local function onEcho(_echoId: number, position: Vector3, speaker: string, line: string)
 	Audio.echo(position)
-	Effects.pulse(0.25, 0.1)
+	if speaker ~= "" then
+		Effects.pulse(0.25, 0.1) -- a tape starts; a poster or a lamp-bag tag just says its words
+	end
 	Hud.dialogue(speaker, line)
 end
 

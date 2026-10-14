@@ -5,6 +5,7 @@
 -- New props are data: add a kit and it can be placed anywhere.
 
 local Build = require(script.Parent.Build)
+local StoryKits = require(script.Parent.StoryKits)
 
 type Piece = {
 	name: string?, -- only for pieces other code needs to find again
@@ -660,6 +661,64 @@ Props.kits = {
 		{ size = { 0.4, 1.2, 0.4 }, at = { 0.8, 1.1, -0.8 }, color = BRASS, material = metal },
 	},
 } :: { [string]: { Piece } }
+
+for name, kit in StoryKits do
+	Props.kits[name] = kit
+end
+
+local SIGN_WIDTH, SIGN_HEIGHT = 4, 5.6
+local SIGN_PIXELS = 36 -- pixels per stud on the sign's surface
+local SIGN_INK = Color3.fromRGB(34, 32, 30)
+local MARGIN_PREFIX = "margin: "
+
+local function escape(text: string): string
+	return (string.gsub(string.gsub(string.gsub(text, "&", "&amp;"), "<", "&lt;"), ">", "&gt;"))
+end
+
+-- A notice on a wall, printed in rich text: the first line is the heading, and a line that
+-- starts "margin: " is the crew's handwriting beside it. Its text is hidden (SurfaceGui
+-- disabled) by Build.hide until the sign is revealed.
+function Props.sign(base: CFrame, lines: { string }, parent: Instance): Model
+	local model = Build.model("Sign", parent)
+	local paper = Build.part({
+		name = "Paper",
+		size = Vector3.new(SIGN_WIDTH, SIGN_HEIGHT, 0.12),
+		cframe = base * CFrame.new(0, 5.4, -0.08),
+		color = Build.rgb(PAPER),
+		material = plastic,
+		collide = false,
+		parent = model,
+	})
+	model.PrimaryPart = paper
+	local rich = {}
+	for index, line in lines do
+		if string.sub(line, 1, #MARGIN_PREFIX) == MARGIN_PREFIX then
+			local note = escape(string.sub(line, #MARGIN_PREFIX + 1))
+			table.insert(rich, `<i><font color="rgb(150,40,40)" size="20">{note}</font></i>`)
+		elseif index == 1 then
+			table.insert(rich, `<b>{escape(line)}</b>`)
+		else
+			table.insert(rich, escape(line))
+		end
+	end
+	local gui = Instance.new("SurfaceGui")
+	gui.Face = Enum.NormalId.Front
+	gui.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
+	gui.PixelsPerStud = SIGN_PIXELS
+	gui.LightInfluence = 1
+	gui.Parent = paper
+	local label = Instance.new("TextLabel")
+	label.Size = UDim2.fromScale(1, 1)
+	label.BackgroundTransparency = 1
+	label.TextColor3 = SIGN_INK
+	label.Font = Enum.Font.Code
+	label.TextSize = 22
+	label.TextWrapped = true
+	label.RichText = true
+	label.Text = table.concat(rich, "\n")
+	label.Parent = gui
+	return model
+end
 
 -- Builds a kit at a base CFrame. Returns the model; its PrimaryPart is the first piece.
 function Props.place(kind: string, base: CFrame, parent: Instance): Model

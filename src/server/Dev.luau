@@ -4,9 +4,12 @@
 --
 -- From the Studio command bar while playing (server side):
 --   workspace:SetAttribute("DevCommand", "tier 6")      jump to a tier
---   workspace:SetAttribute("DevCommand", "lore office")  visit a lore room (office, cistern,
---                                                        breakroom, stairwell, landing)
---   workspace:SetAttribute("DevCommand", "echo")         reveal the next hidden recorder
+--   workspace:SetAttribute("DevCommand", "lore office")  visit a lit room: the havens (copyroom,
+--                                                        drybooth, pottingshed, archivenook) or the
+--                                                        big rooms (office, cistern, breakroom,
+--                                                        stairwell, landing)
+--   workspace:SetAttribute("DevCommand", "echo")         reveal the next hidden thing (recorder,
+--                                                        story object, poster or lamp-bag tag)
 --   workspace:SetAttribute("DevCommand", "clear")        finish the current level
 --   workspace:SetAttribute("DevCommand", "static 500")   give everyone Static
 --   workspace:SetAttribute("DevCommand", "lights on")    light the maze to inspect it ("lights off")

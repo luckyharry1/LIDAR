@@ -4,6 +4,7 @@
 -- it from the story thread's text.
 -- Usage: lune run scripts/lore > docs/LORE.md
 local Lore = require("../src/shared/data/Lore")
+local Places = require("../src/shared/data/Places")
 local Tiers = require("../src/shared/data/Tiers")
 
 local out: { string } = {}
@@ -47,7 +48,7 @@ line()
 line("| Where | What the player meets |")
 line("| --- | --- |")
 line(
-	"| Lit rooms | Three notes each: sign-in sheets, tapes, a corkboard, a guest book. Read at a prompt. |"
+	"| Lit rooms | A lit break after every level: small havens with one page each, big rooms with three or four (sign-in sheets, tapes, a corkboard, a guest book). Read at a prompt. |"
 )
 line(
 	"| Hidden recorders | Scan one enough and it reveals itself and plays the next tape, in story order. |"
@@ -114,10 +115,23 @@ for _, section in Lore.sections do
 			quote(tape.line)
 			line()
 		end
-	end
-	local after = roomAfter[section.last]
-	if after then
-		room(after)
+		local places = Places.forTier(tier)
+		for _, id in places.reveals do
+			line(`**Hidden object** (tier {tier}):`)
+			line()
+			quote(table.concat(Places.reveal(id).lines, "\n"))
+			line()
+		end
+		for _, sign in places.signs do
+			line(`**Sign** (tier {tier}, {sign.at}):`)
+			line()
+			quote(table.concat(Places.signLines(sign.id), "\n"))
+			line()
+		end
+		local after = roomAfter[tier]
+		if after then
+			room(after)
+		end
 	end
 end
 

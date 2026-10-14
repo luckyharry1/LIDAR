@@ -2,7 +2,7 @@
 -- Base, on the radio. In the story Base is Ines Calder, keeping the lamp at the bottom of the
 -- building; the player only ever hears her report and count. Base checks in on a new floor,
 -- when the dark gives you back, when a level is logged, the first time you reach the Night
--- Desk, and now and then in the dark.
+-- Desk (and, briefly, in each small haven), and now and then in the dark.
 -- Real Base reports. Real Base counts. Real Base never gives directions. Close to an Echo
 -- that is still pretending to be one of ours, a second voice comes on calling itself Base,
 -- and it does give directions: that difference is the tell, and nobody points it out.
@@ -30,6 +30,7 @@ local CHECK_HZ = 4
 local Radio = {}
 
 local deskHeard = false
+local havensHeard: { [string]: boolean } = {} -- each small haven gets one call, the first visit
 local nextDarkCall = 0
 local fakeReadyAt = 0
 local nextFake = 1
@@ -128,9 +129,15 @@ function Radio.start()
 		if zone == nil or State.server.stage ~= "lore" then
 			return
 		end
-		if State.server.loreRoom == "office" and not deskHeard then
+		local roomId = State.server.loreRoom
+		if roomId == "office" and not deskHeard then
 			deskHeard = true
 			say(Lore.radio.desk)
+		elseif Lore.rooms[roomId] ~= nil and Lore.rooms[roomId].size == "haven" then
+			if not havensHeard[roomId] then
+				havensHeard[roomId] = true
+				say(Lore.radio.haven)
+			end
 		end
 	end)
 	RunService.Heartbeat:Connect(update)
