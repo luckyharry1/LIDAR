@@ -12,6 +12,7 @@ local suites: { { name: string, tests: { [string]: () -> () } } } = {
 	{ name = "SaveData", tests = require("./SaveDataTests") },
 	{ name = "Daily", tests = require("./DailyTests") },
 	{ name = "Simulation", tests = require("./SimTests") },
+	{ name = "Lore", tests = require("./LoreTests") },
 }
 
 local passed, failed = 0, 0

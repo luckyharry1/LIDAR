@@ -1,7 +1,8 @@
 --!strict
 -- The scanner in the player's hands. In the dark only its pinprick status light shows (and
--- the gun's silhouette against the dots); in a lit room the whole housing is visible. The
--- light runs from pale to red with heat, so the meter can be read without looking away.
+-- the gun's silhouette against the dots); in a lit room it is lowered out of the way. The
+-- light is pale when the sweep is ready and red while it recharges, so the charge can be read
+-- without looking away, and the gun tips from top to bottom as a sweep runs.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -9,6 +10,7 @@ local RunService = game:GetService("RunService")
 
 local Atmosphere = require(script.Parent.Atmosphere)
 local Avatar = require(script.Parent.Avatar)
+local Config = require(ReplicatedStorage.Shared.Config)
 local Lidar = require(script.Parent.Lidar)
 local State = require(script.Parent.State)
 local Upgrades = require(ReplicatedStorage.Shared.data.Upgrades)
@@ -23,18 +25,21 @@ type Spec = {
 	pitch: number?,
 }
 
+local lidar = Config.Lidar
+
 -- Where the gun sits relative to the camera, and how big it is drawn.
 local REST = CFrame.new(0.5, -0.46, -1.15)
 local SCALE = 0.5
 local DEFAULT_HOUSING = { 96, 100, 108 }
 local DARK = { 34, 36, 40 }
-local COOL_LIGHT = Color3.fromRGB(200, 220, 255)
-local HOT_LIGHT = Color3.fromRGB(255, 60, 40)
+local READY_LIGHT = Color3.fromRGB(200, 220, 255)
+local CHARGING_LIGHT = Color3.fromRGB(255, 60, 40)
 local LIGHT_SIZE = 0.014 -- a pinprick: it must never compete with the dots
 local LIGHT_OFFSET = CFrame.new(0, 0.115, 0.2)
 local SWAY = 0.018
 local KICK = 0.006 -- how far the gun jitters while scanning
-local FOCUS_PULL = 0.03 -- the gun draws back a touch while focusing
+local SWEEP_TILT = 0.2 -- share of the sweep's own angles the gun follows as it runs
+local SWEEP_PULL = 0.025 -- the gun draws back a touch while sweeping
 local FIRST_PERSON_DISTANCE = 1.2 -- beyond this the camera is in third person: hide the gun
 local LOWERED_ABOVE = 0.2 -- how lit it must be before the scanner is put away
 
@@ -69,6 +74,8 @@ local pieces: { Piece } = {}
 local housing: { Part } = {}
 local light: Part
 local swayTime = 0
+local sweepStarted = 0
+local wasSweeping = false
 
 local function newPart(
 	size: Vector3,
@@ -106,7 +113,7 @@ local function build()
 			table.insert(housing, part)
 		end
 	end
-	light = newPart(Vector3.one * LIGHT_SIZE, COOL_LIGHT, Enum.Material.Neon, Enum.PartType.Ball)
+	light = newPart(Vector3.one * LIGHT_SIZE, READY_LIGHT, Enum.Material.Neon, Enum.PartType.Ball)
 	table.insert(pieces, { part = light, offset = LIGHT_OFFSET })
 end
 
@@ -138,19 +145,27 @@ local function update(dt: number)
 	local sway =
 		CFrame.new(math.sin(swayTime * 0.5) * SWAY, math.abs(math.cos(swayTime)) * SWAY * bob, 0)
 	local kick = CFrame.new()
-	if Lidar.firing then
-		kick = CFrame.new(
-			(math.random() - 0.5) * KICK,
-			(math.random() - 0.5) * KICK,
-			if Lidar.focusing then FOCUS_PULL else 0
-		)
+	if Lidar.firing or Lidar.sweeping then
+		kick = CFrame.new((math.random() - 0.5) * KICK, (math.random() - 0.5) * KICK, 0)
 	end
-	local base = camera.CFrame * REST * sway * kick
+	-- Follow the sweep line down the view: start tipped up, finish tipped down.
+	local now = os.clock()
+	if Lidar.sweeping and not wasSweeping then
+		sweepStarted = now
+	end
+	wasSweeping = Lidar.sweeping
+	local tilt = CFrame.new()
+	if Lidar.sweeping then
+		local progress = math.clamp((now - sweepStarted) / lidar.sweepSeconds, 0, 1)
+		local pitch = lidar.sweepUpDeg - progress * (lidar.sweepUpDeg + lidar.sweepDownDeg)
+		tilt = CFrame.new(0, 0, SWEEP_PULL) * CFrame.Angles(math.rad(pitch * SWEEP_TILT), 0, 0)
+	end
+	local base = camera.CFrame * REST * sway * kick * tilt
 	for _, entry in pieces do
 		entry.part.CFrame = base * entry.offset
 	end
-	light.Color = COOL_LIGHT:Lerp(HOT_LIGHT, Lidar.heat)
-	light.Transparency = if Lidar.firing then 0.35 else 0.7
+	light.Color = CHARGING_LIGHT:Lerp(READY_LIGHT, Lidar.charge)
+	light.Transparency = if Lidar.firing or Lidar.sweeping then 0.35 else 0.7
 end
 
 local function applySkin()

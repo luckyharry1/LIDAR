@@ -1,69 +1,340 @@
 # Progress
 
-Last updated 13 October 2026. Work stopped mid-polish when the usage limit was reached.
+Living log of where the build is. Update it whenever a slice lands, so a fresh session can
+pick up from exactly here.
 
-## Done and checked
+Last updated: 13 Oct 2026, during the v2 rework. The v2 work is on two pushed branches:
+`claude/project-thread-btlp2q` (rules, data, server, client core, story docs) and
+`claude/lucid-noether-kgfglb`, which merges it and adds the client slices, the story
+integration and the docs. Nothing is merged into `main` yet.
 
-- **Tooling.** Rojo project, Rokit pins, StyLua and Selene pass, `rojo build` works.
-- **Pure logic** (`src/shared/pure`, `src/shared/data`): maze generator, level plans, four enemy
-  state machines, progression, saves with migration, daily seeds. 62 Lune tests pass
-  (`lune run tests/run`), including 10,000 maze seeds and a wall-crossing fuzz test.
-- **Headless bot simulation** (`tests/Sim.luau`, `lune run scripts/simstats 40`). Latest run,
-  40 seeds per tier, 900 simulated seconds allowed:
+**Story places slice (cloud thread, 14 Oct 2026, branch `claude/story-places`, based on
+`claude/lucid-noether-kgfglb`):** the lit havens, lamp-bags along the way, scan-to-reveal story
+objects, posters, gate items and the secret alcove are written. See "Story places" below. None of
+it has been run in Studio. `scripts/check.sh` could not run in full in the cloud (see there).
 
-| Tier | Clear rate | Mean time to clear (s) | Mean catches per run | Deadlocks |
-| --- | --- | --- | --- | --- |
-| 1 | 100% | 33 | 0.00 | 0 |
-| 2 | 100% | 36 | 0.00 | 0 |
-| 3 | 100% | 74 | 0.05 | 0 |
-| 4 | 100% | 102 | 0.12 | 0 |
-| 5 | 100% | 94 | 0.35 | 0 |
-| 6 | 100% | 87 | 0.15 | 0 |
-| 7 | 98% | 131 | 0.57 | 0 |
-| 8 | 90% | 194 | 1.95 | 0 |
-| 9 | 88% | 213 | 2.00 | 0 |
-| 10 | 92% | 251 | 1.57 | 0 |
-| 11 | 98% | 292 | 2.85 | 0 |
+## Where things stand
 
-- **Played in Studio through the Studio MCP link** (one player, PC input): title screen,
-  tutorial room, tiers 1 to 3 and 5, being caught and respawning, cell and surveyor pickups,
-  exit doors, the office lore room, the workbench (buying upgrades), the Mimic's disguise and
-  reveal. About 58 fps while scanning; server and client logs clean apart from the expected
-  DataStore warning (API access is off in Studio, so saves fall back to memory).
+v1 (commits up to `41db249` on `main`) is a complete, playable loop that was verified in
+Studio: title, tutorial, tiers, lore rooms, bench, saves in memory. Vasco playtested it with
+a friend and asked for a rework ("v2"). The feedback, in short:
 
-## Written but not yet run in Studio
+- Dots tiny, dim, very many, fast, and permanent. Dots show through walls. Bigger spread.
+- Right click is a top-to-bottom sweep, not a focus beam. Add a crouch.
+- Monsters roam instead of lingering; they are sensed (footprints, mist, a red aura, sound)
+  rather than tracked as silhouettes. Much scarier atmosphere.
+- Teammates are easy to find and their dots stay.
+- Blue water, lanterns that light a patch of real floor and wall, hidden objects that reveal
+  themselves and a line of story when scanned enough, pits and traps, a lit waterfall room.
+- More adventure than puzzle. A later "pulse radar" upgrade.
 
-- Listener and Stalker in a live level (their logic is covered by tests and the simulation).
-- Daily survey mode and its leaderboard, the ending card, endless tiers.
-- Wayfinder needle and map, pings and decoys, emotes, photo mode, settings screen.
-- Mirror and upside-down anomaly rooms. The bloom room ran but drew too few dots; a fix is
-  committed and not re-checked.
-- The rescued surveyor's green trail to the exit (ran, but not seen on screen).
-- Everything co-op: downed and revive, shared scans, spectating. Needs two players.
-- DataStore saving with API access on, and the reserved-server party flow (`server/Party`).
-- Audio: every clip loads, nobody has listened to it.
+### v2 status by slice
 
-## Known problems
+| Slice | Files | State |
+| --- | --- | --- |
+| Rules and data | `src/shared/**`, `tests/**` | Done. `lune run tests/run` passes (67). |
+| Server | `src/server/**` | Written, linted. Not yet run in Studio. |
+| Client core | `State`, `Dots`, `Lidar`, `Main.client` | Written (`913c1ec`). Not yet run in Studio. |
+| Client controls and menus | `Input`, `Avatar`, `Viewmodel`, `Atmosphere`, `Ui`, `Menus`, `Title` | Written (cloud session), type-checked. Not yet run in Studio. |
+| Client presence and sound | `Audio`, `Presence` (new), `Effects` | Written (cloud session), type-checked. Not yet run in Studio. |
+| Client HUD and teaching | `Hud`, `Tutorial` | Written (cloud session), type-checked. Not yet run in Studio. |
+| Docs | `README`, `docs/DESIGN`, `LORE`, `ASSETS`, `TESTING`, `PUBLISHING`, `DECISIONS` | Written (cloud session). `docs/LORE.md` is generated: `lune run scripts/lore > docs/LORE.md`. |
+| Integration and playtest | everything | Not started. Main session only (Studio). |
 
-- **Phone layout is too small.** On a 705x338 viewport the interface scales to 0.55 and text
-  is about 7 px. Plan: lay out for 830x400 with a minimum scale of 0.8 (`client/Ui.luau`) and
-  shrink the windows in `client/Menus.luau` to fit 800x380.
-- The title scene scans a flat horizontal band; it should sweep floor and ceiling too.
-- No frame-rate measurement at the full 3,000 dots, and none on a real phone.
-- `scripts/check.sh` has not been run end to end since the server and client were added.
+All client slices are now written to the contracts below, so the place should run again; it
+has not been opened in Studio since the rework, so expect a round of fixes there.
 
-## Not started
+How the cloud session checked the client without Studio: `scripts/check.sh` (format, lint,
+Lune tests, Rojo build) plus a strict type check with `luau-lsp analyze` against Roblox's
+type definitions and a Rojo sourcemap. That catches missing members and stale names (it
+found one); it cannot catch anything that only shows at runtime. Its remaining complaints are
+known false positives of the newer Luau solver (string literals widened to `string`, mixed
+instance arrays, `Part == nil` comparisons), which v1 code had too and ran fine.
 
-- `docs/DESIGN.md`, `LORE.md`, `ASSETS.md`, `TESTING.md`, `PUBLISHING.md`; `DECISIONS.md` is
-  out of date. The story bible exists only as data in `src/shared/data/Lore.luau`.
-- Static review write-up of remotes and DataStore calls.
+Choices made while writing the client slices, beyond the contracts:
 
-## Studio playtest shortcuts
+- Touch layout: SCAN, SWEEP, RUN, CROUCH, PING, SPREAD and SAY round the bottom-right
+  corner; RUN and CROUCH always toggle on touch, SCAN follows the scan-mode setting. The
+  hint panel is 360 wide so it clears the buttons on a phone.
+- `Menus.applyCosmetics` also applies the dot budget (`Dots.setBudget`) from the new DOT
+  DETAIL setting and the Phosphor level; `Menus.dotQuality()` resolves "auto" (phones low,
+  everything else medium).
+- A Mimic that is still disguised gives nothing away: no footprints, breath, aura, heartbeat
+  or breathing loop (`Audio.nearestEnemy` skips it).
+- Hints in `Tutorial` are lines from the story text (`LoreText`), with the device's control
+  in brackets underneath: the story bible's "never lecture" rule, kept usable on every device.
 
-While playing in Studio, run on the server from the command bar:
+Merged in from the cloud session (branch `claude/lucid-noether-kgfglb`, based on v1):
+
+- Phone layout: `Ui` lays out for 830x400 with a minimum scale of 0.8 (a 705x338 phone now
+  scales to about 0.85 instead of 0.55), every `Menus` window fits 800x380 and long text
+  scrolls, the `Hud` top bar no longer overlaps at 830 wide. Not yet seen in Studio.
+- Title backdrop pitches 25 degrees so dots reach the floor and ceiling. Not yet seen.
+- `scripts/check.sh` is executable in git, so the CI workflow can run it.
+
+### What is left after the slices land
+
+1. Main session merges, runs `scripts/check.sh`, fixes whatever the linter and Studio find.
+2. Studio playtest with the Dev commands (see `src/server/Dev.luau`): tiers 1 to 8, every
+   lore room, recorders, pits, plates, lanterns, crouch, sweep, radar, phone layout.
+3. Things never yet run by anyone: two real players together, real DataStore saves,
+   the daily board with more than one entry.
+4. Story text: done, see "Story in the build" below. What is left is the part of the story
+   that needs new objects in the maze (see its open items).
+5. Report to Vasco, then ask before pushing.
+
+## Story in the build
+
+The story thread's text ("The Understory", `docs/story/`) is now the game's text.
+`src/shared/data/Lore.luau` no longer holds prose: it builds every note, tape, page and card
+from `LoreText.luau` at load time, so regenerating `LoreText.luau` with the story thread's
+`build_text.py` updates the game. `tests/LoreTests.luau` checks the wiring (every room has
+three real notes, one tape per recorder, no stray placeholders, the finale on the last note).
+
+| In the game | From the story |
+| --- | --- |
+| Lit rooms (ids unchanged) | office = The Night Desk, cistern = The Falls, breakroom = The Bunk Room, stairwell = The Lamp Room, landing = Relay Floor. Three notes each (the layouts have three spots). |
+| Tier names and level cards | Two tiers to a floor: B3 The Annex, B4 The Flooded Wing, B5 The Overgrowth, B6 The Foundation; endless tiers are "Relay Floor N"; the daily is "Tonight's floor". |
+| Maze recorders (12) | `rec.*`, three per floor, in story order, each with its own speaker. |
+| Survey plates | The manual's pages 1 to 11 with the crew's margin notes; page 12 is in the Lamp Room. |
+| Monster names | the Pacer, the Hush, the Echo, the Still (field guide shows the manual page, then the plain rule). |
+| Radio (`client/Radio`, new) | Base reports on a new floor, after a catch, on a clear, at the Night Desk, now and then in the dark. Near a disguised Echo a false "Base?" gives directions; real Base never does. Nothing says so. |
+| Tutorial hints | Staff notices and manual rules, with the control in brackets. |
+| Finale | After page 12, Ines speaks (she counts your falls) and asks: climb the ladder or take the lamp. Each has its end card. "Take the lamp" carries on into the Relay as before; "Climb the ladder" ends that player's run and returns them to the title with their checkpoint kept (new `Choose` remote, validated and rate limited, accepted once). |
+
+Open items, for Vasco to decide (not filled in):
+
+- "Night Shift +": the bible says the run after climbing the ladder is harder. How much
+  harder is not written anywhere, so climbing currently just returns you to the title.
+- The bible introduces the Still on tier 7; `Tiers.luau` has the Stalker from tier 6.
+- Lines not used yet: `note.bunk.letters`, `rev.desk.board`, `rev.falls.hammock`, `rev.bunk.*`,
+  `rev.lamp.*` placed as props, `tip.*`, `item.*` other than the gate items. (`rev.desk.mugs` is the
+  Night Desk's first note; `rev.falls.behind` is now the Falls' fourth note.)
+- Tapes play in story order, one per recorder revealed, but tiers 1 to 4 have one recorder
+  each while every floor has three tapes, so some tapes play a floor late (Hollis's Annex
+  tape on B4). Recorders 1, 2, 1, 2, ... per tier would line them up; that is a change to
+  `Tiers.luau`, so it is left for you.
+- Balance, from the bot simulation (`docs/DESIGN.md`, "What to tune first"): tier 7, the only
+  tier with two Wanderers, averages about four catches per run against about one elsewhere.
+
+## Story places (cloud thread; not yet seen in Studio)
+
+Everything below is code and data only. It type-checks (`luau-lsp`, no new complaints), formats
+(`stylua`), passes the Lune tests (79) and builds with Rojo, but **none of it has been run or
+looked at in Studio**. Expect a first round of fixes there: sizes, positions, light ranges.
+
+| Piece | Where | What it does |
+| --- | --- | --- |
+| Havens | `Tiers.loreRoomAfter`, `Lore.rooms`, `LoreRooms.LAYOUTS`, `StoryKits` | A lit, monster-free break after every level. Odd tiers get a small haven (Copy Room T1, Dry Booth T3, Potting Shed T5, Archive Nook T7: 20 to 22 studs wide, a lamp, a bench, one page); even tiers keep the big rooms (Night Desk, Falls, Bunk Room, Lamp Room). Each is a checkpoint (the existing `enterLore` logic). Base says one line the first time you enter a haven (`radio.haven.1`, `client/Radio`). |
+| Secret alcove | `LoreRooms.buildWaterfall`, cistern layout | A niche in the rock behind the Falls (walk through the water sheet): a chalk drawing of the building and a fourth note, `rev.falls.behind`. |
+| Lamp-bags | `LevelPlan` (`lamps`, `nooks`), `World.buildLamps` | 2 to 4 per level (`Tiers.lamps`), the first near the start, the rest at even steps along the shortest route, so one is met about every minute. Four variants (`rev.nook.1` to `4`): mug, stool, plain, and a burnt-out one (never on the first two tiers, never the first bag) that is invisible until scanned. Scanning a lit bag says its tag line. |
+| Hidden story objects | `data/Places.luau`, `LevelPlan.reveals`, `World.buildReveals`, `StoryKits` | Two per tier from tier 1 to 8 (one on tier 6): desk lamp, whiteboard, kettle and tea bags, coat, headphones, valve station, dinghy, life ring, grow light, tap-code plate, camp stove, chalk arrows, camera, cornerstone. Invisible; scanned enough (`Config.Lidar.echoRevealHits` dots) they appear, light their corner (glow colour and radius from the story text) and say their lines through `Hud.dialogue`. They count on the HUD as `HIDDEN n/m` (was RECORDERS). |
+| Posters and stencils | `Places.tiers[n].signs`, `Props.sign`, `World.buildSigns` | The story's `sign.*` and `rule.09`, as paper on a wall with the text printed on it. Hidden like the objects; scanned, they get a small light of their own and also say their text. `at` puts a sign at the start, the exit, a pit, a plate, or anywhere. A sign for a trap the level lacks is left out. |
+| Gate items | `Tiers.gate`, `World.buildGateItem`, `World.gate` | The key objective is the story's item per tier: fuse (T2), valve wheel (T3), rope (T4), crank (T5), fuse (T6), lamp core (T7), brass key (T8 and endless). Tiers 2, 3 and 5 now have locked exits (they were open); tier 1 stays open. `State.server.gateName` carries the name; the HUD says "FUSE NEEDED". |
+| Hidden things in code | `World.Echo.kind` | `recorder`, `reveal`, `sign`, `nook` share one pipeline (the old recorder one): a tag, an `EchoId`, the client's dot count, the `Reveal` remote, `World.revealEcho`. Ids run in that order. A recorder still plays the next tape; the others say their own lines (empty speaker). |
+
+Placeholders and open points:
+
+- No placeholder lines: every line comes from `LoreText`. The copy of `LoreText.luau` in
+  `src/shared/data` is the story thread's newer one (adds `*.haven.*`, `rev.nook.*`,
+  `radio.haven.1`); `docs/story` is synced from `/mnt/project-files/lidar-game/story` too.
+- Not built: `rev.desk.board`, `rev.falls.hammock`, `rev.bunk.*` and `rev.lamp.postcard` as props
+  (the lit rooms read their notes at prompts instead); the Bunk Room's model that lights per
+  floor; the Falls guest book already signs in whoever is there. Items other than the gates
+  (chalk, tea, photographs, glow stick, flash bulb, map) have no pickups yet.
+- Tier 8's exit is still locked (the story says "no gate"); it uses the brass key.
+- Things to look at first in Studio: (1) a poster's text rendering on a transparent part and its
+  `SurfaceGui` light; (2) each reveal kit's size and facing against a wall (`lookAt` convention in
+  `Props`); (3) the niche behind the Falls; walking through the water sheet; (4) small havens'
+  doors, prompts and the `LitZone` size; (5) dead lamp-bags appearing on scan; (6) the number of
+  gold dots from reveal objects on the HUD; (7) light ranges (`GLOW_RANGE_PER_RADIUS` in `World`).
+- Dev commands (`src/server/Dev.luau`): `lore copyroom`, `lore drybooth`, `lore pottingshed`,
+  `lore archivenook` to visit a haven; `echo` reveals the next hidden thing in order; `lights on`
+  to see the layout of a level; `tier N`.
+
+How this slice was checked without Studio: `stylua --check`, `lune run tests/run` (79 passing,
+including new tests for lamp-bag spread and variants, and for every sign and hidden object
+resolving to story text), `rojo build`, and `luau-lsp analyze` against Roblox's types
+(`scripts/typecheck.sh`), which reports nothing new. `selene` could not run in the cloud (it needs
+Roblox's API dump from the internet); run `scripts/check.sh` on the PC before merging.
+
+## v2 design in one page
+
+- The maze is **invisible**. Every maze part has `Transparency = 1` but still stops rays
+  and feet. The only picture of a level is the dots, and dots show through walls.
+- **Dots** are tiny Neon cubes, coloured by what they hit: wall, floor, ceiling, water
+  (blue), friend (green), enemy (red), objective (gold), hazard (violet). World dots are
+  permanent up to a budget (oldest reused first); friend and enemy dots fade in seconds.
+  Dots are not stacked: one per grid cell, with a finer grid for close surfaces and items.
+- **Left click** scatters a fast stream of dots in a cone. The **scroll wheel** narrows or
+  widens the cone. Scattering is silent to monsters.
+- **Right click** fires one **sweep**: a line of rays that travels top to bottom and draws a
+  whole grid. It is loud (monsters hear it) and then recharges.
+- **Crouch** makes you slow, silent, and unseen by monsters (they only see upright
+  players). Wading through water is still heard.
+- **Monsters are invisible** and roam the whole maze with short pauses. A scan only marks
+  them with a few red dots that fade fast. You sense them by red footprints, breath mist,
+  a red glow at the edges of the screen, and sound.
+- **Lanterns** are real lights with a visible patch of floor and wall. **Recorders** are
+  hidden objects: put enough dots on one and it shows itself, lights its corner, and plays
+  the next line of the story. **Pits** drop you back to the level start. **Alarm plates**
+  call everything nearby. Pit rims and plates scan violet.
+- **The Cistern** is a lit waterfall room after tier 4.
+- **Pulse Radar** is a bench upgrade: a ring of dots pulses out on its own every few seconds.
+
+## Module contracts (client)
+
+All client modules live in `src/client`. Each owner edits only their own files; if you need
+something from another module that is not listed here, say so in your hand-back instead of
+editing it. Everything tunable lives in `src/shared/Config.luau`.
+
+### Facts every module can rely on
+
+- Tags (`Config.Tags`): `friend`, `enemy`, `objective`, `hazard`, `water`, `echo`,
+  `litZone`, `disguised`, `rescue`, `anomaly`, `sound`.
+- Monsters: a Model tagged `enemy`, invisible, `PrimaryPart` named `Root` sitting on the
+  floor at the monster's position (moved by the server about 15 times a second).
+  Attributes: `Kind` (`"wanderer" | "listener" | "mimic" | "stalker"`), `Moving`, `Frozen`.
+  A Mimic that is still pretending also has the `disguised` tag.
+- Players' characters are tagged `friend`. Attributes: `Downed` (boolean), `Revive` (0..1).
+- Stranded surveyors are Models tagged `rescue` (and `friend`).
+- Server-made looping sounds are tagged `sound`.
+- Remotes are listed in `src/shared/Net.luau`. New in v2: `Reveal` (client to server),
+  `Echo (echoId, position, speaker, line)` and `Hazard (kind, position, userId)` with kind
+  `"plate"` or `"pit"` (server to client). `ScanState` and `ScanRelay` changed shape.
+- `State.server` (see `State.luau`) now has `sweepScale`, `echoes`, `echoesTotal`
+  (`heatScale` is gone). `State.effects` is `Progression.Effects`: `sweepRechargeMul`,
+  `shutterLevel`, `phosphorLevel`, `wideLens`, `radarLevel`, `pingLifetime`, `decoy`,
+  `wayfinder`, `solesLevel`.
+- `State.profile.settings` has `dotQuality` (`"auto" | "low" | "medium" | "high"`).
+
+### `Dots` (main session)
 
 ```lua
-workspace:SetAttribute("DevCommand", "tier 6") -- also: "lore office", "clear", "static 500", "lights on"
+Dots.spawned: number                      -- total dots ever landed this session
+Dots.setPalette(name: string, wallTint: { number }?)
+Dots.color(kind: DotRules.DotKind): Color3
+Dots.folder(): Folder                     -- one stable folder holding every dot (exclude it from rays)
+Dots.liveCount(): number
+Dots.setBudget(count: number)             -- permanent-dot budget (see DotRules.budget)
+Dots.add(position: Vector3, kind: DotRules.DotKind, distance: number): boolean
+    -- Lands a dot. World kinds are permanent and packed one per grid cell (returns false
+    -- when that cell already has one). "friend" and "enemy" fade on their own.
+Dots.addLate(position: Vector3, kind: DotRules.DotKind, distance: number, delay: number)
+Dots.mark(position: Vector3, kind: DotRules.DotKind, size: number, lifetime: number)
+    -- A fading dot with an explicit size (studs) and lifetime (seconds): footprints,
+    -- trails, rings. Never permanent, never packed.
+Dots.setFrozen(value: boolean)
+Dots.isFrozen(): boolean
+Dots.clear()
+Dots.start()
 ```
 
-See `src/server/Dev.luau`. These do nothing outside Studio.
+### `Lidar` (main session)
+
+```lua
+Lidar.enabled: boolean      -- set by Main: false on the title screen
+Lidar.firing: boolean       -- the scatter stream is producing dots this frame
+Lidar.sweeping: boolean     -- a sweep is travelling down the screen right now
+Lidar.charge: number        -- 0..1; the sweep can fire at 1
+Lidar.spread: number        -- cone half-angle in degrees (Config.Lidar.coneMinDeg .. max)
+Lidar.echoProgress: number  -- 0..1 progress on the hidden recorder being scanned; 0 when none
+Lidar.ignore(instance: Instance)                       -- never hit this with rays
+Lidar.onBatch(listener: (count: number, meanDistance: number, enemy: boolean, friend: boolean, objective: boolean) -> ())
+Lidar.onSweep(listener: () -> ())                      -- the local player's sweep fired
+Lidar.onRadar(listener: () -> ())                      -- the Pulse Radar fired
+Lidar.recharge()                                       -- a battery cell: sweep is ready now
+Lidar.cast(look: CFrame, count: number, halfAngleDeg: number, params: RaycastParams)
+    -- Rays from anywhere, no sound, no reporting: the title screen's backdrop.
+Lidar.start()
+```
+
+Lidar reads `Input.firing`, `Input.crouching` and the actions `"sweep"`, `"spreadIn"`,
+`"spreadOut"`, `"spreadCycle"`.
+
+### `Input` (helper B)
+
+```lua
+Input.firing: boolean       -- held: left mouse, RT, touch SCAN (toggle on touch as in v1)
+Input.sprinting: boolean    -- held: Left Shift, L3 (toggle), touch RUN
+Input.crouching: boolean    -- Left Ctrl (hold), C (toggle), gamepad B (toggle), touch CROUCH (toggle)
+Input.device: "keyboard" | "gamepad" | "touch"
+Input.hint(action: string): string   -- actions: fire, sweep, spread, crouch, sprint, ping, interact
+Input.onAction(name: string, listener: () -> ())
+    -- one-shot actions: "sweep" (right mouse, F, LT, touch SWEEP), "spreadIn" (wheel up, Z,
+    -- LB: narrower), "spreadOut" (wheel down, X, RB: wider), "spreadCycle" (touch SPREAD),
+    -- "ping", "photo", "emote", "map"
+Input.releaseAll()
+Input.menuChanged()
+Input.start()
+```
+
+Sprinting cancels crouching and crouching cancels sprinting. The v1 `focusing` field and the
+`"lens"` action are gone.
+
+### `Avatar` (helper B)
+
+```lua
+Avatar.wading: boolean
+Avatar.moving: boolean
+Avatar.crouching: boolean   -- crouch is actually applied (not downed, not in a lit room, no menu)
+Avatar.start()
+```
+
+### `Hud` (helper D)
+
+v1 API unchanged (`toast`, `titleCard`, `hint`, `fade`, `setVisible`, `photoNotice`,
+`toggleMap`, `start`), plus:
+
+```lua
+Hud.dialogue(speaker: string, line: string)   -- a recorder speaks: typed out, then fades; queues
+Hud.setAura(level: number)                    -- 0..1 red glow at the screen edges; called every frame
+Hud.flash(color: Color3, seconds: number)     -- a quick full-screen tint that fades out
+```
+
+Hud reads `Lidar.charge`, `Lidar.sweeping`, `Lidar.spread`, `Lidar.echoProgress`,
+`Avatar.crouching`, `State.server.echoes / echoesTotal`.
+
+### `Audio` (helper C)
+
+v1 API kept (`blip`, `sequence`, `click`, `pickup`, `levelCleared`, `relief`, `caught`,
+`setLit`, `threat`, `start`) except `overheat`, which is gone. New:
+
+```lua
+Audio.nearestEnemy(): number                      -- studs to the nearest monster; math.huge when none
+Audio.monsterStep(kind: string, position: Vector3) -- Presence calls this for each monster footprint
+Audio.alarm(position: Vector3)                    -- an alarm plate went off there
+Audio.fall()                                      -- the local player fell into a pit
+Audio.echo(position: Vector3)                     -- a recorder revealed itself there
+Audio.door()                                      -- the exit opened
+```
+
+Audio hooks `Lidar.onBatch`, `Lidar.onSweep` and `Lidar.onRadar` itself.
+
+### `Presence` (helper C, new file)
+
+```lua
+Presence.start()
+```
+
+Footprints for monsters (red) and players (green), breath mist near monsters, the red aura
+(`Hud.setAura`), and name markers over teammates that show through walls.
+
+### `Effects` (helper C)
+
+`Effects.pulse(strength, seconds)` and `Effects.start()` as in v1. Handles the `Caught`,
+`Revived`, `PingMarker`, `EmoteShown`, `Objective`, `Echo` and `Hazard` remotes.
+
+### `Menus`, `Ui`, `Title`, `Viewmodel`, `Atmosphere` (helper B), `Tutorial` (helper D)
+
+Same entry points as v1 (`X.start()`, `Menus.open/close/isOpen/applyCosmetics`,
+`Atmosphere.onZone/zone/forceDark/lit`, the `Ui` helpers).
+
+## Verification
+
+Only what has actually been run is listed as verified.
+
+- Verified: the pure rules under Lune (67 tests, including a bot that plays every tier).
+- Verified in Studio (v1 only, before the rework): the whole loop for one player on PC.
+- Not yet verified for v2: anything in Studio (including the story places slice above).
+- Never verified: two players at once, real DataStore saves, phone or gamepad hardware.

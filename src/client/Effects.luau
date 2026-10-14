@@ -1,7 +1,7 @@
 --!strict
 -- Moments: being caught, pickups, pings and emotes between teammates, the rescued surveyor's
--- trail to the exit, anomaly rooms, photo mode, and haptics. Each is small; together they are
--- most of what makes a run feel alive.
+-- trail to the exit, hidden recorders speaking, alarm plates and pits, anomaly rooms, photo
+-- mode, and haptics. Each is small; together they are most of what makes a run feel alive.
 
 local CollectionService = game:GetService("CollectionService")
 local HapticService = game:GetService("HapticService")
@@ -11,11 +11,13 @@ local RunService = game:GetService("RunService")
 
 local Audio = require(script.Parent.Audio)
 local Config = require(ReplicatedStorage.Shared.Config)
+local DotRules = require(ReplicatedStorage.Shared.pure.DotRules)
 local Dots = require(script.Parent.Dots)
 local Enemies = require(ReplicatedStorage.Shared.data.Enemies)
 local Hud = require(script.Parent.Hud)
 local Input = require(script.Parent.Input)
 local Lidar = require(script.Parent.Lidar)
+local Lore = require(ReplicatedStorage.Shared.data.Lore)
 local Maze = require(ReplicatedStorage.Shared.pure.Maze)
 local Net = require(ReplicatedStorage.Shared.Net)
 local State = require(script.Parent.State)
@@ -32,6 +34,8 @@ local EMOTE_SECONDS = 3.5
 local TRAIL_DOTS_PER_CELL = 5
 local TRAIL_STEP_SECONDS = 0.05
 local TRAIL_HEIGHT = 0.3
+local TRAIL_SIZE = 0.14
+local TRAIL_LIFETIME = 25 -- seconds: long enough to follow it to the door
 local SHAKE_SECONDS = 0.35
 local SHAKE_STRENGTH = 0.5
 local MIRROR_HEIGHT = 5
@@ -90,8 +94,10 @@ local function onCaught(enemyKind: string, downed: boolean)
 	Effects.pulse(1, 0.4)
 	shakeUntil = os.clock() + SHAKE_SECONDS
 	local def = Enemies[enemyKind]
+	local entity = Lore.entities[enemyKind]
 	if def then
-		Hud.toast("Caught by a " .. def.displayName .. ".", "warn")
+		local name = if entity then entity.name else def.displayName
+		Hud.toast("Caught by " .. name .. ".", "warn")
 		Hud.toast(def.rule, "info")
 	end
 	if downed then
@@ -227,12 +233,11 @@ local function drawTrail(from: Vector3)
 					return -- the level changed under us
 				end
 				local point = previous:Lerp(target, step / TRAIL_DOTS_PER_CELL) * CELL
-				Dots.spawn(
+				Dots.mark(
 					origin + Vector3.new(point.X, TRAIL_HEIGHT, point.Z),
 					"friend",
-					10,
-					State.effects.lifetimeMul,
-					1
+					TRAIL_SIZE,
+					TRAIL_LIFETIME
 				)
 				task.wait(TRAIL_STEP_SECONDS)
 			end
@@ -242,12 +247,48 @@ local function drawTrail(from: Vector3)
 end
 
 local function onObjective(kind: string, detail: { position: Vector3, by: number })
-	Audio.pickup()
 	Effects.pulse(0.4, 0.15)
+	if kind == "exit" then
+		Audio.door()
+		return
+	end
+	Audio.pickup()
 	if kind == "cell" then
-		Lidar.cool()
+		Lidar.recharge()
 	elseif kind == "rescue" then
 		drawTrail(detail.position)
+	end
+end
+
+--------------------------------------------------------------------------------------------
+-- Recorders and hazards
+
+-- A hidden recorder revealed itself: its line is spoken to everyone in the level.
+local function onEcho(_echoId: number, position: Vector3, speaker: string, line: string)
+	Audio.echo(position)
+	if speaker ~= "" then
+		Effects.pulse(0.25, 0.1) -- a tape starts; a poster or a lamp-bag tag just says its words
+	end
+	Hud.dialogue(speaker, line)
+end
+
+local function onHazard(kind: string, position: Vector3, userId: number)
+	local mine = userId == player.UserId
+	if kind == "plate" then
+		Audio.alarm(position)
+		if mine then
+			Hud.flash(Dots.color("hazard"), 0.6)
+			Effects.pulse(0.6, 0.25)
+		end
+	elseif kind == "pit" and mine then
+		-- The server has already put us back at the start; cover the jump with a fall.
+		Input.releaseAll()
+		Audio.fall()
+		Effects.pulse(0.8, 0.3)
+		Hud.fade(1, 0.1)
+		task.delay(0.7, function()
+			Hud.fade(0, 0.9)
+		end)
 	end
 end
 
@@ -288,13 +329,8 @@ local function bloom(zone: BasePart)
 				if direction.Magnitude > 0.05 then
 					local hit = workspace:Raycast(start, direction.Unit * 60, zoneParams)
 					if hit and inside(zone, hit.Position + hit.Normal * 0.5) then
-						Dots.spawn(
-							hit.Position + hit.Normal * 0.04,
-							"terrain",
-							12,
-							State.effects.lifetimeMul * 1.5,
-							1
-						)
+						local kind = DotRules.classify({}, hit.Normal.Y)
+						Dots.add(hit.Position + hit.Normal * 0.04, kind, hit.Distance)
 					end
 				end
 				remaining -= 1
@@ -305,7 +341,8 @@ local function bloom(zone: BasePart)
 end
 
 -- Mirror: a figure on the far side of the room that stands where you would, if the room
--- were a mirror. It only exists for you, and it scans green.
+-- were a mirror. It only exists for you, it is invisible like everything else, and it
+-- scans green.
 local function updateReflection(zone: BasePart?, root: BasePart?)
 	if zone == nil or root == nil then
 		if reflection then
@@ -325,7 +362,7 @@ local function updateReflection(zone: BasePart?, root: BasePart?)
 		body.CanCollide = false
 		body.CanTouch = false
 		body.CastShadow = false
-		body.Color = Color3.fromRGB(20, 20, 22)
+		body.Transparency = 1
 		body.Parent = figure
 		local head = Instance.new("Part")
 		head.Name = "Head"
@@ -335,7 +372,7 @@ local function updateReflection(zone: BasePart?, root: BasePart?)
 		head.CanCollide = false
 		head.CanTouch = false
 		head.CastShadow = false
-		head.Color = Color3.fromRGB(20, 20, 22)
+		head.Transparency = 1
 		head.Parent = figure
 		CollectionService:AddTag(figure, Config.Tags.friend)
 		figure.Parent = workspace
@@ -417,16 +454,6 @@ local function togglePhoto()
 	Hud.photoNotice(frozen)
 end
 
-local function toggleLens()
-	if (State.profile.upgrades.lens or 0) < 1 then
-		return
-	end
-	local on = not (State.profile.toggles.lens == true)
-	State.profile.toggles.lens = on;
-	(Net.get("ToggleUpgrade") :: RemoteEvent):FireServer("lens", on)
-	Hud.toast(if on then "Wide lens on." else "Wide lens off.", "info")
-end
-
 function Effects.start()
 	markerFolder.Parent = workspace
 	Lidar.ignore(markerFolder);
@@ -434,10 +461,11 @@ function Effects.start()
 	(Net.get("Revived") :: RemoteEvent).OnClientEvent:Connect(onRevived);
 	(Net.get("PingMarker") :: RemoteEvent).OnClientEvent:Connect(onPingMarker);
 	(Net.get("EmoteShown") :: RemoteEvent).OnClientEvent:Connect(onEmote);
-	(Net.get("Objective") :: RemoteEvent).OnClientEvent:Connect(onObjective)
+	(Net.get("Objective") :: RemoteEvent).OnClientEvent:Connect(onObjective);
+	(Net.get("Echo") :: RemoteEvent).OnClientEvent:Connect(onEcho);
+	(Net.get("Hazard") :: RemoteEvent).OnClientEvent:Connect(onHazard)
 	Input.onAction("ping", sendPing)
 	Input.onAction("photo", togglePhoto)
-	Input.onAction("lens", toggleLens)
 	Input.onAction("map", Hud.toggleMap)
 	State.onLevel(function()
 		table.clear(bloomed)

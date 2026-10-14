@@ -3,6 +3,7 @@ local Difficulty = require("../src/shared/pure/Difficulty")
 local Enemies = require("../src/shared/data/Enemies")
 local LevelPlan = require("../src/shared/pure/LevelPlan")
 local Maze = require("../src/shared/pure/Maze")
+local Places = require("../src/shared/data/Places")
 
 local OPTIONS = { forcedAnomaly = nil, allowPlate = true }
 local SEEDS_PER_TIER = 150
@@ -85,8 +86,91 @@ tests["every tier places valid, non-overlapping contents"] = function()
 			for index in plan.flooded do
 				assert(not used[index], "flooded cell under an objective, enemy, start or exit")
 			end
+			local revealCells = {}
+			for _, reveal in plan.reveals do
+				table.insert(revealCells, reveal.cell)
+			end
+			local extras = {
+				{ name = "lamp", cells = plan.lamps, count = def.lamps },
+				{
+					name = "reveal",
+					cells = revealCells,
+					count = #Places.forTier(tier).reveals,
+				},
+				{ name = "echo", cells = plan.echoes, count = def.echoes },
+				{ name = "pit", cells = plan.pits, count = def.pits },
+				{ name = "plate", cells = plan.plates, count = def.plates },
+			}
+			for _, extra in extras do
+				assert(#extra.cells == extra.count, `wrong {extra.name} count at tier {tier}`)
+				for _, cell in extra.cells do
+					local index = Maze.index(maze, cell.x, cell.y)
+					assert(
+						not used[index],
+						`{extra.name} overlaps something at tier {tier} seed {seed}`
+					)
+					assert(not plan.flooded[index], extra.name .. " placed in a flooded cell")
+					used[index] = true
+				end
+			end
+			for _, cell in plan.pits do
+				assert(
+					startDist[Maze.index(maze, cell.x, cell.y)] >= 2,
+					"a pit next to the level start"
+				)
+			end
+			assert(#plan.nooks == #plan.lamps, "every lamp-bag needs a variant")
+			for index, variant in plan.nooks do
+				assert(
+					variant >= 1 and variant <= Places.nookCount,
+					"lamp-bag variant out of range"
+				)
+				if index == 1 or tier <= 2 then
+					assert(variant ~= Places.deadNook, "an early lamp-bag is burnt out")
+				end
+			end
+			for _, sign in plan.signs do
+				assert(
+					sign.cell.x >= 1
+						and sign.cell.x <= maze.width
+						and sign.cell.y >= 1
+						and sign.cell.y <= maze.height,
+					"a sign outside the maze"
+				)
+			end
 			assert(Maze.isSolvable(maze), "unsolvable level")
 		end
+	end
+end
+
+tests["lamp-bags are spread along the way through"] = function()
+	for tier = 2, LAST_TIER_TESTED do
+		local far, total = 0, 0
+		for seed = 1, SEEDS_PER_TIER do
+			local plan = LevelPlan.build(tier, seed, OPTIONS)
+			local startDist = Maze.distances(plan.maze, plan.maze.start)
+			local farthest = 0
+			for _, cell in plan.lamps do
+				farthest = math.max(farthest, startDist[Maze.index(plan.maze, cell.x, cell.y)])
+			end
+			far += farthest / plan.maze.pathLength
+			total += 1
+		end
+		assert(far / total >= 0.5, `tier {tier} lamp-bags stay near the start`)
+	end
+end
+
+tests["every sign and hidden object in the places data exists in the story"] = function()
+	for tier, places in Places.tiers do
+		for _, id in places.reveals do
+			assert(#Places.reveal(id).lines > 0, `tier {tier}: {id} has no lines`)
+		end
+		for _, sign in places.signs do
+			assert(#Places.signLines(sign.id) > 0, `tier {tier}: {sign.id} has no text`)
+		end
+	end
+	for variant = 1, Places.nookCount do
+		assert(#Places.nookLines(variant) > 0, "a lamp-bag says nothing")
 	end
 end
 

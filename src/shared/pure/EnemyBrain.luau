@@ -2,9 +2,11 @@
 -- Pure enemy state machines on the maze grid. The server feeds real player positions in;
 -- the headless simulation feeds a bot. Positions are continuous, in cell units (see Maze).
 --
--- Wanderer: patrol -> investigate (heard or saw scanning) -> chase (close) -> search -> patrol.
---           A chase ends when the target gets far enough away, or goes unsensed long enough;
---           the Wanderer then walks to the last place it sensed them.
+-- Wanderers and Listeners roam the whole level: walk to a random cell, linger a moment, repeat.
+--
+-- Wanderer: patrol -> investigate (heard, or saw someone upright) -> chase (close) -> search
+--           -> patrol. A chase ends when the target gets far enough away, or goes unsensed
+--           long enough (crouch out of sight); it then walks to where it last sensed them.
 -- Listener: drift -> hunt (heard noise) -> listen -> drift. Blind; lunges only at close noise.
 -- Mimic:    disguised -> reveal -> chase (timed) -> return -> cooldown -> disguised
 -- Stalker:  dormant -> hunt -> withdraw (pinned long enough) -> dormant. Frozen while scanned.
@@ -19,8 +21,8 @@ export type Source = {
 	x: number,
 	z: number,
 	noise: number, -- audible radius in cells
-	scanning: boolean,
-	focusing: boolean, -- scanning with the narrow, loud, hot beam
+	scanning: boolean, -- the scanner is on (scatter or sweep): this is what pins a Stalker
+	crouching: boolean, -- crouched players cannot be seen
 	lookX: number, -- horizontal look direction
 	lookZ: number,
 	active: boolean, -- false while downed, in respawn grace or outside the level
@@ -209,7 +211,7 @@ local function hears(enemy: Enemy, source: Source): boolean
 end
 
 local function sees(enemy: Enemy, maze: Maze.Maze, source: Source): boolean
-	if enemy.def.sightCells <= 0 or not source.active or not source.scanning then
+	if enemy.def.sightCells <= 0 or not source.active or source.crouching then
 		return false
 	end
 	if distance(enemy.x, enemy.z, source.x, source.z) > enemy.def.sightCells * enemy.senseScale then
@@ -236,17 +238,15 @@ local function pathCells(maze: Maze.Maze, dist: { [number]: number }, source: So
 	return dist[Maze.index(maze, cell.x, cell.y)] or math.huge
 end
 
--- A random cell near the enemy's post. Patrols keep out of the cells around the level start,
--- so nothing idles on top of a player who has just respawned.
+-- A random cell anywhere in the level to roam to. The cells around the level start are never
+-- chosen, so nothing idles on top of a player who has just respawned.
 local function randomPatrolCell(enemy: Enemy, maze: Maze.Maze, rng: Rng.Rng): Maze.Cell
-	local dist = Maze.distances(maze, enemy.home)
 	local startDist = Maze.distances(maze, maze.start)
+	local here = Maze.cellOf(maze, enemy.x, enemy.z)
+	local hereIndex = Maze.index(maze, here.x, here.y)
 	local options = {}
-	for index, steps in dist do
-		if
-			steps <= Config.Enemy.patrolRadius
-			and startDist[index] > Config.Enemy.startSafeCells
-		then
+	for index, steps in startDist do
+		if steps > Config.Enemy.startSafeCells and index ~= hereIndex then
 			table.insert(options, index)
 		end
 	end
@@ -259,6 +259,20 @@ end
 
 local function scaled(enemy: Enemy, studsPerSecond: number, cellSize: number): number
 	return studsPerSecond * enemy.speedScale / cellSize
+end
+
+-- Roaming: walk the path; on arrival linger for a moment (timer counts it down) before the
+-- next think picks somewhere new. Monsters keep moving, with short pauses.
+local function roam(enemy: Enemy, rng: Rng.Rng, cellSize: number, dt: number)
+	if #enemy.path > 0 then
+		if followPath(enemy, scaled(enemy, enemy.def.patrolSpeed, cellSize), dt) then
+			local def = enemy.def
+			enemy.timer = def.lingerMin + rng:next() * (def.lingerMax - def.lingerMin)
+		end
+	else
+		enemy.moving = false
+		enemy.timer -= dt
+	end
 end
 
 local function stepWanderer(
@@ -308,7 +322,7 @@ local function stepWanderer(
 				enemy.state = "investigate"
 			end
 			setGoal(enemy, maze, Maze.cellOf(maze, sensed.x, sensed.z))
-		elseif enemy.state == "patrol" and #enemy.path == 0 then
+		elseif enemy.state == "patrol" and #enemy.path == 0 and enemy.timer <= 0 then
 			setGoal(enemy, maze, randomPatrolCell(enemy, maze, rng))
 		end
 	end
@@ -332,7 +346,7 @@ local function stepWanderer(
 			enemy.timer = def.searchSeconds
 		end
 	else
-		followPath(enemy, scaled(enemy, def.patrolSpeed, cellSize), dt)
+		roam(enemy, rng, cellSize, dt)
 	end
 end
 
@@ -354,7 +368,7 @@ local function stepListener(
 			setGoal(enemy, maze, Maze.cellOf(maze, heard.x, heard.z))
 		else
 			enemy.targetId = nil
-			if enemy.state == "drift" and #enemy.path == 0 then
+			if enemy.state == "drift" and #enemy.path == 0 and enemy.timer <= 0 then
 				setGoal(enemy, maze, randomPatrolCell(enemy, maze, rng))
 			end
 		end
@@ -381,7 +395,7 @@ local function stepListener(
 			enemy.timer = def.searchSeconds
 		end
 	else
-		followPath(enemy, scaled(enemy, def.patrolSpeed, cellSize), dt)
+		roam(enemy, rng, cellSize, dt)
 	end
 end
 
@@ -456,10 +470,8 @@ local function stepMimic(
 	end
 end
 
--- How hard the enemy is being pinned: 0 when no active player's scanner points at it with a
--- clear line, 1 for a normal scan, more for a focused one.
-function EnemyBrain.observation(enemy: Enemy, maze: Maze.Maze, sources: { Source }): number
-	local strength = 0
+-- True while any active player's scanner points at the enemy with a clear line.
+function EnemyBrain.isObserved(enemy: Enemy, maze: Maze.Maze, sources: { Source }): boolean
 	for _, source in sources do
 		if source.active and source.scanning then
 			local dx, dz = enemy.x - source.x, enemy.z - source.z
@@ -471,15 +483,12 @@ function EnemyBrain.observation(enemy: Enemy, maze: Maze.Maze, sources: { Source
 					dot >= Config.Enemy.stalkerConeDot
 					and Maze.lineOfSight(maze, source.x, source.z, enemy.x, enemy.z)
 				then
-					strength = math.max(
-						strength,
-						if source.focusing then Config.Enemy.stalkerFocusRate else 1
-					)
+					return true
 				end
 			end
 		end
 	end
-	return strength
+	return false
 end
 
 local function stepStalker(
@@ -541,11 +550,10 @@ local function stepStalker(
 	end
 
 	-- In the hunt state `timer` counts how long the Stalker has been pinned.
-	local pinned = EnemyBrain.observation(enemy, maze, sources)
-	enemy.frozen = pinned > 0
+	enemy.frozen = EnemyBrain.isObserved(enemy, maze, sources)
 	if enemy.frozen then
 		enemy.moving = false
-		enemy.timer += dt * pinned
+		enemy.timer += dt
 		if enemy.timer >= settings.stalkerStareSeconds then
 			enemy.state = "withdraw"
 			enemy.frozen = false

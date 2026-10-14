@@ -7,12 +7,15 @@ local Players = game:GetService("Players")
 local MarketplaceService = game:GetService("MarketplaceService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local SocialService = game:GetService("SocialService")
+local UserInputService = game:GetService("UserInputService")
 
 local Audio = require(script.Parent.Audio)
 local Config = require(ReplicatedStorage.Shared.Config)
 local Dots = require(script.Parent.Dots)
+local DotRules = require(ReplicatedStorage.Shared.pure.DotRules)
 local Enemies = require(ReplicatedStorage.Shared.data.Enemies)
 local Input = require(script.Parent.Input)
+local Lore = require(ReplicatedStorage.Shared.data.Lore)
 local Net = require(ReplicatedStorage.Shared.Net)
 local Progression = require(ReplicatedStorage.Shared.pure.Progression)
 local State = require(script.Parent.State)
@@ -22,6 +25,7 @@ local Upgrades = require(ReplicatedStorage.Shared.data.Upgrades)
 type Window = { frame: Frame, first: GuiObject?, onClose: (() -> ())? }
 
 local CARD_SECONDS = 8
+local DOT_QUALITY_NEXT = { auto = "low", low = "medium", medium = "high", high = "auto" }
 local TITLE_LETTERS = "L  I  D  A  R"
 
 local Menus = {}
@@ -48,6 +52,9 @@ local settingsRows: Frame
 local guideBody: TextLabel
 local startRequested = false
 local noteQueue: { { title: string, body: string } } = {}
+local endingTitle: TextLabel
+local endingBody: TextLabel
+local pendingEnding: { title: string, body: string }? = nil
 
 local function send(name: string, ...: any)
 	(Net.get(name) :: RemoteEvent):FireServer(...)
@@ -134,6 +141,44 @@ local function closeButton(parent: Frame, name: string, text: string): TextButto
 	return button
 end
 
+-- Body text that scrolls when it outgrows its box, so long pages still fit a phone screen.
+local function scrollBody(
+	parent: Instance,
+	position: UDim2,
+	size: UDim2,
+	properties: { [string]: any }
+): TextLabel
+	local scroller = Ui.new("ScrollingFrame", {
+		Position = position,
+		Size = size,
+		BackgroundTransparency = 1,
+		BorderSizePixel = 0,
+		ScrollBarThickness = 4,
+		ScrollingDirection = Enum.ScrollingDirection.Y,
+		AutomaticCanvasSize = Enum.AutomaticSize.Y,
+		CanvasSize = UDim2.new(),
+		Parent = parent,
+	})
+	local label = Ui.label({
+		TextYAlignment = Enum.TextYAlignment.Top,
+		Size = UDim2.new(1, -10, 0, 0),
+		AutomaticSize = Enum.AutomaticSize.Y,
+	})
+	for key, value in properties do
+		(label :: any)[key] = value
+	end
+	label.Parent = scroller
+	return label
+end
+
+local function setBody(label: TextLabel, text: string)
+	label.Text = text
+	local scroller = label.Parent
+	if scroller and scroller:IsA("ScrollingFrame") then
+		scroller.CanvasPosition = Vector2.zero
+	end
+end
+
 --------------------------------------------------------------------------------------------
 -- Title
 
@@ -168,7 +213,7 @@ local function refreshTitle()
 		order += 1
 		local button = Ui.button({
 			Text = text,
-			Size = UDim2.fromOffset(320, 46),
+			Size = UDim2.fromOffset(320, 40),
 			LayoutOrder = order,
 			Parent = titleButtons,
 		}, function()
@@ -200,7 +245,7 @@ local function refreshTitle()
 	order += 1
 	Ui.button({
 		Text = "SETTINGS",
-		Size = UDim2.fromOffset(320, 38),
+		Size = UDim2.fromOffset(320, 34),
 		LayoutOrder = order,
 		Parent = titleButtons,
 	}, function()
@@ -213,7 +258,7 @@ local function refreshTitle()
 end
 
 local function buildTitle()
-	local frame = window("title", 760, 520)
+	local frame = window("title", 760, 380)
 	frame.BackgroundTransparency = 1;
 	(frame:FindFirstChildOfClass("UIStroke") :: UIStroke).Enabled = false
 	Ui.label({
@@ -221,26 +266,25 @@ local function buildTitle()
 		FontFace = Ui.fontBold,
 		TextSize = Ui.text.hero,
 		TextXAlignment = Enum.TextXAlignment.Center,
-		Size = UDim2.new(1, 0, 0, 100),
-		Position = UDim2.fromOffset(0, 20),
+		Size = UDim2.new(1, 0, 0, 90),
 		Parent = frame,
 	})
 	Ui.label({
-		Text = "A SURVEY OF THE DARK",
+		Text = "THE UNDERSTORY",
 		TextSize = Ui.text.body,
 		TextColor3 = Ui.colors.dim,
 		TextXAlignment = Enum.TextXAlignment.Center,
 		Size = UDim2.new(1, 0, 0, 22),
-		Position = UDim2.fromOffset(0, 126),
+		Position = UDim2.fromOffset(0, 90),
 		Parent = frame,
 	})
 	titleButtons = Ui.new("Frame", {
 		AnchorPoint = Vector2.new(0.5, 0),
-		Position = UDim2.new(0.5, 0, 0, 196),
-		Size = UDim2.fromOffset(320, 240),
+		Position = UDim2.new(0.5, 0, 0, 124),
+		Size = UDim2.fromOffset(320, 190),
 		BackgroundTransparency = 1,
 		Parent = frame,
-	}, { Ui.list(Enum.FillDirection.Vertical, 10) })
+	}, { Ui.list(Enum.FillDirection.Vertical, 8) })
 	titleStatus = Ui.label({
 		TextSize = Ui.text.small,
 		TextColor3 = Ui.colors.dim,
@@ -271,7 +315,7 @@ local function refreshSettings()
 	local function row(label: string, value: string, onPress: () -> ())
 		order += 1
 		local frame = Ui.new("Frame", {
-			Size = UDim2.new(1, 0, 0, 40),
+			Size = UDim2.new(1, 0, 0, 36),
 			BackgroundTransparency = 1,
 			LayoutOrder = order,
 			Parent = settingsRows,
@@ -281,7 +325,7 @@ local function refreshSettings()
 			Text = value,
 			AnchorPoint = Vector2.new(1, 0.5),
 			Position = UDim2.fromScale(1, 0.5),
-			Size = UDim2.new(0.42, 0, 0, 34),
+			Size = UDim2.new(0.42, 0, 0, 30),
 			Parent = frame,
 		}, function()
 			onPress()
@@ -307,6 +351,17 @@ local function refreshSettings()
 		local nextVolume = settings.volume + 0.2
 		setting("volume", if nextVolume > 1.01 then 0 else math.min(1, nextVolume))
 	end)
+	local quality = settings.dotQuality
+	row(
+		"DOT DETAIL",
+		if quality == "auto"
+			then "AUTO (" .. string.upper(Menus.dotQuality()) .. ")"
+			else string.upper(quality),
+		function()
+			setting("dotQuality", DOT_QUALITY_NEXT[settings.dotQuality] or "auto")
+			Menus.applyCosmetics()
+		end
+	)
 	row("FREEZE DOTS (PHOTO)", if Dots.isFrozen() then "FROZEN" else "LIVE", function()
 		Dots.setFrozen(not Dots.isFrozen())
 	end)
@@ -320,7 +375,7 @@ local function buildSettings()
 		Size = UDim2.new(1, 0, 1, -100),
 		BackgroundTransparency = 1,
 		Parent = frame,
-	}, { Ui.list(Enum.FillDirection.Vertical, 6) })
+	}, { Ui.list(Enum.FillDirection.Vertical, 4) })
 	closeButton(frame, "settings", "DONE")
 	windows.settings.onClose = function()
 		-- Settings opened from the title returns to it rather than dropping into the dark.
@@ -333,11 +388,24 @@ end
 --------------------------------------------------------------------------------------------
 -- Bench: upgrades and cosmetics
 
--- Applies palette and equipped cosmetics to the dot renderer.
+-- The dot detail actually in use: "auto" picks by device (phones hold fewer dots).
+function Menus.dotQuality(): string
+	local quality = State.profile.settings.dotQuality
+	if quality ~= "auto" then
+		return quality
+	end
+	return if UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
+		then "low"
+		else "medium"
+end
+
+-- Applies the palette, equipped cosmetics and the dot budget (detail setting plus the
+-- Phosphor upgrade) to the dot renderer.
 function Menus.applyCosmetics()
 	local profile = State.profile
 	local tint = Upgrades.cosmeticById[profile.cosmetics.dots]
 	Dots.setPalette(profile.settings.palette, if tint then tint.color else nil)
+	Dots.setBudget(DotRules.budget(Menus.dotQuality(), State.effects.phosphorLevel))
 end
 
 local function refreshBench()
@@ -493,16 +561,19 @@ local function refreshGuide()
 	for _, kind in kinds do
 		local def = Enemies[kind]
 		if State.profile.met[kind] then
-			table.insert(lines, string.upper(def.displayName) .. "\n" .. def.rule)
+			-- The manual's page for it (with the crew's margin note), then the plain rule.
+			local entity = Lore.entities[kind]
+			local page = if entity then entity.page else string.upper(def.displayName)
+			table.insert(lines, page .. "\n" .. def.rule)
 		else
 			table.insert(lines, "UNKNOWN\nSomething you have not met yet.")
 		end
 	end
-	guideBody.Text = table.concat(lines, "\n\n")
+	setBody(guideBody, table.concat(lines, "\n\n"))
 end
 
 local function buildBench()
-	local frame = window("bench", 880, 520)
+	local frame = window("bench", 800, 380)
 	heading(frame, "WORKBENCH")
 	benchBalance = Ui.label({
 		FontFace = Ui.fontBold,
@@ -577,14 +648,10 @@ local function buildBench()
 	end)
 	closeButton(frame, "bench", "CLOSE")
 
-	local guide = window("guide", 620, 460)
+	local guide = window("guide", 620, 380)
 	heading(guide, "FIELD GUIDE")
-	guideBody = Ui.label({
+	guideBody = scrollBody(guide, UDim2.fromOffset(0, 44), UDim2.new(1, 0, 1, -100), {
 		TextSize = Ui.text.small,
-		TextYAlignment = Enum.TextYAlignment.Top,
-		Position = UDim2.fromOffset(0, 44),
-		Size = UDim2.new(1, 0, 1, -100),
-		Parent = guide,
 	})
 	closeButton(guide, "guide", "CLOSE")
 end
@@ -593,7 +660,7 @@ end
 -- Notes, level clear, report, daily board
 
 local function buildNote()
-	local frame = window("note", 560, 400, true)
+	local frame = window("note", 600, 380, true)
 	noteTitle = Ui.label({
 		FontFace = Font.new("rbxasset://fonts/families/Merriweather.json", Enum.FontWeight.Bold),
 		TextSize = Ui.text.large,
@@ -601,24 +668,79 @@ local function buildNote()
 		Size = UDim2.new(1, 0, 0, 32),
 		Parent = frame,
 	})
-	noteBody = Ui.label({
+	noteBody = scrollBody(frame, UDim2.fromOffset(0, 46), UDim2.new(1, 0, 1, -104), {
 		FontFace = Ui.fontSerif,
 		TextSize = Ui.text.body,
 		TextColor3 = Ui.colors.paperInk,
-		TextYAlignment = Enum.TextYAlignment.Top,
 		LineHeight = 1.25,
-		Position = UDim2.fromOffset(0, 46),
-		Size = UDim2.new(1, 0, 1, -104),
-		Parent = frame,
-	})
+	});
+	(noteBody.Parent :: ScrollingFrame).ScrollBarImageColor3 = Ui.colors.paperInk
 	closeButton(frame, "note", "PUT IT BACK")
 	windows.note.onClose = function()
-		-- If another page arrived while this one was open, show it next.
+		-- If another page arrived while this one was open, show it next; then Ines, if she
+		-- is waiting; then, after the ladder, the title.
 		local nextNote = table.remove(noteQueue, 1)
 		if nextNote then
 			task.defer(Menus.showNote, nextNote.title, nextNote.body)
+		elseif pendingEnding ~= nil then
+			local ending = pendingEnding
+			pendingEnding = nil
+			task.defer(Menus.showEnding, ending.title, ending.body)
+		elseif State.server.stage == "title" then
+			task.defer(Menus.open, "title")
 		end
 	end
+end
+
+--------------------------------------------------------------------------------------------
+-- The finale: Ines speaks, then the choice. There is no close button: it is answered once.
+
+local function choose(choice: string)
+	send("Choose", choice)
+	Menus.close()
+	local card = Lore.ending.cards[choice]
+	if card then
+		task.defer(Menus.showNote, card.title, card.body)
+	end
+end
+
+local function buildEnding()
+	local frame = window("ending", 600, 380)
+	endingTitle = heading(frame, "")
+	endingBody = scrollBody(frame, UDim2.fromOffset(0, 44), UDim2.new(1, 0, 1, -100), {
+		TextSize = Ui.text.body,
+		LineHeight = 1.15,
+	})
+	local up = Ui.button({
+		Text = Lore.ending.choices.up,
+		AnchorPoint = Vector2.new(0, 1),
+		Position = UDim2.fromScale(0, 1),
+		Size = UDim2.new(0.5, -6, 0, 38),
+		Parent = frame,
+	}, function()
+		choose("up")
+	end, Ui.colors.line)
+	Ui.button({
+		Text = Lore.ending.choices.stay,
+		AnchorPoint = Vector2.new(1, 1),
+		Position = UDim2.fromScale(1, 1),
+		Size = UDim2.new(0.5, -6, 0, 38),
+		Parent = frame,
+	}, function()
+		choose("stay")
+	end, Ui.colors.gold)
+	windows.ending.first = up
+end
+
+-- Ines's last words and the choice. Waits for the page the player is reading to be put back.
+function Menus.showEnding(title: string, body: string)
+	if current == "note" then
+		pendingEnding = { title = title, body = body }
+		return
+	end
+	endingTitle.Text = string.upper(title)
+	setBody(endingBody, body)
+	Menus.open("ending")
 end
 
 function Menus.showNote(title: string, body: string)
@@ -627,7 +749,7 @@ function Menus.showNote(title: string, body: string)
 		return
 	end
 	noteTitle.Text = title
-	noteBody.Text = body
+	setBody(noteBody, body)
 	Menus.open("note")
 end
 
@@ -644,7 +766,7 @@ local function summaryText(summary: any): string
 		table.insert(lines, `SURVEYORS       {reward.rescues}`)
 	end
 	if reward.plate > 0 then
-		table.insert(lines, `SURVEY PLATE    {reward.plate}`)
+		table.insert(lines, `MANUAL PAGE     {reward.plate}`)
 	end
 	table.insert(
 		lines,
@@ -663,12 +785,8 @@ local function buildClear()
 	-- Modal version, used once to offer the friend invite.
 	local frame = window("clear", 520, 380)
 	heading(frame, "LEVEL CLEARED")
-	clearBody = Ui.label({
+	clearBody = scrollBody(frame, UDim2.fromOffset(0, 44), UDim2.new(1, 0, 1, -150), {
 		TextSize = Ui.text.body,
-		TextYAlignment = Enum.TextYAlignment.Top,
-		Position = UDim2.fromOffset(0, 44),
-		Size = UDim2.new(1, 0, 1, -150),
-		Parent = frame,
 	})
 	Ui.label({
 		Text = "The dark is easier with someone else's dots in it.",
@@ -729,7 +847,7 @@ local function onLevelCleared(summary: any)
 		else `TIER {summary.tier} CLEARED  /  {string.upper(summary.name)}`
 	local text = summaryText(summary)
 	if summary.invite then
-		clearBody.Text = header .. "\n\n" .. text
+		setBody(clearBody, header .. "\n\n" .. text)
 		Menus.open("clear")
 		task.delay(CARD_SECONDS * 2, function()
 			if current == "clear" then
@@ -748,12 +866,8 @@ end
 local function buildReport()
 	local frame = window("report", 520, 380)
 	heading(frame, "SURVEY REPORT")
-	reportBody = Ui.label({
+	reportBody = scrollBody(frame, UDim2.fromOffset(0, 44), UDim2.new(1, 0, 1, -100), {
 		TextSize = Ui.text.body,
-		TextYAlignment = Enum.TextYAlignment.Top,
-		Position = UDim2.fromOffset(0, 44),
-		Size = UDim2.new(1, 0, 1, -100),
-		Parent = frame,
 	})
 	Ui.button({
 		Text = "INVITE A FRIEND",
@@ -775,33 +889,32 @@ function Menus.showReport()
 	for _ in profile.lore do
 		pages += 1
 	end
-	reportBody.Text = table.concat({
-		"THIS SESSION",
-		`LEVELS CLEARED  {session.levels}`,
-		`DISTANCE        {session.distance} studs`,
-		`LORE PAGES      {session.lore}`,
-		`TIMES CAUGHT    {session.catches}`,
-		`STATIC EARNED   {session.static}`,
-		"",
-		"ALL TIME",
-		`BEST TIER       {profile.bestTier}`,
-		`LORE PAGES      {pages}`,
-		`SURVEYORS FOUND {profile.stats.rescues}`,
-		"",
-		"Your place is saved in this room.",
-	}, "\n")
+	setBody(
+		reportBody,
+		table.concat({
+			"THIS SESSION",
+			`LEVELS CLEARED  {session.levels}`,
+			`DISTANCE        {session.distance} studs`,
+			`LORE PAGES      {session.lore}`,
+			`TIMES CAUGHT    {session.catches}`,
+			`STATIC EARNED   {session.static}`,
+			"",
+			"ALL TIME",
+			`BEST TIER       {profile.bestTier}`,
+			`LORE PAGES      {pages}`,
+			`SURVEYORS FOUND {profile.stats.rescues}`,
+			"",
+			"Your place is saved in this room.",
+		}, "\n")
+	)
 	Menus.open("report")
 end
 
 local function buildBoard()
-	local frame = window("board", 520, 440)
+	local frame = window("board", 520, 380)
 	heading(frame, "DAILY SURVEY")
-	boardBody = Ui.label({
+	boardBody = scrollBody(frame, UDim2.fromOffset(0, 44), UDim2.new(1, 0, 1, -100), {
 		TextSize = Ui.text.body,
-		TextYAlignment = Enum.TextYAlignment.Top,
-		Position = UDim2.fromOffset(0, 44),
-		Size = UDim2.new(1, 0, 1, -100),
-		Parent = frame,
 	})
 	closeButton(frame, "board", "CLOSE")
 end
@@ -828,7 +941,7 @@ local function onDailyBoard(board: any)
 	if #board.rows == 0 then
 		table.insert(lines, "No times posted yet today.")
 	end
-	boardBody.Text = table.concat(lines, "\n")
+	setBody(boardBody, table.concat(lines, "\n"))
 	Menus.open("board")
 end
 
@@ -887,6 +1000,7 @@ function Menus.start()
 	buildReport()
 	buildBoard()
 	buildEmotes()
+	buildEnding()
 
 	State.onProfile(function()
 		Menus.applyCosmetics()
@@ -901,6 +1015,14 @@ function Menus.start()
 				Menus.close()
 			end
 		elseif server.stage == "title" then
+			if previous.stage ~= "title" then
+				-- Back from the dark (the ladder): the title comes back, ready to start again.
+				startRequested = false
+				titleButtons.Visible = true
+				if current == nil then
+					Menus.open("title")
+				end
+			end
 			refreshTitle()
 		end
 		if
@@ -920,7 +1042,7 @@ function Menus.start()
 		Menus.open("bench")
 	end);
 	(Net.get("OpenNote") :: RemoteEvent).OnClientEvent:Connect(Menus.showNote);
-	(Net.get("Ending") :: RemoteEvent).OnClientEvent:Connect(Menus.showNote);
+	(Net.get("Ending") :: RemoteEvent).OnClientEvent:Connect(Menus.showEnding);
 	(Net.get("LevelCleared") :: RemoteEvent).OnClientEvent:Connect(onLevelCleared);
 	(Net.get("DailyBoard") :: RemoteEvent).OnClientEvent:Connect(onDailyBoard)
 

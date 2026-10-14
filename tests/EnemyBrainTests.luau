@@ -23,7 +23,7 @@ local function source(x: number, z: number): EnemyBrain.Source
 		z = z,
 		noise = 0,
 		scanning = false,
-		focusing = false,
+		crouching = false,
 		lookX = 1,
 		lookZ = 0,
 		active = true,
@@ -57,122 +57,149 @@ local function distanceTo(enemy: EnemyBrain.Enemy, s: EnemyBrain.Source): number
 	return math.sqrt((enemy.x - s.x) ^ 2 + (enemy.z - s.z) ^ 2)
 end
 
-tests["wanderer patrols near its post and ignores a silent distant player"] = function()
-	local maze = arena(12)
-	local enemy = EnemyBrain.new(1, "wanderer", { x = 6, y = 6 }, 1, 1)
-	local player = source(0.5, 0.5)
-	local moved = false
-	local caught = run(enemy, maze, { player }, 60, function()
-		moved = moved or enemy.moving
+tests["roaming monsters cover the level and only pause briefly"] = function()
+	for _, kind in { "wanderer", "listener" } do
+		local maze = Maze.generate(11, 6, 6, { loopChance = 0.1, pruneChance = 0.5, rooms = 1 })
+		local enemy = EnemyBrain.new(1, kind, { x = 4, y = 4 }, 1, 1)
+		local player = source(0.05, 0.05) -- tucked into a corner, crouched and silent
+		player.crouching = true
+		local visited: { [number]: boolean } = {}
+		local count = 0
+		local longestPause, pause = 0, 0
+		local caught = run(enemy, maze, { player }, 400, function()
+			local cell = Maze.cellOf(maze, enemy.x, enemy.z)
+			local index = Maze.index(maze, cell.x, cell.y)
+			if not visited[index] then
+				visited[index] = true
+				count += 1
+			end
+			pause = if enemy.moving then 0 else pause + DT
+			longestPause = math.max(longestPause, pause)
+		end)
+		assert(caught == nil, kind .. " caught a hidden player")
 		assert(
-			enemy.state == "patrol",
-			"wanderer left patrol with nothing to sense: " .. enemy.state
+			count >= 18,
+			`{kind} only visited {count} of 36 cells: it lingers instead of roaming`
 		)
 		assert(
-			math.abs(enemy.x - 5.5) <= Config.Enemy.patrolRadius + 1,
-			"wanderer strayed from its post"
+			longestPause <= enemy.def.lingerMax + 1,
+			`{kind} stood still for {longestPause} seconds`
 		)
-	end)
-	assert(caught == nil, "caught a player it could not sense")
-	assert(moved, "wanderer never moved")
+		assert(longestPause >= enemy.def.lingerMin - DT, kind .. " never paused at all")
+	end
 end
 
-tests["wanderer investigates noise, then gives up and resumes patrol"] = function()
+tests["wanderer sees an upright player in its line of sight, but not a crouched one"] = function()
+	local maze = arena(12)
+	local upright = source(3.4, 1.5)
+	local enemy = EnemyBrain.new(1, "wanderer", { x = 2, y = 2 }, 1, 1)
+	run(enemy, maze, { upright }, 0.5)
+	assert(
+		enemy.state == "chase",
+		"did not notice a player standing in plain sight: " .. enemy.state
+	)
+
+	local crouched = source(3.4, 1.5)
+	crouched.crouching = true
+	local other = EnemyBrain.new(1, "wanderer", { x = 2, y = 2 }, 1, 1)
+	run(other, maze, { crouched }, 0.5)
+	assert(other.state == "patrol", "noticed a crouched, silent player: " .. other.state)
+end
+
+tests["scattering dots at a wanderer does not give you away"] = function()
+	local maze = arena(12)
+	local enemy = EnemyBrain.new(1, "wanderer", { x = 2, y = 2 }, 1, 1)
+	local player = source(3.4, 1.5)
+	player.crouching = true
+	player.scanning = true
+	run(enemy, maze, { player }, 0.5)
+	assert(enemy.state == "patrol", "scanning alone alerted a wanderer")
+end
+
+tests["wanderer investigates noise, then gives up and resumes roaming"] = function()
 	local maze = arena(12)
 	local enemy = EnemyBrain.new(1, "wanderer", { x = 2, y = 2 }, 1, 1)
 	local player = source(5.5, 1.5)
+	player.crouching = true
 	player.noise = 5
 	run(enemy, maze, { player }, 1)
 	assert(enemy.state == "investigate", "expected investigate, got " .. enemy.state)
 	player.noise = 0
-	player.x, player.z = 9.5, 5.5
-	run(enemy, maze, { player }, 40)
-	assert(enemy.state == "patrol", "expected patrol after the search, got " .. enemy.state)
-end
-
-tests["wanderer sees a scanning player down a clear line but not a quiet one"] = function()
-	local maze = arena(12)
-	local enemy = EnemyBrain.new(1, "wanderer", { x = 2, y = 2 }, 1, 1)
-	local player = source(4.4, 1.5)
-	run(enemy, maze, { player }, 0.5)
-	assert(enemy.state == "patrol", "noticed a silent, non-scanning player")
-	player.scanning = true
-	run(enemy, maze, { player }, 0.5)
-	assert(enemy.state ~= "patrol", "did not notice a scanning player in plain sight")
+	player.x, player.z = 9.95, 8.95
+	run(enemy, maze, { player }, 30)
+	assert(enemy.state == "patrol", "expected roaming after the search, got " .. enemy.state)
 end
 
 tests["wanderer catches a player who stands still nearby"] = function()
 	local maze = arena(12)
 	local enemy = EnemyBrain.new(1, "wanderer", { x = 2, y = 2 }, 1, 1)
 	local player = source(3.2, 1.5)
-	player.noise = 2
 	local caught = run(enemy, maze, { player }, 30)
-	assert(caught == 1, "wanderer never caught a stationary noisy player")
+	assert(caught == 1, "wanderer never caught a player standing in front of it")
 end
 
 tests["wanderer loses a player who simply walks away"] = function()
 	local maze = arena(18)
 	local enemy = EnemyBrain.new(1, "wanderer", { x = 2, y = 2 }, 1, 1)
 	local player = source(3.4, 1.5)
-	player.noise = Config.Noise.walk
-	player.scanning = true
 	run(enemy, maze, { player }, 0.6)
 	assert(enemy.state == "chase", "expected a chase to start, got " .. enemy.state)
-	player.scanning = false
-	local caught = run(enemy, maze, { player }, 40, function()
-		player.x = math.min(player.x + WALK * DT, 17.5)
+	local caught = run(enemy, maze, { player }, 24, function()
+		player.x = math.min(player.x + WALK * DT, 17.95)
+		player.z = math.min(player.z + WALK * DT * 0.02, 1.95)
+		player.crouching = player.x >= 17.9 -- hide once there is nowhere left to walk
 	end)
 	assert(caught == nil, "a walking player was caught by a slower wanderer")
 	assert(enemy.state ~= "chase", "wanderer never gave up the chase")
 end
 
-tests["wanderer loses a player who goes quiet and steps aside"] = function()
+tests["wanderer loses a player who crouches and steps aside"] = function()
 	local maze = arena(18)
 	local enemy = EnemyBrain.new(1, "wanderer", { x = 4, y = 4 }, 1, 1)
 	local player = source(5.3, 3.5)
-	player.noise = 2
 	run(enemy, maze, { player }, 0.6)
 	assert(enemy.state == "chase", "expected a chase to start, got " .. enemy.state)
-	-- Go silent and move a short way off the spot the wanderer last sensed.
-	player.noise = 0
-	player.x, player.z = 5.75, 3.95
+	-- Crouch and move a short way off the spot the wanderer last saw.
+	player.crouching = true
+	player.x, player.z = 5.95, 3.95
 	local reachedLastSpot = false
-	local caught = run(enemy, maze, { player }, 30, function()
+	local caught = run(enemy, maze, { player }, 12, function()
 		reachedLastSpot = reachedLastSpot
 			or (math.abs(enemy.x - 5.3) < 0.05 and math.abs(enemy.z - 3.5) < 0.05)
 	end)
-	assert(reachedLastSpot, "wanderer did not walk to the last place it sensed the player")
-	assert(caught == nil, "wanderer caught a silent player who had stepped aside")
-	assert(enemy.state == "patrol", "wanderer did not give up, state " .. enemy.state)
+	assert(reachedLastSpot, "wanderer did not walk to the last place it saw the player")
+	assert(caught == nil, "wanderer caught a crouched player who had stepped aside")
+	assert(enemy.state ~= "chase", "wanderer kept chasing a player it could not sense")
 end
 
-tests["listener ignores a silent player and hunts a loud one"] = function()
+tests["listener hunts a loud player and ignores a silent one beside it"] = function()
 	local maze = arena(12)
 	local enemy = EnemyBrain.new(1, "listener", { x = 2, y = 2 }, 1, 1)
 	local player = source(4.5, 4.5)
-	player.scanning = true -- scanning is seen, not heard: the listener is blind
-	run(enemy, maze, { player }, 5, function()
-		assert(enemy.state ~= "hunt", "blind listener reacted to a silent scan")
+	player.scanning = true -- the listener is blind: standing and scanning is not a sound
+	run(enemy, maze, { player }, 4, function()
+		assert(enemy.state ~= "hunt", "blind listener reacted to something it could not hear")
 	end)
 	player.noise = Config.Noise.sprint
 	run(enemy, maze, { player }, 0.5)
 	assert(enemy.state == "hunt", "listener did not hunt sprint noise")
 end
 
-tests["listener goes to the noise, listens, then drifts away"] = function()
+tests["listener goes to the noise, listens, then moves on"] = function()
 	local maze = arena(12)
 	local enemy = EnemyBrain.new(1, "listener", { x = 2, y = 2 }, 1, 1)
 	local player = source(6.5, 1.5)
 	player.noise = 5
 	run(enemy, maze, { player }, 0.5)
 	player.noise = 0
-	player.x, player.z = 6.5, 1.9 -- stepped to the side of the corridor and went quiet
+	player.crouching = true
+	player.x, player.z = 6.95, 1.95 -- stepped into the corner and went quiet
 	local sawListen = false
-	local caught = run(enemy, maze, { player }, 30, function()
+	local caught = run(enemy, maze, { player }, 14, function()
 		sawListen = sawListen or enemy.state == "listen"
 	end)
 	assert(sawListen, "listener never stopped to listen")
-	assert(enemy.state == "drift", "listener did not return to drifting, got " .. enemy.state)
+	assert(enemy.state == "drift", "listener did not go back to roaming, got " .. enemy.state)
 	assert(caught == nil, "listener caught a player who went quiet and stepped aside")
 end
 
@@ -180,7 +207,7 @@ tests["listener catches a player who keeps making noise"] = function()
 	local maze = arena(12)
 	local enemy = EnemyBrain.new(1, "listener", { x = 2, y = 2 }, 1, 1)
 	local player = source(6.5, 1.9)
-	player.noise = Config.Noise.focus
+	player.noise = Config.Noise.sweep
 	local caught = run(enemy, maze, { player }, 30)
 	assert(caught == 1, "listener failed to catch a constantly noisy player")
 end
@@ -188,18 +215,19 @@ end
 tests["a decoy lures a listener but can never be caught"] = function()
 	local maze = arena(12)
 	local enemy = EnemyBrain.new(1, "listener", { x = 2, y = 2 }, 1, 1)
-	local player = source(1.5, 5.5)
+	local player = source(1.95, 5.95)
+	player.crouching = true
 	local decoy = source(5.5, 1.5)
 	decoy.id = 2
 	decoy.active = false
 	decoy.decoy = true
 	decoy.noise = Config.Noise.ping
-	local caught = run(enemy, maze, { player, decoy }, 8)
+	local reached = false
+	local caught = run(enemy, maze, { player, decoy }, 8, function()
+		reached = reached or (math.abs(enemy.x - 5.5) < 0.6 and math.abs(enemy.z - 1.5) < 0.6)
+	end)
 	assert(caught == nil, "a decoy was caught")
-	assert(
-		math.abs(enemy.x - 5.5) < 0.6 and math.abs(enemy.z - 1.5) < 0.6,
-		"listener did not go to the decoy"
-	)
+	assert(reached, "listener did not go to the decoy")
 end
 
 tests["mimic stays disguised until a player is close, then chases and returns"] = function()
@@ -243,16 +271,32 @@ tests["mimic catches a player who walks instead of running"] = function()
 	assert(caught == 1, "walking away from a revealed mimic should not be enough")
 end
 
+tests["a mimic sits where it is told and returns there"] = function()
+	local maze = arena(12)
+	local enemy = EnemyBrain.new(1, "mimic", { x = 6, y = 6 }, 1, 1)
+	EnemyBrain.setRest(enemy, 5.5, 5.86)
+	assert(enemy.x == 5.5 and enemy.z == 5.86, "rest position not applied")
+	local player = source(5.5, 5.2)
+	run(enemy, maze, { player }, 2)
+	assert(not enemy.disguised, "mimic did not reveal")
+	player.active = false
+	run(enemy, maze, { player }, 20)
+	assert(
+		math.abs(enemy.x - 5.5) < 0.01 and math.abs(enemy.z - 5.86) < 0.01,
+		"mimic did not return to its seat"
+	)
+end
+
 tests["stalker is pinned while scanned and advances when not"] = function()
 	local maze = arena(12)
-	local enemy = EnemyBrain.new(1, "stalker", { x = 6, y = 2 }, 1, 1)
+	local enemy = EnemyBrain.new(1, "stalker", { x = 5, y = 2 }, 1, 1)
 	local player = source(1.5, 1.5)
 	player.scanning = true
 	player.lookX, player.lookZ = 1, 0 -- pointing straight at it
 	run(enemy, maze, { player }, 1)
 	assert(enemy.state == "hunt", "stalker did not wake")
 	local before = enemy.x
-	local caught = run(enemy, maze, { player }, 1.5)
+	local caught = run(enemy, maze, { player }, 1)
 	assert(enemy.frozen and enemy.x == before, "stalker moved while being scanned")
 	assert(caught == nil, "a pinned stalker caught someone")
 
@@ -267,10 +311,10 @@ end
 
 tests["a stalker pinned long enough withdraws and stays away for a while"] = function()
 	local maze = arena(12)
-	local enemy = EnemyBrain.new(1, "stalker", { x = 6, y = 2 }, 1, 1)
+	local enemy = EnemyBrain.new(1, "stalker", { x = 5, y = 2 }, 1, 1)
 	local player = source(1.5, 1.5)
-	run(enemy, maze, { player }, 2) -- let it wake and close in a little
-	assert(enemy.state == "hunt" and enemy.x < 5.5, "stalker did not approach")
+	run(enemy, maze, { player }, 1.5) -- let it wake and close in a little
+	assert(enemy.state == "hunt" and enemy.x < 4.5, "stalker did not approach")
 	player.scanning = true
 	player.lookX, player.lookZ = 1, 0
 	local caught = run(enemy, maze, { player }, Config.Enemy.stalkerStareSeconds + 0.5)
@@ -279,7 +323,7 @@ tests["a stalker pinned long enough withdraws and stays away for a while"] = fun
 	player.scanning = false
 	caught = run(enemy, maze, { player }, Config.Enemy.stalkerCooldown - 2)
 	assert(caught == nil, "a withdrawn stalker caught someone")
-	assert(enemy.state == "dormant" and enemy.x == 5.5, "stalker did not return to its post")
+	assert(enemy.state == "dormant" and enemy.x == 4.5, "stalker did not return to its post")
 	caught = run(enemy, maze, { player }, 30)
 	assert(caught == 1, "stalker never came back after its cooldown")
 end
@@ -302,7 +346,7 @@ tests["a scan cannot pin a stalker through a wall"] = function()
 				local player = source(x - 0.5, y - 0.5)
 				player.scanning = true
 				assert(
-					EnemyBrain.observation(enemy, maze, { player }) == 0,
+					not EnemyBrain.isObserved(enemy, maze, { player }),
 					"observed through a wall"
 				)
 				return
@@ -337,7 +381,6 @@ tests["a stunned enemy cannot catch until it recovers"] = function()
 	local maze = arena(8)
 	local enemy = EnemyBrain.new(1, "wanderer", { x = 3, y = 3 }, 1, 1)
 	local player = source(2.5, 2.5)
-	player.noise = 3
 	EnemyBrain.stun(enemy)
 	local caught = run(enemy, maze, { player }, Config.Enemy.stunSeconds - 0.3)
 	assert(caught == nil, "caught while stunned")
@@ -372,7 +415,7 @@ tests["fuzz: enemies never walk through walls, leave the maze or produce bad num
 		local player = source(0.5, 0.5)
 		local route: { Maze.Cell } = {}
 		for _ = 1, 1500 do
-			-- The player wanders along random routes, randomly loud and scanning.
+			-- The player wanders along random routes, randomly loud, crouched and scanning.
 			if #route == 0 then
 				route = Maze.path(
 					maze,
@@ -381,6 +424,7 @@ tests["fuzz: enemies never walk through walls, leave the maze or produce bad num
 				)
 				player.noise = if rng:next() < 0.5 then 0 else rng:next() * 4
 				player.scanning = rng:next() < 0.6
+				player.crouching = rng:next() < 0.3
 				player.lookX, player.lookZ = rng:next() - 0.5, rng:next() - 0.5
 			end
 			if #route > 0 then

@@ -4,8 +4,12 @@
 --
 -- From the Studio command bar while playing (server side):
 --   workspace:SetAttribute("DevCommand", "tier 6")      jump to a tier
---   workspace:SetAttribute("DevCommand", "lore office")  visit a lore room (office, breakroom,
---                                                        nursery, stairwell, landing)
+--   workspace:SetAttribute("DevCommand", "lore office")  visit a lit room: the havens (copyroom,
+--                                                        drybooth, pottingshed, archivenook) or the
+--                                                        big rooms (office, cistern, breakroom,
+--                                                        stairwell, landing)
+--   workspace:SetAttribute("DevCommand", "echo")         reveal the next hidden thing (recorder,
+--                                                        story object, poster or lamp-bag tag)
 --   workspace:SetAttribute("DevCommand", "clear")        finish the current level
 --   workspace:SetAttribute("DevCommand", "static 500")   give everyone Static
 --   workspace:SetAttribute("DevCommand", "lights on")    light the maze to inspect it ("lights off")
@@ -26,6 +30,8 @@ local function run(text: string)
 		Director.dev.jumpToTier(math.max(1, math.floor(tonumber(argument) :: number)))
 	elseif command == "lore" and argument then
 		Director.dev.enterLore(argument)
+	elseif command == "echo" then
+		Director.dev.revealEcho()
 	elseif command == "clear" then
 		Director.dev.clearLevel()
 	elseif command == "static" and tonumber(argument) then

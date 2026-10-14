@@ -27,10 +27,12 @@ Ui.fontSerif = Font.fromEnum(Enum.Font.Merriweather)
 
 Ui.text = { small = 13, body = 16, large = 22, title = 34, hero = 84 }
 
--- Interfaces are laid out for this viewport and scaled to fit whatever the device has.
-local DESIGN_WIDTH = 1180
-local DESIGN_HEIGHT = 640
-local MIN_SCALE = 0.55
+-- Interfaces are laid out for this viewport and scaled to fit whatever the device has. It is
+-- small enough that a landscape phone (a 705x338 viewport) still scales to about 0.85, so text
+-- stays readable; every window must fit inside 800x380 at scale 1.
+local DESIGN_WIDTH = 830
+local DESIGN_HEIGHT = 400
+local MIN_SCALE = 0.8
 local MAX_SCALE = 1.5
 
 local playerGui = Players.LocalPlayer:WaitForChild("PlayerGui") :: PlayerGui

@@ -1,18 +1,21 @@
 --!strict
 -- Turns (tier, seed) into a complete, deterministic level description: maze, landmarks,
--- flooded cells, objectives, enemy spawns and an optional anomaly. Server and clients both
--- build the same plan from the same two numbers.
+-- flooded cells, objectives, enemy spawns, lanterns, hidden recorders, pits, alarm plates and
+-- an optional anomaly. Server and clients both build the same plan from the same two numbers.
 
 local Config = require("../Config")
 local Difficulty = require("./Difficulty")
 local Enemies = require("../data/Enemies")
 local Maze = require("./Maze")
+local Places = require("../data/Places")
 local Rng = require("./Rng")
 
 export type Cell = Maze.Cell
 export type Objective = { id: number, kind: string, cell: Cell }
 export type EnemySpawn = { id: number, kind: string, cell: Cell }
 export type Anomaly = { kind: string, room: Maze.Room }
+export type Reveal = { id: string, cell: Cell } -- a hidden object (Places.reveal) in its own cell
+export type Sign = { id: string, cell: Cell } -- a notice on a wall; may share a cell
 export type LevelPlan = {
 	tier: number,
 	seed: number,
@@ -23,6 +26,13 @@ export type LevelPlan = {
 	objectives: { Objective },
 	enemies: { EnemySpawn },
 	exitLocked: boolean,
+	lamps: { Cell }, -- lamp-bags: small pools of real light, spread along the way through
+	nooks: { number }, -- which of the four lamp-bag variants each lamp is (Places.nookLines)
+	echoes: { Cell }, -- hidden recorders that reveal themselves when scanned enough
+	reveals: { Reveal }, -- other hidden objects, each with its own lines of story
+	signs: { Sign }, -- posters and stencils
+	pits: { Cell }, -- holes in the floor, with a ledge all the way round
+	plates: { Cell }, -- alarm plates
 	anomaly: Anomaly?,
 	beaconCell: Cell, -- halfway along the main path; a checkpoint for pass owners
 }
@@ -33,11 +43,27 @@ export type BuildOptions = {
 }
 
 local SEED_TIER_MIX = 104729
+local LAST_FORGIVING_TIER = 2 -- up to here every lamp-bag burns
 local FEATURE_CHANCE = 0.2
 local OPTIONAL_KINDS = { "cell", "rescue", "cell" }
 local OBJECTIVE_RULE = {
 	minDistance = 2,
 	preferDeadEnd = true,
+	spacing = 0,
+	clearOfStart = false,
+	bypassable = false,
+}
+-- The first lantern sits close to the start: a fixed point to navigate back to.
+local FIRST_LAMP_RULE = {
+	minDistance = 1,
+	preferDeadEnd = false,
+	spacing = 0,
+	clearOfStart = false,
+	bypassable = false,
+}
+local SCATTER_RULE = {
+	minDistance = 3,
+	preferDeadEnd = false,
 	spacing = 0,
 	clearOfStart = false,
 	bypassable = false,
@@ -203,6 +229,85 @@ function LevelPlan.build(tier: number, seed: number, options: BuildOptions): Lev
 		end
 	end
 
+	-- Lamp-bags, recorders, pits and alarm plates. Each takes its own cell.
+	-- The first lamp-bag sits close to the start. The rest are spread along the shortest way
+	-- through at even steps, so a player walking it meets one about every minute: a place to
+	-- see the walls, take stock and hear a line of story. A bag the route cannot offer (every
+	-- cell near that step is taken) goes anywhere instead.
+	local route = Maze.path(maze, maze.start, maze.exit)
+	local function takeNearStep(step: number): Cell
+		local target = math.clamp(math.floor(#route * step + 0.5), 1, #route)
+		local function tryStep(position: number): Cell?
+			local cell = route[position]
+			if cell == nil then
+				return nil
+			end
+			local index = Maze.index(maze, cell.x, cell.y)
+			if taken[index] or startDist[index] < 1 then
+				return nil
+			end
+			taken[index] = true
+			return cell
+		end
+		-- The step itself first, then outward from it, before and after, one cell at a time.
+		local found = tryStep(target)
+		for offset = 1, #route do
+			found = found or tryStep(target + offset) or tryStep(target - offset)
+		end
+		return found or take(SCATTER_RULE)
+	end
+	local lamps: { Cell } = {}
+	local nooks: { number } = {}
+	local deadNookAllowed = tier >= LAST_FORGIVING_TIER + 1
+	for i = 1, def.lamps do
+		if i == 1 then
+			table.insert(lamps, take(FIRST_LAMP_RULE))
+		else
+			table.insert(lamps, takeNearStep((i - 1) / (def.lamps - 1) * 0.8 + 0.1))
+		end
+		-- The first bag always burns; a burnt-out one is a small secret, never on the first floor.
+		local top = if i > 1 and deadNookAllowed then Places.nookCount else Places.nookCount - 1
+		table.insert(nooks, rng:int(1, top))
+	end
+	local echoes: { Cell } = {}
+	for _ = 1, def.echoes do
+		table.insert(echoes, take(SCATTER_RULE))
+	end
+	local pits: { Cell } = {}
+	for _ = 1, def.pits do
+		table.insert(pits, take(SCATTER_RULE))
+	end
+	local plates: { Cell } = {}
+	for _ = 1, def.plates do
+		table.insert(plates, take(SCATTER_RULE))
+	end
+
+	-- Hidden objects and signs from the story (src/shared/data/Places).
+	local places = Places.forTier(tier)
+	local reveals: { Reveal } = {}
+	for _, id in places.reveals do
+		table.insert(reveals, { id = id, cell = take(SCATTER_RULE) })
+	end
+	local signs: { Sign } = {}
+	for _, sign in places.signs do
+		local cell: Cell? = nil
+		if sign.at == "start" then
+			cell = maze.start
+		elseif sign.at == "exit" then
+			cell = maze.exit
+		elseif sign.at == "pit" then
+			cell = pits[#signs % math.max(1, #pits) + 1]
+		elseif sign.at == "plate" then
+			cell = plates[#signs % math.max(1, #plates) + 1]
+		else
+			cell = take(SCATTER_RULE)
+		end
+		-- A sign for a trap the level does not have is left out.
+		if cell ~= nil then
+			table.insert(signs, { id = sign.id, cell = cell })
+		end
+	end
+
 	-- Flooded cells and landmarks.
 	local flooded: { [number]: boolean } = {}
 	local features: { [number]: string } = {}
@@ -229,7 +334,6 @@ function LevelPlan.build(tier: number, seed: number, options: BuildOptions): Lev
 	end
 
 	-- Beacon: the cell halfway along the shortest route to the exit.
-	local route = Maze.path(maze, maze.start, maze.exit)
 	local beaconCell = route[math.max(1, math.floor(#route / 2))] or maze.start
 
 	return {
@@ -242,6 +346,13 @@ function LevelPlan.build(tier: number, seed: number, options: BuildOptions): Lev
 		objectives = objectives,
 		enemies = enemies,
 		exitLocked = def.exitLocked,
+		lamps = lamps,
+		nooks = nooks,
+		echoes = echoes,
+		reveals = reveals,
+		signs = signs,
+		pits = pits,
+		plates = plates,
 		anomaly = anomaly,
 		beaconCell = beaconCell,
 	}

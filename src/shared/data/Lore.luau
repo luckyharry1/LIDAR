@@ -1,158 +1,335 @@
 --!strict
--- All written lore. Rooms reference notes by id; adding a note or a room is a data change.
--- The story bible is in docs/LORE.md.
+-- All written story, as the game uses it. The words themselves come from the story thread's
+-- LoreText (docs/story): this module only decides where each piece goes. Rooms reference
+-- notes by id; adding a note, a room or a recorder line is a data change.
+--
+-- The story ("The Understory", docs/story/01-story-bible.md) is told indirectly: notices,
+-- tapes, a sign-in sheet, a manual with margin notes. Nobody explains; the player assembles
+-- it. Placeholders in braces ({deaths}, {party}, {floor}, {n}) are filled where the text is
+-- shown, with Lore.fill.
+
+local LoreText = require("./LoreText")
 
 export type Note = { title: string, body: string }
 export type Room = {
 	id: string,
 	title: string, -- shown as a title card on entry
 	subtitle: string,
-	theme: string, -- which furniture set the builder uses
+	size: string, -- "haven": a small lit room after a level; "room": a big one
+	theme: string, -- which layout the builder uses
 	wall: { number }, -- RGB
 	floor: { number },
 	light: { number },
 	notes: { string },
 }
+export type Echo = { speaker: string, line: string }
+export type Card = { title: string, subtitle: string }
+export type Section = { first: number, last: number, floor: string, card: Card }
+export type Entity = { name: string, page: string }
 
 local Lore = {}
 
+-- The lines of a story entry. Margin notes (handwritten in the manual) are marked as such.
+local function linesOf(id: string): { string }
+	local entry = LoreText.get(id)
+	assert(entry ~= nil, "missing story text " .. id)
+	local out = {}
+	for _, line in entry.lines do
+		if string.sub(line, 1, 8) == "margin: " then
+			table.insert(out, "In the margin: " .. string.sub(line, 9))
+		else
+			table.insert(out, line)
+		end
+	end
+	return out
+end
+
+local function text(id: string): string
+	return table.concat(linesOf(id), "\n")
+end
+
+local function speakerOf(id: string): string
+	local entry = LoreText.get(id)
+	return if entry and entry.speaker then entry.speaker else ""
+end
+
+-- A tape: who is speaking, then what they say.
+local function tape(id: string): string
+	local speaker = speakerOf(id)
+	return if speaker ~= "" then speaker .. ":\n" .. text(id) else text(id)
+end
+
+-- Spoken lines run on as one line of speech.
+local function spoken(id: string): string
+	return table.concat(linesOf(id), " ")
+end
+
+local function card(id: string): Card
+	local lines = linesOf(id)
+	local count = #lines
+	return { title = lines[count - 1], subtitle = lines[count] }
+end
+
+-- Replaces {name} placeholders with the given values; unknown ones are left as they are.
+function Lore.fill(template: string, values: { [string]: string | number }): string
+	return (
+		string.gsub(template, "{(%w+)}", function(key: string): string
+			local value = values[key]
+			return if value ~= nil then tostring(value) else "{" .. key .. "}"
+		end)
+	)
+end
+
 Lore.notes = {
-	-- Office, after tier 2
-	office_welcome = {
-		title = "Pinned to the lamp",
-		body = "If you are reading this by lamplight, somebody closed this room for you. A closed room stays lit and stays put. Rest here. Nothing from the unmeasured halls comes into a closed room.\n\nSay thank you. You will understand why later.\n\n- S.",
-	},
-	office_walkers = {
-		title = "Field memo 12",
-		body = "Staff who stay out past their sheet do not come back in. They keep walking their traverse lines, counting paces. They are slow and they follow noise. Do not call to them. Do not scan them twice. Walk the other way and let them lose count.",
-	},
-	office_timesheet = {
-		title = "Timesheet, Annex contract",
-		body = "Seven surveyors signed in on Monday. Seven lines, seven names, one hand. The loops on the letters are identical all the way down the page.\n\nSomeone has written in the margin: whose writing is this?",
-	},
-	-- Break room, after tier 5
-	break_switchboard = {
-		title = "Notice from the switchboard",
-		body = "The operators took every field call this office ever received. They stayed at the board after the lights went. They cannot see you. They hear running. They hear a scanner held open too long.\n\nIf one is close: stop, stand to the side, and let it pass.",
-	},
-	break_drafts = {
-		title = "Scrawled on a napkin",
-		body = "The building has started drawing people. It draws what it has seen the most, and that is one of us sat waiting to be found.\n\nOurs tap on the wall so you can find them. A draft is silent, and your dots land on it a moment late. If it is quiet, leave it.",
-	},
-	break_rota = {
-		title = "Kettle rota",
-		body = "Mon: S.\nTue: S.\nWed: S.\nThu: S.\nFri: S.\n\nUnderneath, in the same hand: I have never met any of the others. Have you?",
-	},
-	-- Nursery, after tier 7
-	nursery_log = {
-		title = "Growth log",
-		body = "Day 1. Seeds in. Day 40. First leaves. Day 200. Repotted. Day 412. Still no window, still growing.\n\nI keep the trays so I can prove that time passes in here. The rooms do not change. The plants do. So do I.",
-	},
-	nursery_unmeasured = {
-		title = "Taped to the grow lamp",
-		body = "The tall ones have no position until an instrument gives them one. Point the scanner and they are somewhere, and they stay there. Look away and they are wherever they like.\n\nHold one in the cone for a few breaths and it loses its nerve and goes back where it came from. Look away first and you have chosen where it is. It will be behind you.",
-	},
-	nursery_growth = {
-		title = "Survey principle, crossed out twice",
-		body = "We were told the Annex had rooms we had not measured yet. That is backwards. It has rooms because we measure. Every sheet we close, it builds two more to stay ahead of us.\n\nThe plants grow where I leave them alone. The building grows where I look.",
-	},
-	-- Stairwell and the Datum, after tier 8
-	stair_passlog = {
-		title = "Pass log",
-		body = "Pass 1. Reached Records. Pass 9. Reached the Switchboard. Pass 31. Closed the Drafting Hall. Pass 58. Found the stairs.\n\nThe gun keeps every scan from every pass. It never forgot the way down. I did, each time.",
-	},
-	stair_datum = {
-		title = "Brass plate on the desk",
-		body = "DATUM. The zero point. Every distance in the Annex is measured from this room.\n\nThis is the office where you were handed the scanner. It was the first room ever closed. The Annex was not a job the office took on. It is what grew out of the office the day someone measured it.",
-	},
-	stair_final = {
-		title = "The last sheet, in your handwriting",
-		body = "There were never seven surveyors. There was one, sent down seven times and seven hundred. S. was only ever short for Surveyor.\n\nYou cannot finish a building that grows when it is measured. You can close rooms, and you can leave the lamps on for the next pass.\n\nThank you for the lights. Now write the next note.",
-	},
-	-- Rest landing, between endless tiers
-	landing_1 = {
-		title = "Note for the next pass",
-		body = "You made it past the Datum. Nobody has drawn these halls before, not even us. Close what you can. Leave a lamp on.",
-	},
-	landing_2 = {
-		title = "Note for the next pass",
-		body = "The Static on your sheet is whatever the scanner picked up that was not a wall. Spend it at the bench. It is no use to the dark.",
-	},
-	landing_3 = {
-		title = "Note for the next pass",
-		body = "If you find one of ours tapping on a wall, bring them in. Every pass that walks out makes the next one shorter.",
-	},
+	-- The havens: one small lit room after each odd tier, one page to read in each.
+	haven_copy = { title = "Page in the copier tray", body = text("note.haven.copy") },
+	haven_booth = { title = "Shift log, pump house", body = text("note.haven.booth") },
+	haven_shed = { title = "Seed packets", body = text("note.haven.shed") },
+	haven_nook = { title = "Card index", body = text("note.haven.nook") },
+	-- The Night Desk, after tier 2: the first exhale. Crew 7 has done this before.
+	desk_signin = { title = "Sign-in sheet", body = text("note.desk.signin") },
+	desk_self = { title = "Torn note, under the lamp", body = text("note.desk.self") },
+	desk_mugs = { title = "Mug rack", body = text("rev.desk.mugs") },
+	-- The Falls, after tier 4: the place the dark cannot rewrite.
+	falls_ines = { title = "Tape, on a ledge", body = tape("rec.falls.1") },
+	falls_lena = { title = "Tape, under the camp stove", body = tape("rec.falls.2") },
+	falls_guestbook = { title = "Guest book", body = text("note.falls.guestbook") },
+	falls_behind = { title = "Chalk drawing, behind the water", body = text("rev.falls.behind") },
+	-- The Bunk Room, after tier 6: the quiet, sad one. What the red things were.
+	bunk_board = { title = "Corkboard", body = text("note.bunk.board") },
+	bunk_pim = { title = "Folded note, under a bunk", body = text("note.bunk.pim") },
+	bunk_theory = { title = "Tape, on the stove shelf", body = tape("rec.bunk.1") },
+	-- The Lamp Room, after tier 8: the finale. Reading the last page brings Ines's choice.
+	lamp_postcard = { title = "Postcard, pinned up", body = text("rev.lamp.postcard") },
+	lamp_pim = { title = "Recorder, by the ladder", body = tape("npc.pim.recording") },
+	lamp_rule12 = { title = "Manual, page 12. Handwritten", body = text("rule.12") },
+	-- Relay floors, between endless tiers: someone lit this before you.
+	relay_1 = { title = "Poster", body = text("sign.relay.1") },
+	relay_2 = { title = "Poster", body = text("sign.relay.2") },
+	relay_3 = { title = "Note by the kettle", body = text("sign.relay.3") },
 } :: { [string]: Note }
 
+-- Room ids and themes are the builder's (src/server/LoreRooms); every layout has three note
+-- spots, so every room has three notes.
+local copyCard = card("card.haven.copy")
+local boothCard = card("card.haven.booth")
+local shedCard = card("card.haven.shed")
+local nookCard = card("card.haven.nook")
+local deskCard = card("card.desk")
+local fallsCard = card("card.falls")
+local bunkCard = card("card.bunk")
+local lampCard = card("card.lamp")
+local relayCard = card("card.relay")
+
 Lore.rooms = {
+	copyroom = {
+		id = "copyroom",
+		size = "haven",
+		title = copyCard.title,
+		subtitle = copyCard.subtitle,
+		theme = "copyroom",
+		wall = { 200, 190, 170 },
+		floor = { 112, 96, 80 },
+		light = { 255, 226, 186 },
+		notes = { "haven_copy" },
+	},
+	drybooth = {
+		id = "drybooth",
+		size = "haven",
+		title = boothCard.title,
+		subtitle = boothCard.subtitle,
+		theme = "drybooth",
+		wall = { 150, 168, 160 },
+		floor = { 84, 92, 88 },
+		light = { 255, 232, 190 },
+		notes = { "haven_booth" },
+	},
+	pottingshed = {
+		id = "pottingshed",
+		size = "haven",
+		title = shedCard.title,
+		subtitle = shedCard.subtitle,
+		theme = "pottingshed",
+		wall = { 150, 170, 140 },
+		floor = { 110, 90, 66 },
+		light = { 255, 236, 190 },
+		notes = { "haven_shed" },
+	},
+	archivenook = {
+		id = "archivenook",
+		size = "haven",
+		title = nookCard.title,
+		subtitle = nookCard.subtitle,
+		theme = "archivenook",
+		wall = { 170, 164, 150 },
+		floor = { 92, 88, 82 },
+		light = { 255, 214, 160 },
+		notes = { "haven_nook" },
+	},
 	office = {
 		id = "office",
-		title = "Survey Office",
-		subtitle = "Closed room. You are safe here.",
+		size = "room",
+		title = deskCard.title,
+		subtitle = deskCard.subtitle,
 		theme = "office",
 		wall = { 196, 178, 150 },
 		floor = { 120, 86, 60 },
 		light = { 255, 214, 170 },
-		notes = { "office_welcome", "office_walkers", "office_timesheet" },
+		notes = { "desk_mugs", "desk_signin", "desk_self" },
+	},
+	cistern = {
+		id = "cistern",
+		size = "room",
+		title = fallsCard.title,
+		subtitle = fallsCard.subtitle,
+		theme = "cistern",
+		wall = { 96, 118, 124 },
+		floor = { 84, 96, 92 },
+		light = { 170, 230, 255 },
+		notes = { "falls_guestbook", "falls_ines", "falls_lena", "falls_behind" },
 	},
 	breakroom = {
 		id = "breakroom",
-		title = "Break Room",
-		subtitle = "Closed room. The kettle is still warm.",
+		size = "room",
+		title = bunkCard.title,
+		subtitle = bunkCard.subtitle,
 		theme = "breakroom",
 		wall = { 178, 190, 170 },
 		floor = { 150, 140, 120 },
 		light = { 255, 224, 190 },
-		notes = { "break_switchboard", "break_drafts", "break_rota" },
-	},
-	nursery = {
-		id = "nursery",
-		title = "Nursery",
-		subtitle = "Closed room. Something green, at last.",
-		theme = "nursery",
-		wall = { 205, 196, 170 },
-		floor = { 110, 100, 84 },
-		light = { 255, 200, 220 },
-		notes = { "nursery_log", "nursery_unmeasured", "nursery_growth" },
+		notes = { "bunk_board", "bunk_pim", "bunk_theory" },
 	},
 	stairwell = {
 		id = "stairwell",
-		title = "The Datum",
-		subtitle = "The first room ever closed.",
+		size = "room",
+		title = lampCard.title,
+		subtitle = lampCard.subtitle,
 		theme = "stairwell",
 		wall = { 186, 176, 160 },
 		floor = { 96, 90, 84 },
 		light = { 255, 206, 150 },
-		notes = { "stair_passlog", "stair_datum", "stair_final" },
+		notes = { "lamp_postcard", "lamp_pim", "lamp_rule12" },
 	},
 	landing = {
 		id = "landing",
-		title = "Landing",
-		subtitle = "A lamp left on between passes.",
+		size = "room",
+		title = Lore.fill(relayCard.title, { n = "" }):gsub("%s+$", ""),
+		subtitle = relayCard.subtitle,
 		theme = "landing",
 		wall = { 190, 184, 172 },
 		floor = { 104, 96, 88 },
 		light = { 255, 218, 176 },
-		notes = { "landing_1", "landing_2", "landing_3" },
+		notes = { "relay_1", "relay_2", "relay_3" },
 	},
 } :: { [string]: Room }
 
--- Rare survey plates found inside mazes: one per run at most.
-Lore.plates = {
-	"Plate 1. Measured rooms hold still.",
-	"Plate 2. Count your paces out loud and you will hear someone counting with you.",
-	"Plate 3. The dark is not empty. It is undrawn.",
-	"Plate 4. Green means one of ours. Usually.",
-	"Plate 5. A scanner held open is a voice.",
-	"Plate 6. The exit is always the far end of what you have not seen.",
-	"Plate 7. We do not map the Annex. We ask it where it is.",
-	"Plate 8. Leave a lamp on.",
-} :: { string }
+-- Field recorders hidden in the maze. Scan one enough and it reveals itself, lights its
+-- corner of the level and plays its tape. Each player hears them in this order, so the story
+-- unfolds the same way however the levels are explored: three tapes per floor, twelve in all,
+-- one for every recorder in tiers 1 to 8.
+Lore.echoes = {} :: { Echo }
+for _, id in
+	{
+		"rec.annex.1",
+		"rec.annex.2",
+		"rec.annex.3",
+		"rec.flood.1",
+		"rec.flood.2",
+		"rec.flood.3",
+		"rec.over.1",
+		"rec.over.2",
+		"rec.over.3",
+		"rec.found.1",
+		"rec.found.2",
+		"rec.found.3",
+	}
+do
+	table.insert(Lore.echoes, { speaker = speakerOf(id), line = spoken(id) })
+end
+Lore.echoSpeaker = "Recorder" -- for any tape that does not name its speaker
 
--- Ending card shown once after the Datum.
-Lore.ending = {
-	title = "Pass closed",
-	body = "You signed the last sheet and left the lamp on.\n\nThe Annex is already longer than it was this morning. The survey continues.",
+-- Pages torn from the survey manual, found in the maze (one per run at most): its numbered
+-- rules with the crew's margin notes. Page 12 is in the Lamp Room.
+Lore.plateTitle = "Manual page"
+Lore.plates = {} :: { string }
+for index = 1, 11 do
+	table.insert(Lore.plates, text(string.format("rule.%02d", index)))
+end
+
+-- The floors. Each floor is two tiers; its card is shown on the way in.
+Lore.sections = {
+	{ first = 1, last = 2, floor = "B3", card = card("card.annex") },
+	{ first = 3, last = 4, floor = "B4", card = card("card.flood") },
+	{ first = 5, last = 6, floor = "B5", card = card("card.over") },
+	{ first = 7, last = 8, floor = "B6", card = card("card.found") },
+} :: { Section }
+Lore.relayCard = relayCard -- endless floors: fill {n}
+Lore.dailyCard = card("card.relay.daily")
+
+-- The section a tier belongs to, or nil past the authored floors (the Relay).
+function Lore.sectionFor(tier: number): Section?
+	for _, section in Lore.sections do
+		if tier >= section.first and tier <= section.last then
+			return section
+		end
+	end
+	return nil
+end
+
+-- The monsters, as the manual names them. A page unlocks on first sighting.
+Lore.entities = {
+	wanderer = { name = "the Pacer", page = text("ent.wanderer") },
+	listener = { name = "the Hush", page = text("ent.listener") },
+	mimic = { name = "the Echo", page = text("ent.mimic") },
+	stalker = { name = "the Still", page = text("ent.stalker") },
+} :: { [string]: Entity }
+
+-- Base on the radio. Real Base reports and counts; it never gives directions. The Echo's
+-- fake Base does, and only near the Echo: that difference is the tell.
+Lore.radio = {
+	speaker = speakerOf("radio.base.1"),
+	fakeSpeaker = speakerOf("radio.fake.1"),
+	desk = spoken("radio.desk.1"), -- the first time at the Night Desk
+	haven = spoken("radio.haven.1"), -- in any small haven
+	lit = spoken("radio.base.1"), -- idle in a lit room
+	floor = spoken("radio.base.2"), -- a new floor: fill {floor}
+	cleared = spoken("radio.base.5"),
+	dark = { spoken("radio.base.3"), spoken("radio.base.4") },
+	back = { spoken("radio.back.1"), spoken("radio.back.2"), spoken("radio.back.3") },
+	fake = {
+		spoken("radio.fake.1"),
+		spoken("radio.fake.2"),
+		spoken("radio.fake.3"),
+		spoken("radio.fake.4"),
+	},
 }
+
+-- The finale. Ines speaks, then offers the choice; each choice has its own end card.
+local function inesLines(deaths: number): string
+	local ids = { "npc.ines.1", "npc.ines.2", if deaths > 0 then "npc.ines.3" else "npc.ines.3z" }
+	table.insert(ids, "npc.ines.4")
+	table.insert(ids, "npc.ines.5")
+	table.insert(ids, "npc.ines.6")
+	local parts = {}
+	for _, id in ids do
+		table.insert(parts, text(id))
+	end
+	return Lore.fill(table.concat(parts, "\n\n"), { deaths = deaths })
+end
+
+Lore.ending = {
+	title = speakerOf("npc.ines.1"),
+	body = inesLines(1), -- the general case; Lore.endingBody fills in the real count
+	choices = { up = text("choice.up"), stay = text("choice.stay") },
+	cards = {
+		up = { title = "Up", body = text("end.up") },
+		stay = { title = "The lamp", body = text("end.stay") },
+	} :: { [string]: Note },
+}
+
+-- Ines's words for a player who was taken `deaths` times on the way down.
+function Lore.endingBody(deaths: number): string
+	return inesLines(math.max(0, math.floor(deaths)))
+end
 
 return Lore

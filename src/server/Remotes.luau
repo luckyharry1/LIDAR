@@ -15,6 +15,7 @@ type Handler = (player: Player, ...any) -> ()
 local MAX_STRING = 40
 local MAX_COORDINATE = 100000
 local BURST_SECONDS = 1 -- a bucket holds this many seconds of allowance
+local MAX_ECHO_ID = 64
 
 local Remotes = {}
 
@@ -86,11 +87,18 @@ end
 
 -- Argument validators. A remote with no entry here accepts no arguments at all.
 local VALIDATORS: { [string]: Validator } = {
-	ScanState = function(firing, focusing, look, origin)
+	ScanState = function(firing, sweeping, crouching, look, origin, spread)
 		return type(firing) == "boolean"
-			and type(focusing) == "boolean"
+			and type(sweeping) == "boolean"
+			and type(crouching) == "boolean"
 			and isFiniteVector(look)
 			and isFiniteVector(origin)
+			and type(spread) == "number"
+			and spread >= Config.Lidar.coneMinDeg
+			and spread <= Config.Lidar.coneMaxWideDeg
+	end,
+	Reveal = function(echoId)
+		return isInteger(echoId, 1, MAX_ECHO_ID)
 	end,
 	Ping = function(position)
 		return isFiniteVector(position)
@@ -116,6 +124,9 @@ local VALIDATORS: { [string]: Validator } = {
 	end,
 	Funnel = function(step)
 		return isShortString(step)
+	end,
+	Choose = function(choice)
+		return choice == "up" or choice == "stay"
 	end,
 }
 

@@ -10,7 +10,9 @@ Net.folderName = "Remotes"
 
 -- Client to server. Every one of these is validated and rate limited in server/Remotes.
 Net.clientToServer = {
-	"ScanState", -- (firing: boolean, focusing: boolean, look: Vector3, origin: Vector3) unreliable
+	-- (firing, sweeping, crouching: boolean, look: Vector3, origin: Vector3, spreadDeg: number)
+	"ScanState", -- unreliable
+	"Reveal", -- (echoId: number) this client has scanned a hidden recorder enough to reveal it
 	"Ping", -- (position: Vector3)
 	"Emote", -- (index: number)
 	"BuyUpgrade", -- (upgradeId: string)
@@ -19,6 +21,7 @@ Net.clientToServer = {
 	"SetSetting", -- (key: string, value: any)
 	"Start", -- (mode: "continue" | "new" | "daily")
 	"Funnel", -- (step: string) onboarding steps only the client can observe
+	"Choose", -- (choice: "up" | "stay") the finale: climb the ladder or keep the lamp
 }
 
 -- Server to client.
@@ -29,12 +32,14 @@ Net.serverToClient = {
 	"Caught", -- (enemyKind: string, downed: boolean)
 	"Revived", -- ()
 	"LevelCleared", -- (summary table)
-	"ScanRelay", -- (userId, firing, focusing, look, origin) unreliable
+	"ScanRelay", -- (userId, firing, sweeping, look, origin, spreadDeg) unreliable
 	"PingMarker", -- (userId: number, position: Vector3, lifetime: number)
 	"EmoteShown", -- (userId: number, index: number)
 	"OpenBench", -- ()
 	"OpenNote", -- (title: string, body: string)
 	"Objective", -- (kind: string, detail table) pickups, rescues, key, exit
+	"Echo", -- (echoId: number, position: Vector3, speaker: string, line: string) a recorder spoke
+	"Hazard", -- (kind: "plate" | "pit", position: Vector3, userId: number)
 	"DailyBoard", -- (board table)
 	"Ending", -- (title: string, body: string)
 }

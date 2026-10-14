@@ -5,8 +5,10 @@
 -- New props are data: add a kit and it can be placed anywhere.
 
 local Build = require(script.Parent.Build)
+local StoryKits = require(script.Parent.StoryKits)
 
 type Piece = {
+	name: string?, -- only for pieces other code needs to find again
 	size: { number },
 	at: { number },
 	rot: { number }?, -- degrees, XYZ
@@ -28,6 +30,9 @@ local CLAY = { 156, 94, 62 }
 local WARM = { 255, 226, 170 }
 local BRASS = { 196, 160, 84 }
 local PINK = { 255, 170, 210 }
+local CANVAS = { 124, 108, 78 }
+local FERN = { 58, 150, 84 }
+local STONE = { 104, 112, 112 }
 
 local wood = Enum.Material.Wood
 local metal = Enum.Material.Metal
@@ -116,6 +121,90 @@ Props.kits = {
 		{ size = { 0.35, 4.8, 0.35 }, at = { -0.6, 8.6, -0.3 }, color = METAL, material = metal },
 		{ size = { 0.35, 4.8, 0.35 }, at = { 0.6, 8.6, -0.3 }, color = METAL, material = metal },
 		{ size = { 0.5, 0.5, 0.2 }, at = { 0, 5.4, -1 }, color = METAL, material = metal },
+	},
+	-- A satchel somebody left behind with a bare bulb still burning on top of it. The maze
+	-- builder gives the bulb its light.
+	lantern = {
+		{ size = { 2, 1.3, 1.2 }, at = { 0, 0.65, -0.8 }, color = CANVAS, material = fabric },
+		{
+			size = { 2.1, 0.22, 1.3 },
+			at = { 0, 1.36, -0.75 },
+			rot = { 6, 0, 0 },
+			color = { 98, 84, 60 },
+			material = fabric,
+			collide = false,
+		},
+		{
+			size = { 0.5, 0.3, 0.14 },
+			at = { 0, 1, -1.45 },
+			color = BRASS,
+			material = metal,
+			collide = false,
+		},
+		{
+			size = { 0.14, 0.5, 0.14 },
+			at = { 0.5, 1.7, -0.7 },
+			color = DARK_METAL,
+			material = metal,
+			collide = false,
+		},
+		{
+			name = "Bulb",
+			size = { 0.56, 0.56, 0.56 },
+			at = { 0.5, 2.15, -0.7 },
+			color = WARM,
+			material = neon,
+			shape = ball,
+			collide = false,
+		},
+		{
+			size = { 0.9, 0.5, 0.7 },
+			at = { -1.6, 0.25, -0.9 },
+			rot = { 0, 24, 0 },
+			color = PAPER,
+			material = plastic,
+			collide = false,
+		},
+	},
+	-- A reel-to-reel field recorder stood on an equipment case, aerial up.
+	recorder = {
+		{ size = { 2, 1.5, 1.4 }, at = { 0, 0.75, -0.9 }, color = DARK_METAL, material = metal },
+		{ size = { 1.7, 0.6, 1.2 }, at = { 0, 1.8, -0.9 }, color = METAL, material = metal },
+		{
+			size = { 0.16, 0.7, 0.7 },
+			at = { -0.45, 2.5, -0.9 },
+			rot = { 0, 90, 0 },
+			color = DARK_WOOD,
+			material = plastic,
+			shape = cylinder,
+			collide = false,
+		},
+		{
+			size = { 0.16, 0.7, 0.7 },
+			at = { 0.45, 2.5, -0.9 },
+			rot = { 0, 90, 0 },
+			color = DARK_WOOD,
+			material = plastic,
+			shape = cylinder,
+			collide = false,
+		},
+		{
+			size = { 0.08, 2.4, 0.08 },
+			at = { 0.9, 3.3, -0.5 },
+			rot = { 0, 0, -8 },
+			color = METAL,
+			material = metal,
+			collide = false,
+		},
+		{
+			name = "Lamp",
+			size = { 0.3, 0.3, 0.3 },
+			at = { -0.7, 2.2, -1.5 },
+			color = { 190, 235, 255 },
+			material = neon,
+			shape = ball,
+			collide = false,
+		},
 	},
 	-- Lit-room furniture.
 	desk = {
@@ -212,6 +301,102 @@ Props.kits = {
 			color = LEAF,
 			material = Enum.Material.Grass,
 			shape = ball,
+			collide = false,
+		},
+	},
+	fern = {
+		{
+			size = { 2.6, 1, 2.6 },
+			at = { 0, 0.5, -1.4 },
+			color = FERN,
+			material = Enum.Material.Grass,
+			shape = ball,
+			collide = false,
+		},
+		{
+			size = { 0.25, 2.6, 1.1 },
+			at = { -0.7, 1.5, -1.4 },
+			rot = { 0, 20, 28 },
+			color = FERN,
+			material = Enum.Material.Grass,
+			collide = false,
+		},
+		{
+			size = { 0.25, 2.9, 1.1 },
+			at = { 0.6, 1.6, -1.1 },
+			rot = { 0, -30, -24 },
+			color = { 74, 176, 96 },
+			material = Enum.Material.Grass,
+			collide = false,
+		},
+		{
+			size = { 0.25, 2.4, 1 },
+			at = { 0.1, 1.5, -2 },
+			rot = { 30, 80, 0 },
+			color = { 46, 128, 72 },
+			material = Enum.Material.Grass,
+			collide = false,
+		},
+	},
+	-- Low, bright flowers on a mossy stone: the colour the dark never has.
+	flowers = {
+		{
+			size = { 3, 0.9, 2.2 },
+			at = { 0, 0.45, -1.3 },
+			color = STONE,
+			material = Enum.Material.Slate,
+		},
+		{
+			size = { 3.1, 0.2, 2.3 },
+			at = { 0, 0.95, -1.3 },
+			color = { 64, 132, 70 },
+			material = Enum.Material.Grass,
+			collide = false,
+		},
+		{
+			size = { 0.5, 0.5, 0.5 },
+			at = { -0.9, 1.5, -1 },
+			color = { 255, 120, 190 },
+			material = neon,
+			shape = ball,
+			collide = false,
+			light = { color = { 255, 150, 210 }, brightness = 0.6, range = 9 },
+		},
+		{
+			size = { 0.42, 0.42, 0.42 },
+			at = { 0.2, 1.4, -1.7 },
+			color = { 255, 214, 90 },
+			material = neon,
+			shape = ball,
+			collide = false,
+		},
+		{
+			size = { 0.46, 0.46, 0.46 },
+			at = { 1, 1.55, -1.1 },
+			color = { 150, 130, 255 },
+			material = neon,
+			shape = ball,
+			collide = false,
+		},
+		{
+			size = { 0.1, 0.5, 0.1 },
+			at = { -0.9, 1.2, -1 },
+			color = FERN,
+			material = Enum.Material.Grass,
+			collide = false,
+		},
+		{
+			size = { 0.1, 0.4, 0.1 },
+			at = { 0.2, 1.15, -1.7 },
+			color = FERN,
+			material = Enum.Material.Grass,
+			collide = false,
+		},
+		{
+			size = { 0.1, 0.55, 0.1 },
+			at = { 1, 1.25, -1.1 },
+			color = FERN,
+			material = Enum.Material.Grass,
 			collide = false,
 		},
 	},
@@ -477,6 +662,64 @@ Props.kits = {
 	},
 } :: { [string]: { Piece } }
 
+for name, kit in StoryKits do
+	Props.kits[name] = kit
+end
+
+local SIGN_WIDTH, SIGN_HEIGHT = 4, 5.6
+local SIGN_PIXELS = 36 -- pixels per stud on the sign's surface
+local SIGN_INK = Color3.fromRGB(34, 32, 30)
+local MARGIN_PREFIX = "margin: "
+
+local function escape(text: string): string
+	return (string.gsub(string.gsub(string.gsub(text, "&", "&amp;"), "<", "&lt;"), ">", "&gt;"))
+end
+
+-- A notice on a wall, printed in rich text: the first line is the heading, and a line that
+-- starts "margin: " is the crew's handwriting beside it. Its text is hidden (SurfaceGui
+-- disabled) by Build.hide until the sign is revealed.
+function Props.sign(base: CFrame, lines: { string }, parent: Instance): Model
+	local model = Build.model("Sign", parent)
+	local paper = Build.part({
+		name = "Paper",
+		size = Vector3.new(SIGN_WIDTH, SIGN_HEIGHT, 0.12),
+		cframe = base * CFrame.new(0, 5.4, -0.08),
+		color = Build.rgb(PAPER),
+		material = plastic,
+		collide = false,
+		parent = model,
+	})
+	model.PrimaryPart = paper
+	local rich = {}
+	for index, line in lines do
+		if string.sub(line, 1, #MARGIN_PREFIX) == MARGIN_PREFIX then
+			local note = escape(string.sub(line, #MARGIN_PREFIX + 1))
+			table.insert(rich, `<i><font color="rgb(150,40,40)" size="20">{note}</font></i>`)
+		elseif index == 1 then
+			table.insert(rich, `<b>{escape(line)}</b>`)
+		else
+			table.insert(rich, escape(line))
+		end
+	end
+	local gui = Instance.new("SurfaceGui")
+	gui.Face = Enum.NormalId.Front
+	gui.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
+	gui.PixelsPerStud = SIGN_PIXELS
+	gui.LightInfluence = 1
+	gui.Parent = paper
+	local label = Instance.new("TextLabel")
+	label.Size = UDim2.fromScale(1, 1)
+	label.BackgroundTransparency = 1
+	label.TextColor3 = SIGN_INK
+	label.Font = Enum.Font.Code
+	label.TextSize = 22
+	label.TextWrapped = true
+	label.RichText = true
+	label.Text = table.concat(rich, "\n")
+	label.Parent = gui
+	return model
+end
+
 -- Builds a kit at a base CFrame. Returns the model; its PrimaryPart is the first piece.
 function Props.place(kind: string, base: CFrame, parent: Instance): Model
 	local kit = Props.kits[kind]
@@ -492,7 +735,7 @@ function Props.place(kind: string, base: CFrame, parent: Instance): Model
 			)
 		end
 		local part = Build.part({
-			name = "Piece" .. index,
+			name = piece.name or ("Piece" .. index),
 			size = Vector3.new(piece.size[1], piece.size[2], piece.size[3]),
 			cframe = base * offset,
 			color = Build.rgb(piece.color),
