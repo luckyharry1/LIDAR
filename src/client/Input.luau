@@ -155,7 +155,13 @@ local function bindHeld(
 	ContextActionService:BindAction(
 		action,
 		function(_, state: Enum.UserInputState, input: InputObject)
-			if state == Enum.UserInputState.Begin or state == Enum.UserInputState.End then
+			-- Fingers only ever press the on-screen buttons, which handle themselves: a touch
+			-- reaching here as well would toggle the same control a second time.
+			local fromFinger = input.UserInputType == Enum.UserInputType.Touch
+			if
+				not fromFinger
+				and (state == Enum.UserInputState.Begin or state == Enum.UserInputState.End)
+			then
 				local toggle = toggleOnTouch() or TOGGLE_KEYS[input.KeyCode] == true
 				setHeld(field, state == Enum.UserInputState.Begin, toggle)
 			end
@@ -209,13 +215,22 @@ local function buildTouchControls()
 		local function toggles(): boolean
 			return spec.field ~= "firing" or scanToggles()
 		end
+		-- A finger, or a mouse click on a touch-layout screen. Each press is tracked by its own
+		-- input object so a second finger elsewhere can never release or double-toggle this one.
+		local pressing: InputObject? = nil
 		button.InputBegan:Connect(function(input: InputObject)
-			if input.UserInputType == Enum.UserInputType.Touch then
+			local kind = input.UserInputType
+			if
+				pressing == nil
+				and (kind == Enum.UserInputType.Touch or kind == Enum.UserInputType.MouseButton1)
+			then
+				pressing = input
 				setHeld(spec.field, true, toggles())
 			end
 		end)
 		button.InputEnded:Connect(function(input: InputObject)
-			if input.UserInputType == Enum.UserInputType.Touch then
+			if input == pressing then
+				pressing = nil
 				setHeld(spec.field, false, toggles())
 			end
 		end)
