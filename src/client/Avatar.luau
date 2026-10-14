@@ -124,7 +124,7 @@ local function update(dt: number)
 	Avatar.moving = velocity.Magnitude > 1
 
 	local downed = character:GetAttribute("Downed") == true
-	local lit = Atmosphere.zone() ~= nil
+	local lit = Atmosphere.lit > 0.5
 	Avatar.crouching = Input.crouching
 		and not downed
 		and not lit
