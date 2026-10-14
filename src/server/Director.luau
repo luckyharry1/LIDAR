@@ -730,8 +730,11 @@ end
 
 local function enterLore(roomId: string, nextTier: number)
 	run.phase = "transition"
-	local oldLevel = run.level
+	local oldLevel, oldLore = run.level, run.lore
 	Enemies.clear()
+	if oldLore then
+		oldLore.model:Destroy() -- only the Studio dev command can enter one lit room from another
+	end
 	local lore = LoreRooms.build(roomId, Vector3.new(table.unpack(Config.World.loreOrigin)))
 	run.lore = lore
 	run.level = nil

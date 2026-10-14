@@ -19,21 +19,21 @@ Config.Lidar = {
 
 	-- How many permanent dots the world can hold, by the quality setting. When the budget is
 	-- full the oldest dot is reused, so the live count can never exceed it.
-	dotBudget = { low = 12000, medium = 36000, high = 72000 },
+	dotBudget = { low = 20000, medium = 60000, high = 120000 },
 	budgetPerPhosphorLevel = 0.15, -- the Phosphor upgrade adds this share per level
 	fadingDots = 1600, -- separate small pool for dots that fade (people, monsters, footprints)
 
-	dotSize = 0.06, -- studs at close range
-	dotSizeDistanceScale = 0.0016, -- extra size per stud of distance so far dots stay readable
+	dotSize = 0.02, -- studs at close range
+	dotSizeDistanceScale = 0.0022, -- extra size per stud of distance so far dots stay readable
 	dotSizeMax = 0.3,
 	itemDotScale = 0.5, -- items and objects are drawn with finer dots
 	markDotScale = 1.6, -- people, monsters and footprints are a little larger
 
 	-- Dots are not stacked: one per grid cell, with the grid chosen by how far away the
 	-- surface was when it was scanned (close surfaces get fine detail).
-	gridNear = 0.5,
-	gridMid = 1,
-	gridFar = 2,
+	gridNear = 0.3,
+	gridMid = 0.7,
+	gridFar = 1.5,
 	gridNearRange = 14, -- studs within which the near grid is used
 	gridMidRange = 45,
 	gridItem = 0.14,

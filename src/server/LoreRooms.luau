@@ -517,7 +517,7 @@ local function buildLights(room: Lore.Room, layout: Layout, origin: Vector3, par
 			collide = false,
 			parent = parent,
 		})
-		local light = Build.pointLight(panel, color, 1.3, 34)
+		local light = Build.pointLight(panel, color, 1.5, 34)
 		if layout.flicker and x == PANEL_OFFSETS[1] then
 			-- One tired tube that never quite settles.
 			task.spawn(function()
