@@ -5,7 +5,8 @@ local Difficulty = require("../src/shared/pure/Difficulty")
 local Lore = require("../src/shared/data/Lore")
 local Tiers = require("../src/shared/data/Tiers")
 
-local NOTE_SPOTS = 3 -- every lore room layout in src/server/LoreRooms has three note spots
+local HAVEN_NOTES = 1 -- a small haven has one page to read
+local ROOM_NOTES = { 3, 4 } -- a big lit room has three, or four with a secret (the Falls)
 local PLACEHOLDERS = { deaths = true, party = true, floor = true, n = true }
 
 local tests: { [string]: () -> () } = {}
@@ -18,10 +19,17 @@ local function placeholdersIn(text: string): { string }
 	return found
 end
 
-tests["every room has three notes that exist"] = function()
+tests["every room has the notes its size calls for, and they exist"] = function()
 	for id, room in Lore.rooms do
 		assert(room.id == id, "room id mismatch: " .. id)
-		assert(#room.notes == NOTE_SPOTS, `{id} has {#room.notes} notes, layouts have {NOTE_SPOTS}`)
+		if room.size == "haven" then
+			assert(#room.notes == HAVEN_NOTES, `haven {id} has {#room.notes} notes`)
+		else
+			assert(
+				#room.notes >= ROOM_NOTES[1] and #room.notes <= ROOM_NOTES[2],
+				`{id} has {#room.notes} notes`
+			)
+		end
 		for _, noteId in room.notes do
 			local note = Lore.notes[noteId]
 			assert(note ~= nil, `{id} names a missing note {noteId}`)
@@ -39,6 +47,14 @@ tests["every lit room a tier leads to exists"] = function()
 		end
 	end
 	assert(Lore.rooms.landing ~= nil, "the Relay landing is missing")
+end
+
+tests["a haven follows every odd tier and a big lit room every even one"] = function()
+	for index, tier in Tiers do
+		local room = Lore.rooms[tier.loreRoomAfter or ""]
+		assert(room ~= nil, `tier {index} has no lit break`)
+		assert(room.size == (if index % 2 == 1 then "haven" else "room"), `tier {index} break size`)
+	end
 end
 
 tests["the finale ends on the last note of the Lamp Room"] = function()

@@ -1,6 +1,6 @@
 # LIDAR story and lore
 
-Status 2026-10-13: v1 complete (167 text entries). Written by the story thread; the build thread integrates.
+Status 2026-10-13: v1 complete (see lore-text.json for the count). Written by the story thread; the build thread integrates.
 
 | File | For |
 |---|---|
