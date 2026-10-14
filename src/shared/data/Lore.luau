@@ -192,7 +192,7 @@ Lore.rooms = {
 		theme = "cistern",
 		wall = { 96, 118, 124 },
 		floor = { 84, 96, 92 },
-		light = { 170, 230, 255 },
+		light = { 235, 248, 250 },
 		notes = { "falls_guestbook", "falls_ines", "falls_lena", "falls_behind" },
 	},
 	breakroom = {

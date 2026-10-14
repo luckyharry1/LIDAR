@@ -9,7 +9,7 @@ Config.SaveVersion = 2
 -- The LIDAR gun. Left click scatters a fast stream of tiny, permanent dots inside a cone;
 -- right click fires one loud top-to-bottom sweep that draws a whole grid at once.
 Config.Lidar = {
-	dotsPerSecond = 320, -- scatter rate
+	dotsPerSecond = 900, -- scatter rate
 	coneHalfAngleDeg = 26, -- default spread
 	coneMinDeg = 8, -- the scroll wheel narrows the spread down to this
 	coneMaxDeg = 40, -- and widens it up to this
@@ -19,24 +19,24 @@ Config.Lidar = {
 
 	-- How many permanent dots the world can hold, by the quality setting. When the budget is
 	-- full the oldest dot is reused, so the live count can never exceed it.
-	dotBudget = { low = 12000, medium = 36000, high = 72000 },
+	dotBudget = { low = 30000, medium = 100000, high = 200000 },
 	budgetPerPhosphorLevel = 0.15, -- the Phosphor upgrade adds this share per level
 	fadingDots = 1600, -- separate small pool for dots that fade (people, monsters, footprints)
 
-	dotSize = 0.06, -- studs at close range
-	dotSizeDistanceScale = 0.0016, -- extra size per stud of distance so far dots stay readable
-	dotSizeMax = 0.3,
+	dotSize = 0.01, -- studs at close range
+	dotSizeDistanceScale = 0.0011, -- extra size per stud of distance so far dots stay readable
+	dotSizeMax = 0.15,
 	itemDotScale = 0.5, -- items and objects are drawn with finer dots
 	markDotScale = 1.6, -- people, monsters and footprints are a little larger
 
 	-- Dots are not stacked: one per grid cell, with the grid chosen by how far away the
 	-- surface was when it was scanned (close surfaces get fine detail).
-	gridNear = 0.5,
-	gridMid = 1,
-	gridFar = 2,
+	gridNear = 0.15,
+	gridMid = 0.35,
+	gridFar = 0.8,
 	gridNearRange = 14, -- studs within which the near grid is used
 	gridMidRange = 45,
-	gridItem = 0.14,
+	gridItem = 0.08,
 
 	friendLifetime = 2.5, -- seconds; people fade fast, the world stays
 	enemyLifetime = 1.2,
@@ -45,8 +45,8 @@ Config.Lidar = {
 	fadeStagger = 3, -- each fading dot is refreshed every N frames
 	mimicDotDelay = 0.35, -- the Mimic's tell: its dots land late
 
-	sweepRows = 60, -- lines in one sweep
-	sweepColumns = 76, -- rays per line
+	sweepRows = 90, -- lines in one sweep
+	sweepColumns = 114, -- rays per line
 	sweepSeconds = 1.3, -- time from the top line to the bottom line
 	sweepUpDeg = 30,
 	sweepDownDeg = 36,
@@ -147,12 +147,14 @@ Config.Player = {
 	cameraBobFrequency = 7,
 }
 
--- Noise radii, in maze cells, heard by enemies. Scattering dots is silent; the sweep is not.
+-- Noise radii, in maze cells, heard by enemies. Scattering dots and crouching are quiet, not silent; the sweep is the loud one.
 Config.Noise = {
 	walk = 0.5,
 	sprint = 3,
 	sweep = 4,
-	wade = 0.4, -- even crouched, moving through water is heard this far
+	crouch = 0.22, -- a crouched walk is quiet, not silent: nothing can be crept past for free
+	scatter = 0.3, -- so is the scatter stream (the sweep is the loud one)
+	wade = 0.5, -- moving through water is heard this far even crouched
 	ping = 3, -- a ping marker is also a decoy sound
 	pingSeconds = 2.5, -- how long the decoy keeps sounding
 	plate = 5, -- an alarm plate is very loud

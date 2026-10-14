@@ -17,7 +17,7 @@ local EASE_OUT_SECONDS = 0.9 -- lit to dark
 local DARK_FOG_START = 36
 local DARK_FOG_END = 210 -- black fog: distant dots dim with range, which reads as depth
 local LIT_FOG = 100000
-local LIT_AMBIENT_SCALE = 0.8
+local LIT_AMBIENT_SCALE = 0.55
 local DARK_BLOOM = { intensity = 0.55, size = 14, threshold = 1 }
 local LIT_BLOOM = { intensity = 0.15, size = 18, threshold = 1.6 }
 local LIT_ZOOM = 14

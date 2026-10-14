@@ -19,7 +19,7 @@ Vasco playtested v1 with a friend and asked for a rework; the feedback is listed
 | The maze is invisible; dots show through walls | Asked for in the playtest; the dots become the only picture of a level | No fallback picture at all: a player who stops scanning sees nothing. Inspecting geometry in Studio needs the `lights on` dev command |
 | Dots are tiny, many, fast and permanent, up to a budget, packed one per grid cell | Asked for ("tiny, dim, very many, fast, and permanent") | Tens of thousands of parts: the budget has to follow the device (DOT DETAIL), and the oldest dots are recycled when it is full |
 | Right click is a loud top-to-bottom sweep that recharges, instead of a focus beam | Asked for | A resource to manage, and monsters hear it |
-| Crouch: slow, silent and unseen by the Wanderer, except when wading | Asked for | Strong: balanced by its speed (5 studs/s) and by water |
+| Crouch: slow, quiet (never silent, so crouch-walking everywhere is no free pass) and unseen by sight-based monsters | Asked for | Strong: balanced by its speed (5 studs/s) and by water |
 | Monsters are invisible, roam, and are sensed by marks, breath, aura and sound | Asked for: "sensed rather than seen", "much scarier" | Players have to learn the signals; a scan only ever glimpses a monster |
 | Lanterns, hidden recorders, pits, alarm plates, a lit waterfall room, Pulse Radar | Asked for | More to build and balance per level |
 

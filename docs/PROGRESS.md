@@ -3,10 +3,10 @@
 Living log of where the build is. Update it whenever a slice lands, so a fresh session can
 pick up from exactly here.
 
-Last updated: 13 Oct 2026, during the v2 rework. The v2 work is on two pushed branches:
-`claude/project-thread-btlp2q` (rules, data, server, client core, story docs) and
-`claude/lucid-noether-kgfglb`, which merges it and adds the client slices, the story
-integration and the docs. Nothing is merged into `main` yet.
+Last updated: 14 Oct 2026. The v2 work is on the pushed branches `claude/project-thread-btlp2q`
+and `claude/lucid-noether-kgfglb`; the local branch `claude/project-thread-btlp2q` is now
+fast-forwarded to the second and carries the newest commits (not pushed). Nothing is merged
+into `main` yet.
 
 **Story places slice (cloud thread, 14 Oct 2026, branch `claude/story-places`, based on
 `claude/lucid-noether-kgfglb`):** the lit havens, lamp-bags along the way, scan-to-reveal story
@@ -71,6 +71,31 @@ Merged in from the cloud session (branch `claude/lucid-noether-kgfglb`, based on
   scrolls, the `Hud` top bar no longer overlaps at 830 wide. Not yet seen in Studio.
 - Title backdrop pitches 25 degrees so dots reach the floor and ceiling. Not yet seen.
 - `scripts/check.sh` is executable in git, so the CI workflow can run it.
+
+### Studio playtest, 14 Oct (merged v2 build, one player, PC)
+
+Verified in Studio: the title screen and its backdrop; Begin into the dark tutorial; scatter
+(tiny permanent dots, laser fan), the sweep (grid, recharge bar), the first notice hints; the
+radio line on arrival; tiers 1 to 8 all build with their pits, plates, recorders and lanterns
+(counts printed per tier); a lantern shows a bag, a bulb and a lit patch of floor and wall in
+the dark; a recorder reveals itself (`echo` dev command) with its line and a lit patch; the
+red aura at the screen edges when the Pacer is close; being caught, the respawn and the
+radio line after it; falling into a pit sends you back to the start with a toast; red
+footprints are drawn; the Pacer roams with short pauses; every audio id loads; all five lit
+rooms build. No script errors in the output.
+
+Fixed during the playtest: dots were far too large close up (now 0.02 stud base, smaller
+near grids, larger budgets); crouching and scattering were silent (now quiet, never silent,
+per Vasco's note that a silent crouch can be cheesed); lit rooms were blown out because
+the dev command stacked rooms (it now removes the old one) and the ambient was too high.
+
+Not verified: two players, real saves, phone and gamepad, the sweep with Pulse Radar, the
+Mimic, the Listener and the Still live, the Lamp Room finale, completing a level through its
+exit door by hand, sound itself (loaded but not listened to), the title in 830x400.
+
+Vasco's latest direction (not built yet): havens, the Falls included, become dark spots in
+the maze with one object that reveals itself, instead of separate lit rooms; the havens
+thread owns that (`claude/story-places`). The lit-room look was therefore not tuned further.
 
 ### What is left after the slices land
 

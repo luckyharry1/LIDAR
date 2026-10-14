@@ -500,8 +500,15 @@ function Sim.run(tier: number, seed: number, maxSeconds: number, trace: ((string
 			end
 			local here = Maze.cellOf(maze, bot.x, bot.z)
 			local hereIndex = indexOf(here)
-			bot.noise =
-				Noise.radius(moved, false, bot.crouching, plan.flooded[hereIndex] == true, 0, 0)
+			bot.noise = Noise.radius(
+				moved,
+				false,
+				true,
+				bot.crouching,
+				plan.flooded[hereIndex] == true,
+				0,
+				0
+			)
 
 			-- Pick up whatever is in this cell; leave through the exit when allowed.
 			for id, objective in remaining do
