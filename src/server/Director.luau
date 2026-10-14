@@ -1240,6 +1240,36 @@ local function onReveal(player: Player, echoId: number)
 	local member = members[player]
 	local root = rootOf(player)
 	local level = run.level
+	-- A dark haven has one beacon: scanned enough, it lights the room for everyone inside.
+	local beacon = if run.lore ~= nil then run.lore.beacon else nil
+	if
+		member ~= nil
+		and root ~= nil
+		and member.stage == "lore"
+		and beacon ~= nil
+		and echoId == beacon.id
+	then
+		if
+			not beacon.revealed
+			and (beacon.position - root.Position).Magnitude
+				<= Config.Lidar.maxRange + PROMPT_SLACK
+		then
+			beacon.reveal()
+			for otherPlayer, other in members do
+				if other.stage == "lore" then
+					Remotes.send(
+						otherPlayer,
+						"Echo",
+						beacon.id,
+						beacon.position,
+						beacon.title,
+						beacon.subtitle
+					)
+				end
+			end
+		end
+		return
+	end
 	if member == nil or root == nil or level == nil or member.stage ~= "level" then
 		return
 	end

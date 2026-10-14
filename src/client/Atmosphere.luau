@@ -49,6 +49,12 @@ function Atmosphere.forceDark(value: boolean)
 	forcedDark = value
 end
 
+-- A dark zone is a safe place built in the dark like the maze: it only marks where the player
+-- is (for the title card and the calm), and brings no light of its own.
+local function isDark(zone: BasePart?): boolean
+	return zone ~= nil and zone:GetAttribute("Dark") == true
+end
+
 local function findZone(position: Vector3): BasePart?
 	for _, zone in CollectionService:GetTagged(Config.Tags.litZone) do
 		if zone:IsA("BasePart") then
@@ -126,14 +132,14 @@ function Atmosphere.start()
 					litColor = light
 				end
 			end
-			setCamera(zone ~= nil)
+			setCamera(zone ~= nil and not isDark(zone))
 			for _, listener in zoneListeners do
 				task.spawn(listener, zone)
 			end
 		end
 		-- Studio playtest aid (see server/Dev): light the maze so its geometry can be inspected.
 		local devLit = RunService:IsStudio() and workspace:GetAttribute("DevLit") == true
-		local target = if zone or devLit then 1 else 0
+		local target = if (zone and not isDark(zone)) or devLit then 1 else 0
 		if Atmosphere.lit ~= target then
 			local rate = if target == 1 then 1 / EASE_IN_SECONDS else 1 / EASE_OUT_SECONDS
 			Atmosphere.lit = math.clamp(

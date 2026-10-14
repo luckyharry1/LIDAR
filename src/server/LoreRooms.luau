@@ -6,6 +6,7 @@
 -- Yaw convention for wall props (they extend out of their back): north wall 180, south 0,
 -- west -90, east 90.
 
+local CollectionService = game:GetService("CollectionService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Build = require(script.Parent.Build)
@@ -14,6 +15,16 @@ local Lore = require(ReplicatedStorage.Shared.data.Lore)
 local Props = require(script.Parent.Props)
 
 export type NotePrompt = { id: string, prompt: ProximityPrompt }
+-- A dark room has one object that stands out: its lamp, or the waterfall. Scanned enough, it
+-- lights the room and says the room's card. `reveal` does the lighting.
+export type Beacon = {
+	id: number,
+	position: Vector3,
+	title: string,
+	subtitle: string,
+	revealed: boolean,
+	reveal: () -> (),
+}
 export type LoreRoom = {
 	model: Model,
 	room: Lore.Room,
@@ -21,6 +32,7 @@ export type LoreRoom = {
 	exitPrompt: ProximityPrompt,
 	benchPrompt: ProximityPrompt,
 	notes: { NotePrompt },
+	beacon: Beacon?, -- nil in a room that is lit from the start
 }
 
 type Placement = { kit: string, x: number, z: number, yaw: number }
@@ -40,6 +52,9 @@ type Layout = {
 local HALF_X = 20 -- a big lit room is 40 by 30 studs and 12 high; a haven sets its own size
 local HALF_Z = 15
 local ROOM_HEIGHT = 12
+local BEACON_ID = 60 -- the echo id of a dark room's beacon, clear of any level's own ids
+local LAMP_REACH = 22 -- how far from its lamp a dark room shows itself once the lamp is revealed
+local FALLS_REACH = 48 -- the waterfall lights the whole cavern
 local HAVEN_PANELS = { -4.5, 4.5 } -- light panels in a haven (a big room uses PANEL_OFFSETS)
 local WALL = 1
 local DOOR_WIDTH = 5
@@ -587,6 +602,85 @@ local LAYOUTS: { [string]: Layout } = {
 
 local LoreRooms = {}
 
+LoreRooms.BEACON_ID = BEACON_ID
+
+-- Shortest distance from a point to a part's box.
+local function distanceTo(part: BasePart, position: Vector3): number
+	local localPoint = part.CFrame:PointToObjectSpace(position)
+	local half = part.Size / 2
+	local clamped = Vector3.new(
+		math.clamp(localPoint.X, -half.X, half.X),
+		math.clamp(localPoint.Y, -half.Y, half.Y),
+		math.clamp(localPoint.Z, -half.Z, half.Z)
+	)
+	return (localPoint - clamped).Magnitude
+end
+
+-- Puts a room in the dark like the maze: its parts stop feet and rays but draw nothing, and
+-- its lights, mist and printed text are off. `target` (the lamp, or the waterfall) is marked
+-- so a scanner can find it; revealing it brings back everything within `reach` of `position`.
+local function darken(
+	model: Model,
+	target: Instance,
+	position: Vector3,
+	reach: number,
+	room: Lore.Room
+): Beacon
+	local parts: { { part: BasePart, transparency: number } } = {}
+	local switches: { Instance } = {}
+	for _, descendant in model:GetDescendants() do
+		if descendant:IsA("BasePart") then
+			if descendant:GetAttribute("Marker") ~= true then
+				table.insert(parts, { part = descendant, transparency = descendant.Transparency })
+				descendant.Transparency = 1
+			end
+		elseif
+			descendant:IsA("Light")
+			or descendant:IsA("ParticleEmitter")
+			or descendant:IsA("SurfaceGui")
+		then
+			if (descendant :: any).Enabled then
+				local light: any = descendant
+				table.insert(switches, descendant)
+				light.Enabled = false
+			end
+		end
+	end
+	model:SetAttribute("Dark", true)
+	target:SetAttribute("EchoId", BEACON_ID)
+	CollectionService:AddTag(target, Config.Tags.echo)
+	CollectionService:AddTag(target, Config.Tags.objective)
+	local beacon: Beacon
+	beacon = {
+		id = BEACON_ID,
+		position = position,
+		title = room.title,
+		subtitle = room.subtitle,
+		revealed = false,
+		reveal = function()
+			beacon.revealed = true
+			model:SetAttribute("Dark", false)
+			CollectionService:RemoveTag(target, Config.Tags.echo)
+			for _, record in parts do
+				if distanceTo(record.part, position) <= reach then
+					record.part.Transparency = record.transparency
+				end
+			end
+			for _, switch in switches do
+				local holder = switch.Parent
+				if
+					holder ~= nil
+					and holder:IsA("BasePart")
+					and distanceTo(holder, position) <= reach
+				then
+					(switch :: any).Enabled = true
+				end
+			end
+		end,
+	}
+	return beacon
+end
+
 local function at(origin: Vector3, x: number, y: number, z: number, yaw: number): CFrame
 	return CFrame.new(origin + Vector3.new(x, y, z)) * CFrame.Angles(0, math.rad(yaw), 0)
 end
@@ -662,6 +756,292 @@ local function buildShell(room: Lore.Room, layout: Layout, origin: Vector3, pare
 		slab("TrimS", Vector3.new(hx * 2, height, 0.2), Vector3.new(0, y, hz - 0.1), trim, plaster)
 		slab("TrimW", Vector3.new(0.2, height, hz * 2), Vector3.new(-hx + 0.1, y, 0), trim, plaster)
 		slab("TrimE", Vector3.new(0.2, height, hz * 2), Vector3.new(hx - 0.1, y, 0), trim, plaster)
+	end
+end
+
+-- What each theme has on its floor and walls besides plaster: wet patches, rust, roots, paper.
+type Grime = { wet: boolean, rust: boolean, roots: boolean, paper: boolean, scratches: boolean }
+local GRIME: { [string]: Grime } = {
+	copyroom = { wet = false, rust = false, roots = false, paper = true, scratches = true },
+	office = { wet = false, rust = false, roots = false, paper = true, scratches = true },
+	breakroom = { wet = true, rust = false, roots = false, paper = true, scratches = true },
+	drybooth = { wet = true, rust = true, roots = false, paper = false, scratches = false },
+	cistern = { wet = true, rust = true, roots = true, paper = false, scratches = false },
+	pottingshed = { wet = false, rust = true, roots = true, paper = false, scratches = true },
+	archivenook = { wet = false, rust = false, roots = false, paper = true, scratches = true },
+	stairwell = { wet = false, rust = true, roots = false, paper = false, scratches = true },
+	landing = { wet = false, rust = true, roots = false, paper = false, scratches = true },
+}
+local DETAIL_GRIME = { wet = false, rust = false, roots = false, paper = false, scratches = true }
+
+-- Floor tiles, stains, puddles, cracks and a trail of footprints, and on the walls streaks,
+-- claw marks, handprints, pipes and cables. All of it is thin and shares the room's lighting,
+-- so in a dark room it only shows near the object that was scanned. It is the same set every
+-- time a room is built, so a player who returns finds the same marks.
+local function buildDetail(
+	roomId: string,
+	room: Lore.Room,
+	layout: Layout,
+	origin: Vector3,
+	parent: Instance
+)
+	local hx, hz, rh = layout.halfX or HALF_X, layout.halfZ or HALF_Z, layout.height or ROOM_HEIGHT
+	local grime = GRIME[room.theme] or DETAIL_GRIME
+	local seed = 0
+	for index = 1, #roomId do
+		seed = (seed * 31 + string.byte(roomId, index)) % 1000003
+	end
+	local random = Random.new(seed)
+	local floorColor = Build.rgb(room.floor)
+	local wallColor = Build.rgb(room.wall)
+	local dark = Color3.new(0, 0, 0)
+	local detail = Build.model("Detail", parent)
+	local function mark(
+		name: string,
+		size: Vector3,
+		cframe: CFrame,
+		color: Color3,
+		material: Enum.Material,
+		shape: Enum.PartType?
+	)
+		Build.part({
+			name = name,
+			size = size,
+			cframe = cframe,
+			color = color,
+			material = material,
+			shape = shape,
+			collide = false,
+			parent = detail,
+		})
+	end
+	local function floorAt(x: number, z: number, yaw: number): CFrame
+		return CFrame.new(origin + Vector3.new(x, 0.04, z)) * CFrame.Angles(0, math.rad(yaw), 0)
+	end
+
+	-- Floor: a loose grid of tiles or boards, a shade lighter or darker than the rest.
+	local cell = 4
+	for gx = -hx + cell / 2, hx - cell / 2, cell do
+		for gz = -hz + cell / 2, hz - cell / 2, cell do
+			local tone = random:NextNumber(0.15, 0.4)
+			if random:NextNumber() < 0.45 then
+				mark(
+					"Tile",
+					Vector3.new(cell - 0.3, 0.06, cell - 0.3),
+					floorAt(gx, gz, 0),
+					floorColor:Lerp(
+						if random:NextNumber() < 0.5 then dark else Color3.new(1, 1, 1),
+						tone * 0.5
+					),
+					layout.stone and Enum.Material.Cobblestone or Enum.Material.Wood
+				)
+			end
+		end
+	end
+	-- Stains, puddles and rust blooms.
+	local blots = math.floor(hx * hz / 30)
+	for _ = 1, blots do
+		local x, z = random:NextNumber(-hx + 1, hx - 1), random:NextNumber(-hz + 1, hz - 1)
+		local radius = random:NextNumber(0.8, 2.6)
+		local wet = grime.wet and random:NextNumber() < 0.55
+		mark(
+			if wet then "Puddle" else "Stain",
+			Vector3.new(0.07, radius * 2, radius * 2.4),
+			floorAt(x, z, random:NextNumber(0, 180)) * CFrame.Angles(0, 0, math.rad(90)),
+			if wet
+				then Color3.fromRGB(46, 78, 92)
+				elseif grime.rust and random:NextNumber() < 0.5 then Color3.fromRGB(
+					120,
+					62,
+					36
+				)
+				else floorColor:Lerp(dark, 0.6),
+			if wet then Enum.Material.Glass else Enum.Material.Slate,
+			Enum.PartType.Cylinder
+		)
+	end
+	-- Cracks, and rubble where a floor has given up.
+	for _ = 1, 7 do
+		local x, z = random:NextNumber(-hx + 2, hx - 2), random:NextNumber(-hz + 2, hz - 2)
+		mark(
+			"Crack",
+			Vector3.new(random:NextNumber(3, 7), 0.06, 0.12),
+			floorAt(x, z, random:NextNumber(0, 180)),
+			floorColor:Lerp(dark, 0.8),
+			Enum.Material.Slate
+		)
+		for _ = 1, 3 do
+			mark(
+				"Rubble",
+				Vector3.new(
+					random:NextNumber(0.2, 0.6),
+					random:NextNumber(0.2, 0.5),
+					random:NextNumber(0.2, 0.6)
+				),
+				floorAt(
+					x + random:NextNumber(-1.5, 1.5),
+					z + random:NextNumber(-1.5, 1.5),
+					random:NextNumber(0, 180)
+				),
+				floorColor:Lerp(dark, 0.3),
+				Enum.Material.Slate
+			)
+		end
+	end
+	-- Paper on the floor, or roots coming through it.
+	if grime.paper then
+		for _ = 1, 14 do
+			mark(
+				"Paper",
+				Vector3.new(0.9, 0.03, 1.2),
+				floorAt(
+					random:NextNumber(-hx + 1, hx - 1),
+					random:NextNumber(-hz + 1, hz - 1),
+					random:NextNumber(0, 180)
+				),
+				Color3.fromRGB(214, 206, 180):Lerp(dark, random:NextNumber(0, 0.4)),
+				Enum.Material.SmoothPlastic
+			)
+		end
+	end
+	if grime.roots then
+		for _ = 1, 8 do
+			local x, z = random:NextNumber(-hx + 1, hx - 1), random:NextNumber(-hz + 1, hz - 1)
+			mark(
+				"Root",
+				Vector3.new(random:NextNumber(3, 6), 0.35, 0.35),
+				floorAt(x, z, random:NextNumber(0, 180)) * CFrame.new(0, 0.1, 0),
+				Color3.fromRGB(70, 52, 36),
+				Enum.Material.Wood
+			)
+		end
+	end
+	-- A trail of footprints from the entrance toward the door out: someone came this way, and
+	-- the prints stop short of the wall.
+	for step = 0, 9 do
+		local side = if step % 2 == 0 then -0.5 else 0.5
+		mark(
+			"Footprint",
+			Vector3.new(0.5, 0.05, 1),
+			floorAt(side + random:NextNumber(-0.15, 0.15), hz - 3 - step * (hz * 1.5 / 10), 0),
+			Color3.fromRGB(34, 28, 26),
+			Enum.Material.Slate
+		)
+	end
+
+	-- Walls: each of the four, seen from inside. `along` runs left to right, `up` is height.
+	local walls = {
+		{ face = Vector3.new(0, 0, -hz), span = hx, yaw = 0 },
+		{ face = Vector3.new(0, 0, hz), span = hx, yaw = 180 },
+		{ face = Vector3.new(-hx, 0, 0), span = hz, yaw = 90 },
+		{ face = Vector3.new(hx, 0, 0), span = hz, yaw = 270 },
+	}
+	for _, wall in walls do
+		local function onWall(along: number, up: number, lean: number): CFrame
+			return CFrame.new(origin + wall.face + Vector3.new(0, up, 0))
+				* CFrame.Angles(0, math.rad(wall.yaw), 0)
+				* CFrame.new(along, 0, 0.06)
+				* CFrame.Angles(0, 0, math.rad(lean))
+		end
+		-- Damp or soot running down from the ceiling.
+		for _ = 1, 5 do
+			local length = random:NextNumber(rh * 0.3, rh * 0.8)
+			mark(
+				"Streak",
+				Vector3.new(random:NextNumber(0.2, 0.8), length, 0.05),
+				onWall(random:NextNumber(-wall.span + 1, wall.span - 1), rh - length / 2, 0),
+				wallColor:Lerp(dark, random:NextNumber(0.45, 0.75)),
+				Enum.Material.Slate
+			)
+		end
+		-- A big dark patch of something that soaked in.
+		mark(
+			"Soak",
+			Vector3.new(random:NextNumber(2.5, 5), random:NextNumber(2, 4), 0.05),
+			onWall(
+				random:NextNumber(-wall.span + 3, wall.span - 3),
+				random:NextNumber(2, rh - 3),
+				0
+			),
+			if grime.rust then Color3.fromRGB(88, 44, 30) else wallColor:Lerp(dark, 0.7),
+			Enum.Material.Slate
+		)
+		-- Claw marks: four long scratches that never quite line up.
+		if grime.scratches then
+			local along, up =
+				random:NextNumber(-wall.span + 3, wall.span - 3), random:NextNumber(3, rh - 4)
+			for line = 0, 3 do
+				mark(
+					"Scratch",
+					Vector3.new(0.08, random:NextNumber(2.2, 3.4), 0.04),
+					onWall(along + line * 0.45, up + random:NextNumber(-0.3, 0.3), -12),
+					wallColor:Lerp(dark, 0.9),
+					Enum.Material.Slate
+				)
+			end
+		end
+		-- Handprints at shoulder height, smeared downward.
+		for _ = 1, 2 do
+			local along = random:NextNumber(-wall.span + 2, wall.span - 2)
+			local up = random:NextNumber(3, 5)
+			mark(
+				"Palm",
+				Vector3.new(0.45, 0.5, 0.04),
+				onWall(along, up, 0),
+				Color3.fromRGB(70, 18, 16),
+				Enum.Material.Slate
+			)
+			for finger = -1, 1 do
+				mark(
+					"Finger",
+					Vector3.new(0.1, 0.4, 0.04),
+					onWall(along + finger * 0.14, up + 0.4, finger * 8),
+					Color3.fromRGB(70, 18, 16),
+					Enum.Material.Slate
+				)
+			end
+			mark(
+				"Smear",
+				Vector3.new(0.18, random:NextNumber(1, 2), 0.04),
+				onWall(along, up - 1, 0),
+				Color3.fromRGB(58, 14, 12),
+				Enum.Material.Slate
+			)
+		end
+		-- Peeling: a curled sheet of wall hanging off.
+		mark(
+			"Peel",
+			Vector3.new(random:NextNumber(1.5, 3), random:NextNumber(1, 2), 0.12),
+			onWall(
+				random:NextNumber(-wall.span + 2, wall.span - 2),
+				random:NextNumber(4, rh - 2),
+				random:NextNumber(-6, 6)
+			),
+			wallColor:Lerp(Color3.new(1, 1, 1), 0.12),
+			Enum.Material.Fabric
+		)
+	end
+	-- A pipe along the ceiling, and cables sagging from it.
+	local pipeColor = if grime.rust then Color3.fromRGB(104, 66, 44) else Color3.fromRGB(80, 84, 88)
+	mark(
+		"Pipe",
+		Vector3.new(0.5, 0.5, hz * 2 - 1),
+		CFrame.new(origin + Vector3.new(hx - 1.5, rh - 0.6, 0)),
+		pipeColor,
+		Enum.Material.Metal,
+		Enum.PartType.Cylinder
+	)
+	for index = 1, 4 do
+		mark(
+			"Cable",
+			Vector3.new(0.12, random:NextNumber(1.2, 3), 0.12),
+			CFrame.new(
+				origin
+					+ Vector3.new(hx - 1.5 - index * 0.2, rh - 0.6 - 1, -hz + index * (hz * 2 / 5))
+			),
+			Color3.fromRGB(24, 24, 26),
+			Enum.Material.SmoothPlastic
+		)
 	end
 end
 
@@ -795,6 +1175,7 @@ function LoreRooms.build(roomId: string, origin: Vector3): LoreRoom
 	local model = Build.model("LoreRoom_" .. roomId, workspace)
 	buildShell(room, layout, origin, model)
 	buildLights(room, layout, origin, model)
+	buildDetail(roomId, room, layout, origin, model)
 	if layout.extras then
 		layout.extras(origin, model)
 	end
@@ -808,12 +1189,16 @@ function LoreRooms.build(roomId: string, origin: Vector3): LoreRoom
 	local exitPrompt = Build.prompt(exitDoor, "Continue", "Into the dark", 0.6)
 
 	local benchPrompt: ProximityPrompt? = nil
+	local lampProp: Model? = nil
 	for _, placement in layout.props do
 		local prop = Props.place(
 			placement.kit,
 			at(origin, placement.x, 0, placement.z, placement.yaw),
 			model
 		)
+		if placement.kit == "lamp" and lampProp == nil then
+			lampProp = prop
+		end
 		if placement.kit == "bench" then
 			benchPrompt = Build.prompt(prop.PrimaryPart :: BasePart, "Use", "Workbench", 0.2)
 		end
@@ -837,7 +1222,21 @@ function LoreRooms.build(roomId: string, origin: Vector3): LoreRoom
 		table.insert(notes, { id = noteId, prompt = Build.prompt(paper, "Read", note.title, 0.2) })
 	end
 
-	-- The lit zone tells each client to bring the lights up while they stand inside it.
+	-- A dark room has no light until its one standout object is scanned: the room's lamp, or
+	-- in the Falls the waterfall itself (the sound of it is the way in).
+	local beacon: Beacon? = nil
+	if room.dark then
+		local fall = model:FindFirstChild("Waterfall")
+		local sheet = if fall then fall:FindFirstChild("Fall") else nil
+		if lampProp ~= nil then
+			beacon = darken(model, lampProp, lampProp:GetPivot().Position, LAMP_REACH, room)
+		elseif fall ~= nil and sheet ~= nil and sheet:IsA("BasePart") then
+			beacon = darken(model, fall, sheet.Position, FALLS_REACH, room)
+		end
+	end
+
+	-- The zone marks where the player is. In a lit room it also tells each client to bring the
+	-- lights up while they stand inside it; a dark room only brings the title card.
 	local zone = Build.part({
 		name = "LitZone",
 		size = Vector3.new(hx * 2 + WALL * 2, rh + 2, hz * 2 + WALL * 2),
@@ -849,6 +1248,7 @@ function LoreRooms.build(roomId: string, origin: Vector3): LoreRoom
 		parent = model,
 	})
 	zone:SetAttribute("Light", Build.rgb(room.light))
+	zone:SetAttribute("Dark", beacon ~= nil)
 	zone:SetAttribute("Title", room.title)
 	zone:SetAttribute("Subtitle", room.subtitle)
 
@@ -860,6 +1260,7 @@ function LoreRooms.build(roomId: string, origin: Vector3): LoreRoom
 		exitPrompt = exitPrompt,
 		benchPrompt = benchPrompt :: ProximityPrompt,
 		notes = notes,
+		beacon = beacon,
 	}
 end
 
