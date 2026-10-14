@@ -16,6 +16,7 @@ export type Room = {
 	title: string, -- shown as a title card on entry
 	subtitle: string,
 	size: string, -- "haven": a small lit room after a level; "room": a big one
+	dark: boolean, -- true: built in the dark like the maze; one object (its lamp, or the waterfall) lights it once scanned
 	theme: string, -- which layout the builder uses
 	wall: { number }, -- RGB
 	floor: { number },
@@ -124,6 +125,7 @@ local relayCard = card("card.relay")
 Lore.rooms = {
 	copyroom = {
 		id = "copyroom",
+		dark = true,
 		size = "haven",
 		title = copyCard.title,
 		subtitle = copyCard.subtitle,
@@ -135,6 +137,7 @@ Lore.rooms = {
 	},
 	drybooth = {
 		id = "drybooth",
+		dark = true,
 		size = "haven",
 		title = boothCard.title,
 		subtitle = boothCard.subtitle,
@@ -146,6 +149,7 @@ Lore.rooms = {
 	},
 	pottingshed = {
 		id = "pottingshed",
+		dark = true,
 		size = "haven",
 		title = shedCard.title,
 		subtitle = shedCard.subtitle,
@@ -157,6 +161,7 @@ Lore.rooms = {
 	},
 	archivenook = {
 		id = "archivenook",
+		dark = true,
 		size = "haven",
 		title = nookCard.title,
 		subtitle = nookCard.subtitle,
@@ -168,6 +173,7 @@ Lore.rooms = {
 	},
 	office = {
 		id = "office",
+		dark = true,
 		size = "room",
 		title = deskCard.title,
 		subtitle = deskCard.subtitle,
@@ -179,6 +185,7 @@ Lore.rooms = {
 	},
 	cistern = {
 		id = "cistern",
+		dark = true,
 		size = "room",
 		title = fallsCard.title,
 		subtitle = fallsCard.subtitle,
@@ -190,6 +197,7 @@ Lore.rooms = {
 	},
 	breakroom = {
 		id = "breakroom",
+		dark = true,
 		size = "room",
 		title = bunkCard.title,
 		subtitle = bunkCard.subtitle,
@@ -201,6 +209,7 @@ Lore.rooms = {
 	},
 	stairwell = {
 		id = "stairwell",
+		dark = false,
 		size = "room",
 		title = lampCard.title,
 		subtitle = lampCard.subtitle,
@@ -212,6 +221,7 @@ Lore.rooms = {
 	},
 	landing = {
 		id = "landing",
+		dark = false,
 		size = "room",
 		title = Lore.fill(relayCard.title, { n = "" }):gsub("%s+$", ""),
 		subtitle = relayCard.subtitle,

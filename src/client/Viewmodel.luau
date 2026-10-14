@@ -127,9 +127,10 @@ local function update(dt: number)
 		and head:IsA("BasePart")
 		and (camera.CFrame.Position - head.Position).Magnitude < FIRST_PERSON_DISTANCE
 	-- In a lit room the scanner is lowered: there is nothing to scan and it would only be in the way.
+	-- (A safe place in the dark has no light, so the scanner stays up there.)
 	local visible = firstPerson
 		and Atmosphere.lit < LOWERED_ABOVE
-		and (stage == "tutorial" or stage == "level")
+		and (stage == "tutorial" or stage == "level" or stage == "lore")
 	if not visible or camera == nil then
 		if model.Parent ~= nil then
 			model.Parent = nil
