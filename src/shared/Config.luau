@@ -147,12 +147,14 @@ Config.Player = {
 	cameraBobFrequency = 7,
 }
 
--- Noise radii, in maze cells, heard by enemies. Scattering dots is silent; the sweep is not.
+-- Noise radii, in maze cells, heard by enemies. Scattering dots and crouching are quiet, not silent; the sweep is the loud one.
 Config.Noise = {
 	walk = 0.5,
 	sprint = 3,
 	sweep = 4,
-	wade = 0.4, -- even crouched, moving through water is heard this far
+	crouch = 0.22, -- a crouched walk is quiet, not silent: nothing can be crept past for free
+	scatter = 0.3, -- so is the scatter stream (the sweep is the loud one)
+	wade = 0.5, -- moving through water is heard this far even crouched
 	ping = 3, -- a ping marker is also a decoy sound
 	pingSeconds = 2.5, -- how long the decoy keeps sounding
 	plate = 5, -- an alarm plate is very loud

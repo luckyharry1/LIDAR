@@ -377,6 +377,7 @@ local function buildSources(): { EnemyBrain.Source }
 					then Noise.radius(
 						speed,
 						sweeping,
+						scanning,
 						crouching,
 						level.plan.flooded[Maze.index(maze, cell.x, cell.y)] == true,
 						member.effects.solesLevel,

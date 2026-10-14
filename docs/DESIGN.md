@@ -32,7 +32,7 @@ and then, and a warm lit room every two levels.
 | Input | Left mouse, RT, touch SCAN | Right mouse or F, LT, touch SWEEP |
 | What it does | A fast stream of rays (320 a second) in a cone round the crosshair | A line of rays travels from the top of the view to the bottom (60 lines of 76 rays in 1.3 s) and draws a whole grid |
 | Spread | 26 degrees half-angle by default; the scroll wheel narrows it to 8 or widens it to 40 (56 with Wide Lens) | 30 up, 36 down, 46 to each side |
-| Noise | Silent | Loud: heard 4 cells away (less with Quiet Shutter) |
+| Noise | Quiet: heard about a third of a cell away | Loud: heard 4 cells away (less with Quiet Shutter) |
 | Cost | Nothing | Recharges over 7 s (scaled per tier and by the Capacitor upgrade); a battery cell recharges it at once |
 
 **Dots** are tiny Neon cubes coloured by what they hit: wall, floor, ceiling, water (blue),
@@ -49,7 +49,7 @@ the rays that cross a monster mark it. Glimpses, never a silhouette.
 
 | | Speed (studs/s) | Noise | Seen by the Pacer |
 | --- | --- | --- | --- |
-| Crouch | 5 | Silent, except wading | No |
+| Crouch | 5 | Quiet (a fifth of a cell), louder when wading | No |
 | Walk | 10 | Heard close by | Yes, in its line of sight |
 | Sprint | 17 | Heard 3 cells away | Yes |
 | Lit room | 14 | - | - |

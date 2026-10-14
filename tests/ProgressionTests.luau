@@ -143,24 +143,35 @@ tests["the streak pays once a day and never resets"] = function()
 	end
 end
 
-tests["noise: scattering dots is silent, crouching is silent, running and the sweep are loud"] = function()
+tests["noise: crouching and scattering are quiet but never silent, running and the sweep are loud"] = function()
 	local walkSpeed, sprintSpeed, crouchSpeed =
 		Config.Player.walkSpeed, Config.Player.sprintSpeed, Config.Player.crouchSpeed
-	local still = Noise.radius(0, false, false, false, 0, 0)
-	local walk = Noise.radius(walkSpeed, false, false, false, 0, 0)
-	local sprint = Noise.radius(sprintSpeed, false, false, false, 0, 0)
-	local crouch = Noise.radius(crouchSpeed, false, true, false, 0, 0)
-	local sweep = Noise.radius(0, true, false, false, 0, 0)
-	assert(still == 0, "standing still should make no noise")
-	assert(crouch == 0, "crouch-walking should make no noise")
+	local still = Noise.radius(0, false, false, false, false, 0, 0)
+	local walk = Noise.radius(walkSpeed, false, false, false, false, 0, 0)
+	local sprint = Noise.radius(sprintSpeed, false, false, false, false, 0, 0)
+	local crouch = Noise.radius(crouchSpeed, false, false, true, false, 0, 0)
+	local scatter = Noise.radius(0, false, true, false, false, 0, 0)
+	local sweep = Noise.radius(0, true, false, false, false, 0, 0)
+	assert(still == 0, "standing still without scanning should make no noise")
+	assert(crouch > 0 and crouch < walk, "a crouched walk should be quiet but audible")
+	assert(scatter > 0 and scatter < walk, "scattering should be quiet but audible")
 	assert(walk > 0 and sprint > walk, "sprinting should be louder than walking")
 	assert(sweep > sprint, "the sweep should be the loudest thing a player does")
-	assert(Noise.radius(sprintSpeed, false, false, false, 3, 0) < sprint, "soft soles do nothing")
-	assert(Noise.radius(0, true, false, false, 0, 3) < sweep, "the quiet shutter does nothing")
-	assert(Noise.radius(walkSpeed, false, false, true, 0, 0) > walk, "wading should be louder")
 	assert(
-		Noise.radius(crouchSpeed, false, true, true, 0, 0) > 0,
-		"even crouched, wading should be heard"
+		Noise.radius(sprintSpeed, false, false, false, false, 3, 0) < sprint,
+		"soft soles do nothing"
+	)
+	assert(
+		Noise.radius(0, true, false, false, false, 0, 3) < sweep,
+		"the quiet shutter does nothing"
+	)
+	assert(
+		Noise.radius(walkSpeed, false, false, false, true, 0, 0) > walk,
+		"wading should be louder"
+	)
+	assert(
+		Noise.radius(crouchSpeed, false, false, true, true, 0, 0) > crouch,
+		"wading while crouched should be louder than crouching on dry floor"
 	)
 end
 
