@@ -323,9 +323,6 @@ local function castRay(
 	stats.objective = stats.objective or kind == "objective"
 	if own then
 		noteOwnHit(position, target, now)
-		for _, listener in seenListeners do
-			listener(result.Instance)
-		end
 		-- A few fresh dots flare for a moment before settling to their dim size: the scan
 		-- crackles where it lands.
 		if math.random() < SPARK_CHANCE then
@@ -336,6 +333,10 @@ local function castRay(
 				listener(position)
 			end
 		end
+	end
+	-- Teammates' relayed rays count too, so a lamp one player finds shows for the whole party.
+	for _, listener in seenListeners do
+		listener(result.Instance)
 	end
 	if beams ~= nil and muzzle ~= nil then
 		showBeam(beams, muzzle, position, Dots.color(kind), now)

@@ -388,5 +388,5 @@ Only what has actually been run is listed as verified.
 - Level start dark (22 Oct, Vasco): lanterns, lamp-bags and the floor/wall patches around them
   (the level's `Lit` model) were visible from the start. `Immersion.concealLevelLights` now hides
   them on arrival (1 s and 3 s, while the level streams in) and `Lidar.onSeen` brings back
-  everything within 16 studs of a part the local gun lands on, with its lights. Client only, so
-  each player finds the lamps themselves. Revealed recorders still light up as before.
+  everything within 16 studs of a part the local gun lands on, with its lights. Client only;
+  a teammate's scan reveals them for you too (relayed rays go through `Lidar.onSeen`). Revealed recorders still light up as before.
