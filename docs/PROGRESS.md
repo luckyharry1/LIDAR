@@ -464,3 +464,12 @@ Only what has actually been run is listed as verified.
 - Doorway confirm (Vasco: walking in by accident in the dark was confusing): the doorways keep no
   panel to bump into, but leaving needs a 0.6 s hold on a "Go down / Stairwell" prompt again
   (`watchDoorway` now wraps the exit prompt instead of polling positions).
+- Descend pop-up (Vasco: the hold prompt "only adds a step"): the doorway prompt (press E, no
+  hold, "Look down") now asks over the net (`AskDescend`); the client shows a small panel low on
+  the screen (`Menus` window "descend", backdrop 90% clear) with GO DOWN / NOT YET and answers with
+  `Descend(yes)`. The server keeps one pending ask per player (`doorwayAsk`) and re-checks
+  that the doorway is still live and the player still near before leaving. The stairwell is
+  drawn now (dark concrete, a dim emergency lamp every four steps, a brighter one at the bottom)
+  so it stays in view behind the pop-up and the walk is one place, not a cut.
+- Posters no longer flash near monsters: `Immersion.refreshLights` skips lights on hidden
+  `Marker` parts (poster and recorder glows).

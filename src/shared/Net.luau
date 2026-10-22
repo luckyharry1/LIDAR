@@ -22,6 +22,7 @@ Net.clientToServer = {
 	"Start", -- (mode: "continue" | "new" | "daily")
 	"Funnel", -- (step: string) onboarding steps only the client can observe
 	"Choose", -- (choice: "up" | "stay") the finale: climb the ladder or keep the lamp
+	"Descend", -- (yes: boolean) the answer to a doorway's "go down?" pop-up
 	"PartyReady", -- (on: boolean) Play Together: ready to go in with the others on this server
 	"PartyStart", -- (mode: "continue" | "new" | "daily") go in now, with everyone who is ready
 }
@@ -39,6 +40,7 @@ Net.serverToClient = {
 	"EmoteShown", -- (userId: number, index: number)
 	"OpenBench", -- ()
 	"OpenNote", -- (title: string, body: string)
+	"AskDescend", -- (body: string) a doorway asks whether to go down the stairwell
 	"Objective", -- (kind: string, detail table) pickups, rescues, key, exit
 	"Echo", -- (echoId: number, position: Vector3, speaker: string, line: string) a recorder spoke
 	"Hazard", -- (kind: "plate" | "pit", position: Vector3, userId: number)

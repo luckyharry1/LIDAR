@@ -128,6 +128,9 @@ local VALIDATORS: { [string]: Validator } = {
 	Choose = function(choice)
 		return choice == "up" or choice == "stay"
 	end,
+	Descend = function(yes)
+		return type(yes) == "boolean"
+	end,
 	PartyReady = function(on)
 		return type(on) == "boolean"
 	end,

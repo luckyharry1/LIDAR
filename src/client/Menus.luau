@@ -100,7 +100,10 @@ function Menus.open(name: string)
 	window.frame.Visible = true
 	current = name
 	backdrop.Visible = true
-	backdrop.BackgroundTransparency = if name == "title" then 1 else 0.45
+	backdrop.BackgroundTransparency = if name == "title"
+		then 1
+		elseif name == "descend" then 0.9
+		else 0.45
 	State.menuOpen = true
 	Input.menuChanged()
 	if Input.device == "gamepad" then
@@ -977,6 +980,55 @@ local function buildNote()
 end
 
 --------------------------------------------------------------------------------------------
+-- The stairwell question: a small panel low on the screen, so the stairs stay in view behind it.
+
+local descendBody: TextLabel
+
+local function answerDescend(yes: boolean)
+	send("Descend", yes)
+	Menus.close()
+end
+
+local function buildDescend()
+	local frame = window("descend", 460, 170)
+	frame.AnchorPoint = Vector2.new(0.5, 1)
+	frame.Position = UDim2.new(0.5, 0, 1, -40)
+	heading(frame, "THE STAIRWELL")
+	descendBody = Ui.label({
+		Position = UDim2.fromOffset(0, 36),
+		Size = UDim2.new(1, 0, 1, -90),
+		Parent = frame,
+	})
+	local yes = Ui.button({
+		Text = "GO DOWN",
+		AnchorPoint = Vector2.new(0, 1),
+		Position = UDim2.fromScale(0, 1),
+		Size = UDim2.new(0.5, -6, 0, 38),
+		Parent = frame,
+	}, function()
+		answerDescend(true)
+	end, Ui.colors.gold)
+	Ui.button({
+		Text = "NOT YET",
+		AnchorPoint = Vector2.new(1, 1),
+		Position = UDim2.fromScale(1, 1),
+		Size = UDim2.new(0.5, -6, 0, 38),
+		Parent = frame,
+	}, function()
+		answerDescend(false)
+	end, Ui.colors.line)
+	windows.descend.first = yes
+end
+
+function Menus.askDescend(body: string)
+	if current ~= nil then
+		return -- another window has the player's attention; the doorway can be asked again
+	end
+	descendBody.Text = body
+	Menus.open("descend")
+end
+
+--------------------------------------------------------------------------------------------
 -- The finale: Ines speaks, then the choice. There is no close button: it is answered once.
 
 local function choose(choice: string)
@@ -1286,6 +1338,7 @@ function Menus.start()
 	buildBoard()
 	buildEmotes()
 	buildEnding()
+	buildDescend()
 
 	State.onProfile(function()
 		Menus.applyCosmetics()
@@ -1329,6 +1382,7 @@ function Menus.start()
 		refreshBench()
 		Menus.open("bench")
 	end);
+	(Net.get("AskDescend") :: RemoteEvent).OnClientEvent:Connect(Menus.askDescend);
 	(Net.get("OpenNote") :: RemoteEvent).OnClientEvent:Connect(Menus.showNote);
 	(Net.get("Ending") :: RemoteEvent).OnClientEvent:Connect(Menus.showEnding);
 	(Net.get("LevelCleared") :: RemoteEvent).OnClientEvent:Connect(onLevelCleared);

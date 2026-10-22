@@ -182,7 +182,10 @@ local function refreshLights()
 		if descendant:IsA("PointLight") or descendant:IsA("SpotLight") then
 			local light = descendant :: Light
 			-- A light mid-stutter keeps the brightness it had before, not its dimmed one.
-			if descendant.Enabled and baseBrightness[light] == nil then
+			-- Poster and recorder glows (on hidden markers) keep a steady light.
+			local holder = descendant.Parent
+			local steady = holder ~= nil and holder:GetAttribute("Marker") == true
+			if descendant.Enabled and not steady and baseBrightness[light] == nil then
 				baseBrightness[light] = light.Brightness
 			end
 		end

@@ -66,7 +66,7 @@ type Collected = { key: boolean, cells: number, rescues: number, plate: boolean,
 type Decoy = { x: number, z: number, noise: number, expires: number }
 
 local CELL = Config.World.cellSize
-local DOORWAY_HOLD_SECONDS = 0.6
+local DOORWAY_QUESTION = "The stairs go down into the dark. Everyone in the survey goes with you."
 local DOORWAY_LEAVE_SECONDS = 1 -- the step through: the screen is black by then
 local LOCKED_TOAST_SECONDS = 4
 local PASSAGE_ORIGIN = Vector3.new(0, 0, -1500)
@@ -680,9 +680,12 @@ local function levelSeed(tier: number): number
 	return (run.seedBase + tier * SEED_STEP) % (SEED_SPAN - 1) + 1
 end
 
--- An exit is an open doorway (no panel to bump into) with a short hold-to-confirm prompt, so
--- nobody leaves by walking into a doorway they could not see in the dark. Anyone of `stage`
--- (default "level") who confirms calls `enter`, which returns true once the party is leaving.
+-- Each player's open "go down?" question: the doorway they asked at, answered by `Descend`.
+local doorwayAsk: { [Player]: () -> () } = {}
+
+-- An exit is an open doorway (no panel to bump into). Using it asks the player, in a pop-up
+-- over the still-visible stairwell, whether to go down; a yes calls `enter`, which returns true
+-- once the party is leaving. Anyone of `stage` (default "level") can ask.
 local function watchDoorway(
 	prompt: ProximityPrompt,
 	alive: () -> boolean,
@@ -692,9 +695,9 @@ local function watchDoorway(
 	local wanted = stage or "level"
 	local door = prompt.Parent :: BasePart
 	door.CanCollide = false
-	prompt.ActionText = "Go down"
+	prompt.ActionText = "Look down"
 	prompt.ObjectText = "Stairwell"
-	prompt.HoldDuration = DOORWAY_HOLD_SECONDS
+	prompt.HoldDuration = 0
 	prompt.Enabled = true
 	prompt.Triggered:Connect(function(player: Player)
 		local member = members[player]
@@ -703,13 +706,27 @@ local function watchDoorway(
 			or member.stage ~= wanted
 			or not alive()
 			or not nearEnough(player, door)
+			or doorwayAsk[player] ~= nil
 		then
 			return
 		end
-		if enter(player) then
-			prompt.Enabled = false
+		doorwayAsk[player] = function()
+			if alive() and member.stage == wanted and nearEnough(player, door) then
+				if enter(player) then
+					prompt.Enabled = false
+				end
+			end
 		end
+		Remotes.send(player, "AskDescend", DOORWAY_QUESTION)
 	end)
+end
+
+local function onDescend(player: Player, yes: boolean)
+	local ask = doorwayAsk[player]
+	doorwayAsk[player] = nil
+	if yes and ask ~= nil then
+		ask()
+	end
 end
 
 local function beginLevel(tier: number)
@@ -1407,6 +1424,7 @@ local function onPlayerRemoving(player: Player)
 		return
 	end
 	members[player] = nil
+	doorwayAsk[player] = nil
 	Telemetry.custom(player, "QuitAtTier", if member.stage == "title" then 0 else run.tier)
 	Telemetry.forget(player)
 	if member.tutorial then
@@ -1873,6 +1891,7 @@ function Director.start()
 	Remotes.on("SetSetting", onSetSetting)
 	Remotes.on("Funnel", onFunnel)
 	Remotes.on("Choose", onChoose)
+	Remotes.on("Descend", onDescend)
 	Remotes.on("PartyReady", onPartyReady)
 	Remotes.on("PartyStart", onPartyStart)
 
