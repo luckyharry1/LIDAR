@@ -416,9 +416,13 @@ progression between runs and room for monetization; then a faint pull towards un
 - New upgrades: `emitter`, `range`, `grid`, `spare`, `trickle`; bench order is scanner, battery,
   tools. Scanner plus battery rows cost about 3,100 Static. `cellBonus` 12 -> 5.
 - `client/Lure` (new): unscanned cells and story things (`EchoKind` recorder, reveal, sign; set
-  in `World.newEcho`) give off faint warm motes (ParticleEmitter, about one a second, 0.05 studs,
-  mostly transparent) within 30 studs and in line of sight; the first ray that lands on one stops
-  it for good. Distinct from the gold found-item pulse in `Immersion`.
+  in `World.newEcho`) give off faint warm motes (ParticleEmitter, about one every 3 s, 0.035
+  studs, 90% transparent at best) within 18 studs and in line of sight; the first ray that lands
+  on one stops it for good. Distinct from the gold found-item pulse in `Immersion`. Toned down
+  after Vasco's first look (cells too easy to spot).
+- `Immersion` found-item pulse: stops for good once the item is picked up (`Objective` event) or
+  the hidden thing has revealed itself (`Echo` event); it used to keep pulsing where a battery
+  cell had been taken.
 - `docs/MONETIZATION.md` (new): what could be sold and what never should be. No purchases added.
 - Dev: `charges N`.
 - Check in Studio: motes visible but subtle at 1080p and on a phone (raise `Brightness` or the
