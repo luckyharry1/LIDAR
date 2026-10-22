@@ -53,6 +53,10 @@ tests["dots are tiny, grow with distance, and items are finest"] = function()
 	assert(DotRules.size("wall", 5) <= 0.1, "near dots should be tiny")
 	assert(DotRules.size("wall", 120) > DotRules.size("wall", 5), "far dots should be larger")
 	assert(DotRules.size("wall", 100000) == Config.Lidar.dotSizeMax, "size should cap")
+	for distance = 10, 90, 10 do
+		-- the far dots straight ahead must stay visible: not much under 1.5 px on screen
+		assert(DotRules.size("wall", distance) / distance >= 0.0018, "far dots should not shrink to nothing")
+	end
 	assert(DotRules.size("objective", 10) < DotRules.size("wall", 10), "item dots should be finer")
 	assert(DotRules.size("enemy", 10) > DotRules.size("wall", 10), "marks should be larger")
 end

@@ -24,8 +24,12 @@ Config.Lidar = {
 	fadingDots = 1600, -- separate small pool for dots that fade (people, monsters, footprints)
 
 	dotSize = 0.01, -- studs at close range
-	dotSizeDistanceScale = 0.0011, -- extra size per stud of distance so far dots stay readable
-	dotSizeMax = 0.15,
+	-- Extra size per stud of distance. A dot must keep at least about 1.5 px on screen at any
+	-- range (size / distance, roughly 0.002 at 1080p and a 70 degree view), or the far dots
+	-- straight down a corridor, which is where the crosshair points, drop out while the near
+	-- walls at the screen edges still show.
+	dotSizeDistanceScale = 0.002,
+	dotSizeMax = 0.2,
 	itemDotScale = 0.5, -- items and objects are drawn with finer dots
 	markDotScale = 1.6, -- people, monsters and footprints are a little larger
 
