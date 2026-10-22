@@ -248,6 +248,8 @@ Config.Net = {
 		Funnel = 4,
 		ToggleUpgrade = 6,
 		Choose = 2,
+		PartyReady = 4,
+		PartyStart = 2,
 	},
 }
 

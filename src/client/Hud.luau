@@ -94,6 +94,9 @@ end
 
 -- A short message at the top of the screen. `kind` is "info", "good" or "warn".
 function Hud.toast(text: string, kind: string?)
+	if State.server.stage == "title" then
+		return -- the title screen shows its own notices (Menus), clear of the big letters
+	end
 	local color = if kind == "good"
 		then Ui.colors.good
 		elseif kind == "warn" then Ui.colors.warn
