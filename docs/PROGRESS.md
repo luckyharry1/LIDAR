@@ -356,6 +356,32 @@ Footprints for monsters (red) and players (green), breath mist near monsters, th
 Same entry points as v1 (`X.start()`, `Menus.open/close/isOpen/applyCosmetics`,
 `Atmosphere.onZone/zone/forceDark/lit`, the `Ui` helpers).
 
+## Upgrade room light, home screen, Play Together (22 Oct, cloud thread; nothing seen in Studio)
+Vasco: the room with the upgrades (the havens with the workbench) was extremely bright after an
+exit; on the home screen text overlapped; there was no way to play with others from it.
+- Bright haven, likely cause: when a dark haven's lamp is found, its Neon ceiling panels and their
+  1.5/34 lights came back while the client still used the maze's strong dark bloom (tuned to make
+  dots glow), so the panels bloomed into a white-out. Now the ceiling tubes (`Tube` attribute in
+  `LoreRooms.buildLights`) come back dead: grey plastic and a 0.25/16 glow, so the lamp is the
+  light. The reveal also sets `Revealed` on the room's `LitZone`, and `Atmosphere` eases the bloom
+  to the lit-room values inside a found haven. Lit rooms (Lamp Room, Relay landing): panel lights
+  0.9/30 (was 1.5/34) and ambient 0.3 (was 0.55). Check in Studio: Copy Room after T1 once the
+  lamp is scanned; the Night Desk; the landing after a daily.
+- Overlap, likely cause: join toasts (visit streak, "Saving is unavailable" in Studio) are drawn
+  at the top of the screen, right over the big L I D A R letters. On the title, `Hud.toast` now
+  stays quiet and `Menus` shows them as small notices under the buttons. The title is now one
+  auto-sized column (letters, subtitle, buttons, status, notices), so nothing can land on anything
+  else.
+- Play Together: a PLAY TOGETHER button on the home screen (shows how many others are here) opens a
+  party screen listing everyone on the server, with friend tags and where each one is (title,
+  intake, in the dark, safe room). INVITE FRIENDS opens Roblox's invite (`Menus.invite`); I'M READY
+  marks you ready (`PartyReady` remote); GO IN (`PartyStart`) starts the run and takes everyone
+  who is ready with you (each goes through `onStart`, so a player who never did the intake does it
+  first and then joins). While a run is going the button says JOIN THEM. The server is still the
+  party: anyone on it plays the same run. State carries `lobby` (userId, name, stage, ready).
+- Not built: a private/solo server (reserving a server needs a published place; `Party.luau` has
+  the lobby/teleport path for that), a party leader, kicking.
+
 ## Verification
 
 Only what has actually been run is listed as verified.
@@ -390,29 +416,3 @@ Only what has actually been run is listed as verified.
   them on arrival (1 s and 3 s, while the level streams in) and `Lidar.onSeen` brings back
   everything within 16 studs of a part the local gun lands on, with its lights. Client only;
   a teammate's scan reveals them for you too (relayed rays go through `Lidar.onSeen`). Revealed recorders still light up as before.
-
-## Upgrade room light, home screen, Play Together (22 Oct, cloud thread; nothing seen in Studio)
-Vasco: the room with the upgrades (the havens with the workbench) was extremely bright after an
-exit; on the home screen text overlapped; there was no way to play with others from it.
-- Bright haven, likely cause: when a dark haven's lamp is found, its Neon ceiling panels and their
-  1.5/34 lights came back while the client still used the maze's strong dark bloom (tuned to make
-  dots glow), so the panels bloomed into a white-out. Now the ceiling tubes (`Tube` attribute in
-  `LoreRooms.buildLights`) come back dead: grey plastic and a 0.25/16 glow, so the lamp is the
-  light. The reveal also sets `Revealed` on the room's `LitZone`, and `Atmosphere` eases the bloom
-  to the lit-room values inside a found haven. Lit rooms (Lamp Room, Relay landing): panel lights
-  0.9/30 (was 1.5/34) and ambient 0.3 (was 0.55). Check in Studio: Copy Room after T1 once the
-  lamp is scanned; the Night Desk; the landing after a daily.
-- Overlap, likely cause: join toasts (visit streak, "Saving is unavailable" in Studio) are drawn
-  at the top of the screen, right over the big L I D A R letters. On the title, `Hud.toast` now
-  stays quiet and `Menus` shows them as small notices under the buttons. The title is now one
-  auto-sized column (letters, subtitle, buttons, status, notices), so nothing can land on anything
-  else.
-- Play Together: a PLAY TOGETHER button on the home screen (shows how many others are here) opens a
-  party screen listing everyone on the server, with friend tags and where each one is (title,
-  intake, in the dark, safe room). INVITE FRIENDS opens Roblox's invite (`Menus.invite`); I'M READY
-  marks you ready (`PartyReady` remote); GO IN (`PartyStart`) starts the run and takes everyone
-  who is ready with you (each goes through `onStart`, so a player who never did the intake does it
-  first and then joins). While a run is going the button says JOIN THEM. The server is still the
-  party: anyone on it plays the same run. State carries `lobby` (userId, name, stage, ready).
-- Not built: a private/solo server (reserving a server needs a published place; `Party.luau` has
-  the lobby/teleport path for that), a party leader, kicking.
