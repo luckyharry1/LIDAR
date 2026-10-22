@@ -364,3 +364,24 @@ Only what has actually been run is listed as verified.
 - Verified in Studio (v1 only, before the rework): the whole loop for one player on PC.
 - Not yet verified for v2: anything in Studio (including the story places slice above).
 - Never verified: two players at once, real DataStore saves, phone or gamepad hardware.
+
+## Immersion and transitions (22 Oct, cloud thread; nothing seen in Studio)
+- Restart bug: the client only wiped dots and marks when the tier or seed changed, so a restart
+  landing on the same tier and seed (the daily level, a haven left for the title) kept the old
+  picture. The server now sends `epoch` (bumped in `beginLevel`, `enterLore`, `endRunIfEmpty` and
+  the finale's return to the title) and `State` treats an epoch change as a new level.
+- `client/Immersion` (new): exit fades to black over 2.4 s with the sound dulled (lowpass on the
+  Lidar sound group), the next place comes up over 2.2 s with a low hit (haven: soft falling
+  phrase); a 9 s timeout lifts a black that never ends. Each floor has a mood: colour grade
+  (`Atmosphere.setTint`), ambience pitch, drip level and reverb (`Audio.setMood`; lit rooms use a
+  living-room reverb). The view narrows up to 7 degrees as a monster closes in.
+- Check in Studio: that the fade covers the teleport, the title card still shows after the
+  fade-in, tint strength, reverb not too wet, FOV narrowing not nauseating, `Hud.fade` shared with
+  the caught flash.
+- Second pass (22 Oct): `Immersion` also does (a) found points of interest (`Lidar.onPoi`, objective
+  dots) pulse a rising gold ring and a faint tone every 2.6 s while within 90 studs (nearest 5);
+  (b) distant wrong sounds (`Audio.wrong`: door slam, running steps, tick crackle, bump) from a
+  random bearing 35-70 studs away, every 22-45 s, 6-12 s when a monster is near; (c) point and spot
+  lights within 45 studs stutter and cut out as threat rises (re-collected every 4 s); (d) 3% of
+  the local scan's dots flare at 2.6x size for 0.3 s as they land. Not built: the walkable
+  stairwell between levels (needs a new member stage and a corridor model; best done with Studio).

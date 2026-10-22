@@ -76,6 +76,12 @@ local bumpTimer = 0
 local stingArmedAt = 0
 local stingNear = false
 local lit = false
+local equalizer: EqualizerSoundEffect
+local muffled = false -- the world goes dull and far away while a level is left behind
+local muffleMix = 0
+local moodSpeed, moodDrips = 1, 1
+local moodReverb = Enum.ReverbType.NoReverb
+local MUFFLE_PER_SECOND = 0.9
 
 local function make(
 	parent: Instance,
@@ -226,6 +232,54 @@ function Audio.setLit(value: boolean)
 		Audio.relief()
 	end
 	lit = value
+end
+
+-- Per-floor sound: the ambience's pitch, how much the drips carry, and the room's echo.
+function Audio.setMood(speed: number, dripScale: number, reverb: Enum.ReverbType)
+	moodSpeed, moodDrips, moodReverb = speed, dripScale, reverb
+end
+
+-- Dulls everything (a lowpass) while the screen goes black between levels.
+function Audio.muffle(on: boolean)
+	muffled = on
+end
+
+-- A low hit as a new place comes up out of the black: heavy for a level, soft for a haven.
+function Audio.arrive(haven: boolean)
+	if haven then
+		Audio.relief()
+	else
+		oneShot(audio.rumble, 0.5, 0.5)
+	end
+end
+
+-- A faint tone from a point of interest the player has found: it draws the ear to it.
+function Audio.poiHum(position: Vector3)
+	playAt(position, audio.ping, 0.14, 0.5, 45)
+end
+
+-- Something is wrong somewhere out of sight. `kind` picks the sound; `position` is where it
+-- seems to come from.
+function Audio.wrong(kind: string, position: Vector3)
+	if kind == "door" then
+		playAt(position, audio.door, 0.7, 0.7, 120)
+	elseif kind == "run" then
+		task.spawn(function()
+			for _ = 1, 7 do
+				playAt(position, audio.wandererStep, 0.6, 1.5, 100)
+				task.wait(0.22)
+			end
+		end)
+	elseif kind == "crackle" then
+		task.spawn(function()
+			for _ = 1, 9 do
+				playAt(position, audio.tick, 0.5, 0.4 + math.random() * 1.6, 70)
+				task.wait(0.04 + math.random() * 0.06)
+			end
+		end)
+	else
+		playAt(position, audio.bumps, 0.8, 0.8 + math.random() * 0.4, 120)
+	end
 end
 
 function Audio.threat(): number
@@ -431,7 +485,15 @@ local function update(dt: number)
 	local inDark = if playing then dark else 0.5
 
 	fadeTo(ambience, audio.ambienceVolume * inDark, dt, 2)
-	fadeTo(drips, audio.dripsVolume * inDark, dt, 2)
+	fadeTo(drips, audio.dripsVolume * inDark * moodDrips, dt, 2)
+	ambience.PlaybackSpeed += (moodSpeed - ambience.PlaybackSpeed) * math.min(1, dt * 0.5)
+	muffleMix = math.clamp(muffleMix + (if muffled then 1 else -1) * MUFFLE_PER_SECOND * dt, 0, 1)
+	equalizer.HighGain = -muffleMix * 28
+	equalizer.MidGain = -muffleMix * 8
+	local reverb = if lit then Enum.ReverbType.LivingRoom else moodReverb
+	if SoundService.AmbientReverb ~= reverb then
+		SoundService.AmbientReverb = reverb
+	end
 	fadeTo(presence, audio.presenceVolume * threat * dark, dt, 3)
 	fadeTo(heartbeat, audio.heartbeatVolume * threat * dark, dt, 3)
 	heartbeat.PlaybackSpeed = HEART_SPEED_CALM + (HEART_SPEED_TENSE - HEART_SPEED_CALM) * threat
@@ -452,6 +514,8 @@ end
 
 function Audio.start()
 	group.Parent = SoundService
+	equalizer = Instance.new("EqualizerSoundEffect")
+	equalizer.Parent = group
 	holder.Parent = SoundService
 	emitterFolder.Parent = workspace
 	for index = 1, TICK_VOICES do

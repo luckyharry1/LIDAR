@@ -23,6 +23,7 @@ export type ServerState = {
 	tier: number,
 	tierName: string,
 	seed: number,
+	epoch: number,
 	origin: Vector3,
 	sweepScale: number, -- above 1 the sweep recharges more slowly on this level
 	forcedAnomaly: string,
@@ -60,6 +61,7 @@ State.server = {
 	tier = 1,
 	tierName = "",
 	seed = 0,
+	epoch = 0,
 	origin = Vector3.zero,
 	sweepScale = 1,
 	forcedAnomaly = "",
@@ -120,7 +122,11 @@ function State.connect()
 	(Net.get("State") :: RemoteEvent).OnClientEvent:Connect(function(incoming: ServerState)
 		local previous = State.server
 		State.server = incoming
-		local levelChanged = incoming.seed ~= previous.seed or incoming.tier ~= previous.tier
+		-- The epoch catches a restart that lands on the same tier and seed (the daily level, a
+		-- haven left for the title): without it the old dots and marks would stay on screen.
+		local levelChanged = incoming.seed ~= previous.seed
+			or incoming.tier ~= previous.tier
+			or incoming.epoch ~= previous.epoch
 		if levelChanged then
 			State.exitScanned = false
 			State.scannedCells = {}

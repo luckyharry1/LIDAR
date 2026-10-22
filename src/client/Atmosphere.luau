@@ -21,6 +21,7 @@ local LIT_AMBIENT_SCALE = 0.55
 local DARK_BLOOM = { intensity = 0.55, size = 14, threshold = 1 }
 local LIT_BLOOM = { intensity = 0.15, size = 18, threshold = 1.6 }
 local LIT_ZOOM = 14
+local TINT_EASE_PER_SECOND = 0.7
 local FIRST_PERSON_ZOOM = 0.5
 
 local Atmosphere = {}
@@ -34,6 +35,13 @@ local currentZone: BasePart? = nil
 local zoneListeners: { (zone: BasePart?) -> () } = {}
 local litColor = Color3.fromRGB(255, 220, 180)
 local forcedDark = false
+local tint = Color3.new(1, 1, 1) -- the floor's colour grade, eased toward `tintTarget`
+local tintTarget = Color3.new(1, 1, 1)
+
+-- The floor the player is on tints the whole picture a little (eased over a few seconds).
+function Atmosphere.setTint(color: Color3)
+	tintTarget = color
+end
 
 -- Called with the zone part when the player enters a lit room, and nil when they leave.
 function Atmosphere.onZone(listener: (zone: BasePart?) -> ())
@@ -96,6 +104,7 @@ local function apply(t: number)
 	correction.Saturation = lerp(-0.05, -0.1, eased)
 	correction.Contrast = lerp(0.08, 0.02, eased)
 	correction.Brightness = lerp(0, 0.04, eased)
+	correction.TintColor = tint:Lerp(Color3.new(1, 1, 1), eased)
 end
 
 local function setCamera(lit: boolean)
@@ -140,6 +149,10 @@ function Atmosphere.start()
 		-- Studio playtest aid (see server/Dev): light the maze so its geometry can be inspected.
 		local devLit = RunService:IsStudio() and workspace:GetAttribute("DevLit") == true
 		local target = if (zone and not isDark(zone)) or devLit then 1 else 0
+		if tint ~= tintTarget then
+			tint = tint:Lerp(tintTarget, math.min(1, dt * TINT_EASE_PER_SECOND))
+			apply(Atmosphere.lit)
+		end
 		if Atmosphere.lit ~= target then
 			local rate = if target == 1 then 1 / EASE_IN_SECONDS else 1 / EASE_OUT_SECONDS
 			Atmosphere.lit = math.clamp(
