@@ -430,3 +430,6 @@ Only what has actually been run is listed as verified.
   teaches the two-taps-then-one tell) and walks the route to the exit at walking pace leaving
   footprints (40 s). The Mimic is left out of a level (`Enemies.spawn` skip list) until someone
   in the party has `stats.rescues > 0`, so a real surveyor is always met first.
+- Doorway confirm (Vasco: walking in by accident in the dark was confusing): the doorways keep no
+  panel to bump into, but leaving needs a 0.6 s hold on a "Go down / Stairwell" prompt again
+  (`watchDoorway` now wraps the exit prompt instead of polling positions).

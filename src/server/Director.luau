@@ -65,8 +65,7 @@ type Collected = { key: boolean, cells: number, rescues: number, plate: boolean,
 type Decoy = { x: number, z: number, noise: number, expires: number }
 
 local CELL = Config.World.cellSize
-local DOORWAY_POLL_SECONDS = 0.15
-local DOORWAY_DEPTH = 2.5 -- how far in front of the doorway's plane counts as walking into it
+local DOORWAY_HOLD_SECONDS = 0.6
 local DOORWAY_LEAVE_SECONDS = 1 -- the step through: the screen is black by then
 local LOCKED_TOAST_SECONDS = 4
 local PASSAGE_ORIGIN = Vector3.new(0, 0, -1500)
@@ -659,36 +658,34 @@ local function levelSeed(tier: number): number
 	return (run.seedBase + tier * SEED_STEP) % (SEED_SPAN - 1) + 1
 end
 
--- Watches an exit doorway while `alive()` holds. Anyone of `stage` (default "level") who walks
--- into it calls `enter`, which returns true once the party is leaving.
+-- An exit is an open doorway (no panel to bump into) with a short hold-to-confirm prompt, so
+-- nobody leaves by walking into a doorway they could not see in the dark. Anyone of `stage`
+-- (default "level") who confirms calls `enter`, which returns true once the party is leaving.
 local function watchDoorway(
-	door: BasePart,
+	prompt: ProximityPrompt,
 	alive: () -> boolean,
 	enter: (player: Player) -> boolean,
 	stage: Stage?
 )
 	local wanted = stage or "level"
+	local door = prompt.Parent :: BasePart
 	door.CanCollide = false
-	task.spawn(function()
-		while alive() and door.Parent ~= nil do
-			for player, member in members do
-				local root = rootOf(player)
-				if member.stage == wanted and root then
-					local localPoint = door.CFrame:PointToObjectSpace(root.Position)
-					local half = door.Size / 2
-					if
-						math.abs(localPoint.X) <= half.X + 0.5
-						and math.abs(localPoint.Z) <= DOORWAY_DEPTH
-						and localPoint.Y >= -half.Y - 2
-						and localPoint.Y <= half.Y
-					then
-						if enter(player) then
-							return
-						end
-					end
-				end
-			end
-			task.wait(DOORWAY_POLL_SECONDS)
+	prompt.ActionText = "Go down"
+	prompt.ObjectText = "Stairwell"
+	prompt.HoldDuration = DOORWAY_HOLD_SECONDS
+	prompt.Enabled = true
+	prompt.Triggered:Connect(function(player: Player)
+		local member = members[player]
+		if
+			member == nil
+			or member.stage ~= wanted
+			or not alive()
+			or not nearEnough(player, door)
+		then
+			return
+		end
+		if enter(player) then
+			prompt.Enabled = false
 		end
 	end)
 end
@@ -724,10 +721,9 @@ local function beginLevel(tier: number)
 	for _, pickup in level.pickups do
 		wirePickup(level, pickup)
 	end
-	-- The exit is an open doorway into the stairwell: walking into it leaves, for everyone.
-	level.exitPrompt.Enabled = false
+	-- The exit is an open doorway into the stairwell: confirming at it takes everyone down.
 	local lockedToastAt: { [Player]: number } = {}
-	watchDoorway(level.exitDoor, function()
+	watchDoorway(level.exitPrompt, function()
 		return run.level == level
 	end, function(player: Player): boolean
 		if level.plan.exitLocked and not run.collected.key then
@@ -873,9 +869,8 @@ local function enterLore(roomId: string, nextTier: number)
 			Remotes.send(player, "OpenBench")
 		end
 	end)
-	-- The way on is an open doorway in the dark: walking through it leaves the haven.
-	lore.exitPrompt.Enabled = false
-	watchDoorway(lore.exitPrompt.Parent :: BasePart, function()
+	-- The way on is an open doorway in the dark: confirming at it leaves the haven.
+	watchDoorway(lore.exitPrompt, function()
 		return run.lore == lore
 	end, function(): boolean
 		toastStage("Lights off behind you. Heading back in.", "info", "lore")
