@@ -416,3 +416,12 @@ Only what has actually been run is listed as verified.
   flicker used the straight line, so a monster in the next corridor through a wall counted as
   close. `client/Reach.distance` now uses the walk through the maze (BFS over open sides from the
   player's cell, cached per cell); same or next cell keeps the straight line.
+- Lamp patches (Vasco): a lamp lit the floor and every closed wall of its cell with hard edges.
+  `World.buildPatch` now paints the floor and only the wall nearest the light, each as an
+  invisible part with a lit SurfaceGui (CanvasGroup + two UIGradients) that fades to nothing at
+  the edges and up the wall. Client concealment also switches these SurfaceGuis. Check the
+  look in Studio (PixelsPerStud 6, fade stops in `PATCH_EDGE_FADE`/`PATCH_WALL_FADE`).
+- Light stutter (Vasco: pulses did not sync with sound): the continuous sine flicker is gone.
+  Near a monster, one nearby light at a time stutters (off/on pattern, 0.8-4 s apart by threat)
+  and every cut and catch plays `Audio.spark` from that bulb. Also fixed: the light refresh
+  could record a dimmed brightness as the light's base.

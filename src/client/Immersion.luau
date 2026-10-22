@@ -79,6 +79,8 @@ local WRONG_DISTANCE = { 35, 70 }
 local FLICKER_THREAT = 0.15
 local FLICKER_RANGE = 45
 local LIGHT_REFRESH_SECONDS = 4
+local STUTTER_GAP = { 0.8, 4 } -- seconds between stutters: right on top of you, and at the edge
+local STUTTER_PATTERN = { 0.07, 0.05, 0.14, 0.06, 0.25 } -- off, on, off, on, off, then back
 
 -- Lanterns and the patches of floor and wall around them are built visible, but the player
 -- must find them by scanning: they start dark and everything within CONCEAL_REACH of a part
@@ -100,6 +102,8 @@ local pois: { [string]: Vector3 } = {}
 local poiTimer = 0
 local wrongTimer = 30
 local baseBrightness: { [Light]: number } = {}
+local stuttering: { [Light]: boolean } = {}
+local stutterTimer = 0
 local lightTimer = 0
 
 local baseFov = 70
@@ -174,31 +178,67 @@ local function wrongSound(camera: Camera)
 end
 
 local function refreshLights()
-	table.clear(baseBrightness)
 	for _, descendant in workspace:GetDescendants() do
 		if descendant:IsA("PointLight") or descendant:IsA("SpotLight") then
 			local light = descendant :: Light
-			if descendant.Enabled then
+			-- A light mid-stutter keeps the brightness it had before, not its dimmed one.
+			if descendant.Enabled and baseBrightness[light] == nil then
 				baseBrightness[light] = light.Brightness
 			end
 		end
 	end
 end
 
-local function flickerLights(camera: Camera, threat: number, now: number)
+-- One stutter: the light cuts and catches a few times, and every catch crackles from the
+-- bulb itself, so what you see and what you hear are the same event.
+local function stutter(light: Light, holder: BasePart)
+	stuttering[light] = true
+	task.spawn(function()
+		local base = baseBrightness[light] or light.Brightness
+		for index, seconds in STUTTER_PATTERN do
+			if light.Parent == nil then
+				break
+			end
+			local off = index % 2 == 1
+			light.Brightness = if off then 0 else base
+			Audio.spark(holder.Position, off)
+			task.wait(seconds * (0.7 + math.random() * 0.6))
+		end
+		if light.Parent ~= nil then
+			light.Brightness = base
+		end
+		stuttering[light] = nil
+	end)
+end
+
+local function flickerLights(camera: Camera, threat: number, dt: number)
+	if threat < FLICKER_THREAT then
+		stutterTimer = math.min(stutterTimer, STUTTER_GAP[1])
+		return
+	end
+	stutterTimer -= dt
+	if stutterTimer > 0 then
+		return
+	end
+	-- Closer monsters, more often.
+	stutterTimer = STUTTER_GAP[1] + (STUTTER_GAP[2] - STUTTER_GAP[1]) * (1 - threat) * math.random()
 	local here = camera.CFrame.Position
-	for light, base in baseBrightness do
+	local choices: { { light: Light, holder: BasePart } } = {}
+	for light in baseBrightness do
 		local holder = light.Parent
 		if holder == nil or not holder:IsA("BasePart") then
 			baseBrightness[light] = nil
-		elseif threat >= FLICKER_THREAT and (holder.Position - here).Magnitude <= FLICKER_RANGE then
-			-- Deterministic stutter per light: some frames dim, a few cut out completely.
-			local wave = math.sin(now * (9 + threat * 14) + holder.Position.X)
-			local cut = math.sin(now * 3.1 + holder.Position.Z) > 1 - threat * 0.9
-			light.Brightness = if cut then 0 else base * (1 - threat * 0.5 * math.max(0, wave))
-		else
-			light.Brightness = base
+		elseif
+			not stuttering[light]
+			and light.Enabled
+			and (holder.Position - here).Magnitude <= FLICKER_RANGE
+		then
+			table.insert(choices, { light = light, holder = holder })
 		end
+	end
+	if #choices > 0 then
+		local pick = choices[math.random(#choices)]
+		stutter(pick.light, pick.holder)
 	end
 end
 
@@ -221,8 +261,11 @@ local function concealLevelLights()
 					table.insert(concealedList, record)
 					descendant.Transparency = 1
 				elseif
-					(descendant:IsA("Light") or descendant:IsA("ParticleEmitter"))
-					and (descendant :: any).Enabled
+					(
+						descendant:IsA("Light")
+						or descendant:IsA("ParticleEmitter")
+						or descendant:IsA("SurfaceGui")
+					) and (descendant :: any).Enabled
 				then
 					local light: any = descendant
 					table.insert(switches, { light = descendant, brightness = light.Brightness })
@@ -337,7 +380,6 @@ function Immersion.start()
 		if not playing then
 			return
 		end
-		local now = os.clock()
 		poiTimer -= dt
 		if poiTimer <= 0 then
 			poiTimer = POI_PERIOD
@@ -354,7 +396,7 @@ function Immersion.start()
 			lightTimer = LIGHT_REFRESH_SECONDS
 			refreshLights()
 		end
-		flickerLights(current, threat, now)
+		flickerLights(current, threat, dt)
 	end)
 end
 

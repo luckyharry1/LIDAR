@@ -283,6 +283,11 @@ function Audio.wrong(kind: string, position: Vector3)
 	end
 end
 
+-- The crackle of a bulb cutting out (`off`) or catching again, from the bulb.
+function Audio.spark(position: Vector3, off: boolean)
+	playAt(position, audio.tick, if off then 0.55 else 0.35, if off then 0.45 else 0.8, 50)
+end
+
 function Audio.threat(): number
 	return threat
 end
