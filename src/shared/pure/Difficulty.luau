@@ -14,6 +14,8 @@ local ENDLESS_SPEED_STEP = 0.02
 local ENDLESS_SPEED_CAP = 1.3
 local ENDLESS_SWEEP_STEP = 0.03
 local ENDLESS_SWEEP_CAP = 1.5
+local ENDLESS_BATTERY_INTERVAL = 6 -- one cell fewer every this many endless tiers
+local ENDLESS_BATTERY_MIN = 2
 local ENDLESS_HAZARD_INTERVAL = 3 -- one more pit and plate every this many tiers
 local ENDLESS_REWARD_STEP = 20
 local ENDLESS_LORE_INTERVAL = 3
@@ -59,6 +61,10 @@ function Difficulty.forTier(tier: number): Tier
 		pits = last.pits + math.floor(extra / ENDLESS_HAZARD_INTERVAL),
 		plates = last.plates + math.floor(extra / ENDLESS_HAZARD_INTERVAL),
 		sweepScale = math.min(last.sweepScale + ENDLESS_SWEEP_STEP * extra, ENDLESS_SWEEP_CAP),
+		batteries = math.max(
+			last.batteries - math.floor(extra / ENDLESS_BATTERY_INTERVAL),
+			ENDLESS_BATTERY_MIN
+		),
 		reward = last.reward + ENDLESS_REWARD_STEP * extra,
 		loreRoomAfter = if extra % ENDLESS_LORE_INTERVAL == 0 then "landing" else nil,
 	}

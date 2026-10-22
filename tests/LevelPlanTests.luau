@@ -53,20 +53,24 @@ tests["every tier places valid, non-overlapping contents"] = function()
 			}
 			local hasKey = false
 			local sideObjectives = 0
+			local cells = 0
 			for _, objective in plan.objectives do
 				local index = Maze.index(maze, objective.cell.x, objective.cell.y)
 				assert(not used[index], `objective overlaps at tier {tier} seed {seed}`)
 				assert(startDist[index] ~= nil, "objective is unreachable")
 				used[index] = true
 				hasKey = hasKey or objective.kind == "key"
-				if objective.kind ~= "plate" then
+				if objective.kind == "cell" then
+					cells += 1
+					local charges = objective.charges
+					assert(charges == 1 or charges == 2, "a battery cell must give 1 or 2 charges")
+				elseif objective.kind ~= "plate" then
 					sideObjectives += 1
 				end
 			end
-			assert(
-				sideObjectives >= 1 and sideObjectives <= 3,
-				`tier {tier} has {sideObjectives} side objectives`
-			)
+			assert(sideObjectives <= 2, `tier {tier} has {sideObjectives} side objectives`)
+			assert(cells == def.batteries, `tier {tier} has {cells} battery cells`)
+			assert(cells >= 2, "every level needs battery cells for the sweep")
 			assert(hasKey == plan.exitLocked, "key and locked exit disagree")
 			local expected = 0
 			for _, count in def.enemies do

@@ -1,5 +1,6 @@
 --!strict
--- Permanent upgrades bought with Static at the safe-room bench, plus cosmetics.
+-- Permanent upgrades bought with Static at the workbench, plus cosmetics. The list order is the
+-- order on the bench: scanner first, then battery, then tools.
 -- Cost of the next level = round(baseCost * costGrowth ^ currentLevel).
 
 export type UpgradeDef = {
@@ -24,20 +25,29 @@ local Upgrades = {}
 
 -- What each level does is defined in Progression.effects and tuned in Config.
 Upgrades.list = {
+	-- The scanner itself. It starts weak on purpose: these are the main thing to work towards.
 	{
-		id = "battery",
-		name = "Capacitor",
-		description = "The sweep recharges faster.",
+		id = "emitter",
+		name = "Emitter",
+		description = "The scatter fires more dots every second.",
+		maxLevel = 5,
+		baseCost = 35,
+		costGrowth = 1.5,
+	},
+	{
+		id = "range",
+		name = "Range Coil",
+		description = "Dots reach farther down a corridor.",
 		maxLevel = 4,
 		baseCost = 40,
 		costGrowth = 1.6,
 	},
 	{
-		id = "cooling",
-		name = "Quiet Shutter",
-		description = "The sweep is quieter, so fewer things hear it.",
+		id = "grid",
+		name = "Sweep Grid",
+		description = "Each sweep draws a finer grid.",
 		maxLevel = 3,
-		baseCost = 50,
+		baseCost = 60,
 		costGrowth = 1.7,
 	},
 	{
@@ -47,6 +57,40 @@ Upgrades.list = {
 		maxLevel = 4,
 		baseCost = 45,
 		costGrowth = 1.6,
+	},
+	-- The battery. The id stays "battery" so saves from before keep their levels.
+	{
+		id = "battery",
+		name = "Capacitor",
+		description = "Holds one more sweep charge.",
+		maxLevel = 4,
+		baseCost = 50,
+		costGrowth = 1.6,
+	},
+	{
+		id = "spare",
+		name = "Spare Cell",
+		description = "Start every run with one more sweep charge.",
+		maxLevel = 2,
+		baseCost = 90,
+		costGrowth = 1.8,
+	},
+	{
+		id = "trickle",
+		name = "Trickle Charger",
+		description = "Slowly wins back a sweep charge while you walk a level. Each level is faster.",
+		maxLevel = 3,
+		baseCost = 140,
+		costGrowth = 1.7,
+	},
+	-- Tools.
+	{
+		id = "cooling",
+		name = "Quiet Shutter",
+		description = "The sweep is quieter, so fewer things hear it.",
+		maxLevel = 3,
+		baseCost = 50,
+		costGrowth = 1.7,
 	},
 	{
 		id = "lens",

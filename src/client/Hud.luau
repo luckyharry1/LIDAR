@@ -46,6 +46,8 @@ local crosshair: Frame
 local meterBack: Frame
 local meterFill: Frame
 local meterLabel: TextLabel
+local deniedAt = 0 -- when a sweep was last asked for with an empty battery
+local DENIED_SECONDS = 1.4
 local crouchLabel: TextLabel
 local spreadRing: Frame
 local spreadStroke: UIStroke
@@ -726,14 +728,26 @@ local function refreshSpreadRing(camera: Camera?)
 end
 
 local function update(dt: number)
-	meterFill.Size = UDim2.fromScale(Lidar.charge, 1)
+	-- The meter holds the battery: one share per charge, plus the Trickle Charger's progress.
+	local capacity = math.max(1, State.effects.chargeCapacity)
+	local free = Lidar.freeSweeps
+	local fill = if free then 1 else math.min(1, (Lidar.charges + Lidar.trickle) / capacity)
+	meterFill.Size = UDim2.fromScale(fill, 1)
 	local ready = Lidar.charge >= 1
+	local denied = os.clock() - deniedAt < DENIED_SECONDS
 	meterFill.BackgroundColor3 = if Lidar.sweeping
 		then Ui.colors.warn
 		elseif ready then Ui.colors.line
 		else Ui.colors.dim
-	meterLabel.Text = if Lidar.sweeping then "SWEEPING" elseif ready then "SWEEP READY" else "SWEEP"
-	meterLabel.TextColor3 = if ready and not Lidar.sweeping then Ui.colors.line else Ui.colors.dim
+	meterLabel.Text = if Lidar.sweeping
+		then "SWEEPING"
+		elseif free then "SWEEP READY"
+		elseif Lidar.charges >= 1 then `SWEEP {Lidar.charges}/{capacity}`
+		else "SWEEP 0 - FIND A CELL"
+	meterLabel.TextColor3 = if denied
+		then Ui.colors.warn
+		elseif ready and not Lidar.sweeping then Ui.colors.line
+		else Ui.colors.dim
 	crouchLabel.Visible = Avatar.crouching and not hidden
 
 	local camera = workspace.CurrentCamera
@@ -776,6 +790,9 @@ end
 function Hud.start()
 	build()
 	refreshInfo()
+	Lidar.onDenied(function()
+		deniedAt = os.clock()
+	end)
 	State.onState(function(server, previous)
 		refreshInfo()
 		if

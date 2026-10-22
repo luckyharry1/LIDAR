@@ -20,7 +20,8 @@ export type Tier = {
 	echoes: number, -- hidden objects that reveal themselves, and a line of story, when scanned
 	pits: number, -- holes in the floor
 	plates: number, -- alarm plates that make a loud noise when stepped on
-	sweepScale: number, -- above 1 the sweep recharges more slowly: resources tighten
+	sweepScale: number, -- above 1 the Trickle Charger wins charges back more slowly: resources tighten
+	batteries: number, -- battery cells hidden in the level; each gives 1 or 2 sweep charges
 	reward: number, -- Static paid on clear
 	gate: string?, -- the item that opens a locked exit, named by its story entry ("fuse" is item.fuse)
 	loreRoomAfter: string?, -- id of the lit safe room that follows this tier: a haven or a big lit room
@@ -45,6 +46,7 @@ local Tiers: { Tier } = {
 		pits = 0,
 		plates = 0,
 		sweepScale = 0.8,
+		batteries = 4,
 		reward = 30,
 		loreRoomAfter = "copyroom",
 	},
@@ -66,6 +68,7 @@ local Tiers: { Tier } = {
 		pits = 1,
 		plates = 0,
 		sweepScale = 0.9,
+		batteries = 4,
 		reward = 40,
 		gate = "fuse",
 		loreRoomAfter = "office",
@@ -88,6 +91,7 @@ local Tiers: { Tier } = {
 		pits = 1,
 		plates = 1,
 		sweepScale = 1,
+		batteries = 4,
 		reward = 55,
 		gate = "valve",
 		loreRoomAfter = "drybooth",
@@ -110,6 +114,7 @@ local Tiers: { Tier } = {
 		pits = 1,
 		plates = 1,
 		sweepScale = 1,
+		batteries = 3,
 		reward = 70,
 		gate = "rope",
 		loreRoomAfter = "cistern",
@@ -132,6 +137,7 @@ local Tiers: { Tier } = {
 		pits = 2,
 		plates = 1,
 		sweepScale = 1.05,
+		batteries = 3,
 		reward = 85,
 		gate = "crank",
 		loreRoomAfter = "pottingshed",
@@ -154,6 +160,7 @@ local Tiers: { Tier } = {
 		pits = 2,
 		plates = 2,
 		sweepScale = 1.1,
+		batteries = 3,
 		reward = 100,
 		gate = "fuse",
 		loreRoomAfter = "breakroom",
@@ -176,6 +183,7 @@ local Tiers: { Tier } = {
 		pits = 2,
 		plates = 2,
 		sweepScale = 1.15,
+		batteries = 3,
 		reward = 120,
 		gate = "core",
 		loreRoomAfter = "archivenook",
@@ -198,6 +206,7 @@ local Tiers: { Tier } = {
 		pits = 3,
 		plates = 2,
 		sweepScale = 1.2,
+		batteries = 3,
 		reward = 150,
 		gate = "key",
 		loreRoomAfter = "stairwell",

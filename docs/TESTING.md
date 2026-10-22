@@ -95,7 +95,7 @@ says so.
 - [ ] A lantern lights a patch of real floor and wall.
 - [ ] A pit (violet hazard dots at the rim): falling in fades to black and puts you back at
       the start. An alarm plate rings a bell and draws monsters.
-- [ ] Cells recharge the sweep; the exit door opens with its sound; level-clear card.
+- [ ] A cell adds 1 or 2 sweep charges (more than fit pays Static); a sweep at 0 charges is refused and shows the cell hint; unscanned cells and story objects give off faint motes that stop once scanned; the exit door opens with its sound; level-clear card.
 - [ ] Each lit room: the right title card, three notes that read correctly, the workbench.
       The Night Desk plays Base's first call once. The guest book at the Falls lists the
       party's names.
