@@ -115,6 +115,7 @@ local run = {
 	weeklyShown = false,
 	decoys = {} :: { Decoy },
 	respawning = false,
+	epoch = 0, -- bumped whenever the world is rebuilt or torn down, so clients drop what they drew
 }
 
 --------------------------------------------------------------------------------------------
@@ -216,6 +217,7 @@ local function sendState(member: Member)
 		tier = run.tier,
 		tierName = if level then level.plan.def.name else "",
 		seed = if level then level.plan.seed else 0,
+		epoch = run.epoch,
 		origin = if level then level.origin else Vector3.zero,
 		sweepScale = if level and inLevel(member) then level.plan.def.sweepScale else 1,
 		-- With (tier, seed) these two options let the client rebuild the exact same plan.
@@ -649,6 +651,7 @@ end
 
 local function beginLevel(tier: number)
 	run.phase = "transition"
+	run.epoch += 1
 	local oldLevel, oldLore = run.level, run.lore
 	Enemies.clear()
 
@@ -758,6 +761,7 @@ end
 
 local function enterLore(roomId: string, nextTier: number)
 	run.phase = "transition"
+	run.epoch += 1
 	local oldLevel, oldLore = run.level, run.lore
 	Enemies.clear()
 	if oldLore then
@@ -1137,6 +1141,7 @@ local function endRunIfEmpty()
 	run.active = false
 	run.phase = "idle"
 	run.respawning = false
+	run.epoch += 1
 end
 
 local function onPlayerRemoving(player: Player)
@@ -1408,6 +1413,7 @@ local function onChoose(player: Player, choice: string)
 	member.starting = false
 	member.reviveProgress = 0
 	member.respawnCFrame = nil
+	run.epoch += 1
 	local character = player.Character
 	if character then
 		player.Character = nil

@@ -364,3 +364,17 @@ Only what has actually been run is listed as verified.
 - Verified in Studio (v1 only, before the rework): the whole loop for one player on PC.
 - Not yet verified for v2: anything in Studio (including the story places slice above).
 - Never verified: two players at once, real DataStore saves, phone or gamepad hardware.
+
+## Immersion and transitions (22 Oct, cloud thread; nothing seen in Studio)
+- Restart bug: the client only wiped dots and marks when the tier or seed changed, so a restart
+  landing on the same tier and seed (the daily level, a haven left for the title) kept the old
+  picture. The server now sends `epoch` (bumped in `beginLevel`, `enterLore`, `endRunIfEmpty` and
+  the finale's return to the title) and `State` treats an epoch change as a new level.
+- `client/Immersion` (new): exit fades to black over 2.4 s with the sound dulled (lowpass on the
+  Lidar sound group), the next place comes up over 2.2 s with a low hit (haven: soft falling
+  phrase); a 9 s timeout lifts a black that never ends. Each floor has a mood: colour grade
+  (`Atmosphere.setTint`), ambience pitch, drip level and reverb (`Audio.setMood`; lit rooms use a
+  living-room reverb). The view narrows up to 7 degrees as a monster closes in.
+- Check in Studio: that the fade covers the teleport, the title card still shows after the
+  fade-in, tint strength, reverb not too wet, FOV narrowing not nauseating, `Hud.fade` shared with
+  the caught flash.
