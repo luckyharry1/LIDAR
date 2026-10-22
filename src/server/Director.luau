@@ -59,6 +59,7 @@ type Member = {
 	sessionLore: number,
 	sessionDistance: number,
 	endingOffered: boolean, -- Ines has asked; one answer is accepted
+	ready: boolean, -- on the title's Play Together screen: wants to go in with the others
 }
 
 type Collected = { key: boolean, cells: number, rescues: number, plate: boolean, echoes: number }
@@ -213,6 +214,26 @@ local function countFinds(level: World.Level): number
 	return total
 end
 
+-- Everyone on this server, for the title's Play Together screen.
+type LobbyEntry = { userId: number, name: string, stage: string, ready: boolean }
+
+local function lobbyList(): { LobbyEntry }
+	local list: { LobbyEntry } = {}
+	for player, member in members do
+		local stage: string = member.stage
+		table.insert(list, {
+			userId = player.UserId,
+			name = player.DisplayName,
+			stage = stage,
+			ready = member.ready and stage == "title",
+		})
+	end
+	table.sort(list, function(a, b)
+		return a.userId < b.userId
+	end)
+	return list
+end
+
 local function sendState(member: Member)
 	local level = run.level
 	local lore = run.lore
@@ -247,6 +268,7 @@ local function sendState(member: Member)
 		dailyDay = day,
 		dailyDone = profile.daily.day == day,
 		runActive = run.active,
+		lobby = lobbyList(),
 		session = {
 			static = member.sessionStatic,
 			levels = member.sessionLevels,
@@ -1118,6 +1140,22 @@ local function joinRun(member: Member, mode: string)
 	sendStateAll()
 end
 
+-- One intake room per server at a time: friends who go in together, or who start while
+-- someone is still inside, learn the scanner side by side.
+local function sharedIntake(): TutorialRoom.Tutorial?
+	for _, other in members do
+		local tutorial = other.tutorial
+		if
+			other.stage == "tutorial"
+			and tutorial ~= nil
+			and tutorial.model:GetAttribute("Closed") ~= true
+		then
+			return tutorial
+		end
+	end
+	return nil
+end
+
 local function leaveTutorial(member: Member)
 	local tutorial = member.tutorial
 	member.tutorial = nil
@@ -1125,33 +1163,55 @@ local function leaveTutorial(member: Member)
 	profile.tutorialDone = true
 	Data.touch(member.player)
 	Telemetry.funnel(member.player, "TutorialComplete")
+	-- Whoever leaves first builds the level; the rest wait for it, then drop in.
+	while run.phase == "transition" do
+		task.wait(TRANSITION_POLL_SECONDS)
+	end
+	if members[member.player] ~= member then
+		return
+	end
 	joinRun(member, "new")
 	if tutorial then
+		for _, other in members do
+			if other.tutorial == tutorial then
+				return -- someone is still inside
+			end
+		end
 		tutorial.model:Destroy()
 	end
 end
 
 local function startTutorial(member: Member)
-	local base = Vector3.new(table.unpack(Config.World.tutorialOrigin))
-	local tutorial =
-		TutorialRoom.build(base + Vector3.new(member.slot * Config.World.tutorialSpacing, 0, 0))
+	local tutorial = sharedIntake()
+	if tutorial == nil then
+		local base = Vector3.new(table.unpack(Config.World.tutorialOrigin))
+		local room =
+			TutorialRoom.build(base + Vector3.new(member.slot * Config.World.tutorialSpacing, 0, 0))
+		tutorial = room
+		-- Opening the door takes everyone in the room through it together.
+		room.exitPrompt.Triggered:Connect(function(player: Player)
+			local opener = members[player]
+			if
+				room.model:GetAttribute("Closed") == true
+				or opener == nil
+				or opener.tutorial ~= room
+				or opener.stage ~= "tutorial"
+				or not nearEnough(player, room.exitDoor)
+			then
+				return
+			end
+			room.model:SetAttribute("Closed", true)
+			for _, other in members do
+				if other.tutorial == room and other.stage == "tutorial" then
+					task.spawn(leaveTutorial, other)
+				end
+			end
+		end)
+	end
 	member.tutorial = tutorial
 	member.stage = "tutorial"
-	local used = false
-	tutorial.exitPrompt.Triggered:Connect(function(player: Player)
-		if
-			used
-			or player ~= member.player
-			or member.stage ~= "tutorial"
-			or not nearEnough(player, tutorial.exitDoor)
-		then
-			return
-		end
-		used = true
-		leaveTutorial(member)
-	end)
-	Director.placeMember(member, tutorial.spawnCFrame)
-	sendState(member)
+	Director.placeMember(member, (tutorial :: TutorialRoom.Tutorial).spawnCFrame)
+	sendStateAll()
 end
 
 local function onStart(player: Player, mode: string)
@@ -1160,6 +1220,7 @@ local function onStart(player: Player, mode: string)
 		return
 	end
 	member.starting = true
+	member.ready = false
 	Telemetry.funnel(player, "PressedPlay")
 	while run.phase == "transition" do
 		task.wait(TRANSITION_POLL_SECONDS) -- a level is being built: join once it is ready
@@ -1175,6 +1236,61 @@ local function onStart(player: Player, mode: string)
 		startTutorial(member)
 	else
 		joinRun(member, mode)
+	end
+end
+
+-- Play Together: a player on the title marks themselves ready; whoever presses Start takes
+-- everyone who is ready in with them. The server is the party (friends join it through a Roblox
+-- invite), so this only lines people up to go in at the same moment.
+local function onPartyReady(player: Player, on: boolean)
+	local member = members[player]
+	if member == nil or member.stage ~= "title" or member.starting then
+		return
+	end
+	member.ready = on
+	sendStateAll()
+end
+
+local function onPartyStart(player: Player, mode: string)
+	local leader = members[player]
+	if leader == nil or leader.stage ~= "title" or leader.starting then
+		return
+	end
+	local crew: { Player } = {}
+	for other, member in members do
+		if other ~= player and member.stage == "title" and member.ready and not member.starting then
+			table.insert(crew, other)
+		end
+	end
+	for _, other in crew do
+		toast(other, `{player.DisplayName} is taking everyone in.`, "info")
+	end
+	-- If anyone is new, the whole crew starts in the intake together and works out the
+	-- scanner side by side; the door takes them all into the first level.
+	local anyNew = not profileOf(leader).tutorialDone
+	for _, other in crew do
+		local member = members[other]
+		if member and not profileOf(member).tutorialDone then
+			anyNew = true
+		end
+	end
+	if anyNew and not Party.isLobby() and not run.active then
+		local everyone = { leader }
+		for _, other in crew do
+			table.insert(everyone, members[other])
+		end
+		for _, member in everyone do
+			member.starting = true
+			member.ready = false
+			Telemetry.funnel(member.player, "PressedPlay")
+			startTutorial(member)
+		end
+		return
+	end
+	-- The leader's run starts first; the others drop into it (onStart waits out the build).
+	task.spawn(onStart, player, mode)
+	for _, other in crew do
+		task.spawn(onStart, other, mode)
 	end
 end
 
@@ -1222,6 +1338,7 @@ local function onPlayerAdded(player: Player)
 		sessionLore = 0,
 		sessionDistance = 0,
 		endingOffered = false,
+		ready = false,
 	}
 	members[player] = member
 	Telemetry.funnel(player, "Joined")
@@ -1231,7 +1348,7 @@ local function onPlayerAdded(player: Player)
 		grant(member, streakBonus, "Streak")
 	end
 	sendProfile(member)
-	sendState(member)
+	sendStateAll() -- the others' Play Together screens list the newcomer
 	if streakBonus > 0 then
 		toast(player, `Visit {profile.streak.count}: +{streakBonus} Static.`, "good")
 	end
@@ -1756,6 +1873,8 @@ function Director.start()
 	Remotes.on("SetSetting", onSetSetting)
 	Remotes.on("Funnel", onFunnel)
 	Remotes.on("Choose", onChoose)
+	Remotes.on("PartyReady", onPartyReady)
+	Remotes.on("PartyStart", onPartyStart)
 
 	Players.PlayerAdded:Connect(onPlayerAdded)
 	Players.PlayerRemoving:Connect(onPlayerRemoving)

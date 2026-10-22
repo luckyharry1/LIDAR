@@ -54,7 +54,7 @@ local DEFAULT_MOOD: Mood = {
 	tint = Color3.new(1, 1, 1),
 	speed = 1,
 	drips = 1,
-	reverb = Enum.ReverbType.GenericRoom,
+	reverb = Enum.ReverbType.GenericReverb,
 }
 
 -- Found points of interest keep calling: a ring of gold dots rises from each every few

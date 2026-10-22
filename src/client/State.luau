@@ -16,6 +16,7 @@ export type Session = {
 	lore: number,
 	distance: number,
 }
+export type LobbyEntry = { userId: number, name: string, stage: string, ready: boolean }
 export type ServerState = {
 	stage: string,
 	phase: string,
@@ -43,6 +44,7 @@ export type ServerState = {
 	dailyDay: number,
 	dailyDone: boolean,
 	runActive: boolean,
+	lobby: { LobbyEntry }, -- everyone on this server (the Play Together screen)
 	session: Session,
 }
 export type Meta = {
@@ -81,6 +83,7 @@ State.server = {
 	dailyDay = 0,
 	dailyDone = false,
 	runActive = false,
+	lobby = {},
 	session = { static = 0, levels = 0, catches = 0, lore = 0, distance = 0 },
 } :: ServerState
 
