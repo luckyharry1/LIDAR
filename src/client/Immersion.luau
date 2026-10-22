@@ -294,10 +294,14 @@ function Immersion.start()
 			comeUp(false)
 			return
 		end
-		if server.stage ~= "level" and server.stage ~= "lore" then
+		if server.stage ~= "level" and server.stage ~= "lore" and server.stage ~= "passage" then
 			return
 		end
 		applyMood(server.tier)
+		if server.stage == "passage" then
+			-- A stairwell rings: long echo, ambience slowed, the floor's drips dry.
+			Audio.setMood(0.8, 0.4, Enum.ReverbType.Cave)
+		end
 		local arrived = server.epoch ~= previous.epoch
 			or server.stage ~= previous.stage and previous.stage ~= "downed"
 		if arrived then

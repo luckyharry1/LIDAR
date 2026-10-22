@@ -256,7 +256,7 @@ local function update(dt: number)
 		end
 	end
 
-	updateMates(eye, inLevel or State.server.stage == "lore")
+	updateMates(eye, inLevel or State.server.stage == "lore" or State.server.stage == "passage")
 
 	local target = 0
 	if inLevel then

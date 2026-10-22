@@ -390,3 +390,19 @@ Only what has actually been run is listed as verified.
   them on arrival (1 s and 3 s, while the level streams in) and `Lidar.onSeen` brings back
   everything within 16 studs of a part the local gun lands on, with its lights. Client only;
   a teammate's scan reveals them for you too (relayed rays go through `Lidar.onSeen`). Revealed recorders still light up as before.
+
+## Stairwell between places (22 Oct, cloud thread; nothing seen in Studio)
+- `server/Passage.luau` builds a 7-wide flight of 28 steps (0.9 drop, 2.6 run) with landings, side
+  and end walls and a sloped ceiling at (0, 0, -1500), all invisible like the maze, with one dim
+  warm lamp (objective-tagged, so a scan shows it gold) on the end wall at the bottom.
+- `Director.walkPassage(next)`: after a level's exit (and after a haven's "Continue") the party
+  gets stage `passage`, is placed at the top, and walks down. Someone reaching the bottom (5 studs
+  of `endPosition`) sends the "exit" objective (client fades to black, sound dulls), then after
+  `transitionSeconds` `next()` builds the haven or the next level and everyone is carried on.
+  A 150 s cap carries on a party that never reaches the bottom; `endRunIfEmpty` frees the model.
+  Late joiners wait (phase stays `transition`).
+- New stage `passage`: Lidar, Viewmodel, Presence and Immersion accept it; Immersion gives it a
+  cave reverb. No enemies or hazards run there.
+- Check in Studio: stairs climbable at 0.9 rise (the Humanoid should step them), nobody stuck on
+  the top landing, the lamp visible from the stairs, the bottom trigger firing, leaving mid-walk,
+  two players with one far behind, the 3 s black at the end of the walk.
