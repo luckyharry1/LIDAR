@@ -56,7 +56,7 @@ local clearCard: Frame
 local clearCardBody: TextLabel
 local reportBody: TextLabel
 local boardBody: TextLabel
-local settingsRows: Frame
+local settingsRows: ScrollingFrame
 local guideBody: TextLabel
 local startRequested = false
 local noteQueue: { { title: string, body: string } } = {}
@@ -590,7 +590,7 @@ local function refreshSettings()
 	local function row(label: string, value: string, onPress: () -> ())
 		order += 1
 		local frame = Ui.new("Frame", {
-			Size = UDim2.new(1, 0, 0, 36),
+			Size = UDim2.new(1, -8, 0, 36),
 			BackgroundTransparency = 1,
 			LayoutOrder = order,
 			Parent = settingsRows,
@@ -637,6 +637,9 @@ local function refreshSettings()
 			Menus.applyCosmetics()
 		end
 	)
+	row("FRIENDS", "INVITE", function()
+		Menus.invite()
+	end)
 	row("FREEZE DOTS (PHOTO)", if Dots.isFrozen() then "FROZEN" else "LIVE", function()
 		Dots.setFrozen(not Dots.isFrozen())
 	end)
@@ -645,10 +648,15 @@ end
 local function buildSettings()
 	local frame = window("settings", 560, 380)
 	heading(frame, "SETTINGS")
-	settingsRows = Ui.new("Frame", {
+	settingsRows = Ui.new("ScrollingFrame", {
 		Position = UDim2.fromOffset(0, 44),
 		Size = UDim2.new(1, 0, 1, -100),
 		BackgroundTransparency = 1,
+		BorderSizePixel = 0,
+		ScrollBarThickness = 4,
+		ScrollingDirection = Enum.ScrollingDirection.Y,
+		AutomaticCanvasSize = Enum.AutomaticSize.Y,
+		CanvasSize = UDim2.new(),
 		Parent = frame,
 	}, { Ui.list(Enum.FillDirection.Vertical, 4) })
 	closeButton(frame, "settings", "DONE")

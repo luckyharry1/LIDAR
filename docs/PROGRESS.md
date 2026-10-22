@@ -379,6 +379,11 @@ exit; on the home screen text overlapped; there was no way to play with others f
   who is ready with you (each goes through `onStart`, so a player who never did the intake does it
   first and then joins). While a run is going the button says JOIN THEM. The server is still the
   party: anyone on it plays the same run. State carries `lobby` (userId, name, stage, ready).
+- Intake together (Vasco: friends should work out the mechanics together): there is one shared
+  intake room per server. Anyone who starts the intake while someone is inside joins that room,
+  and GO IN puts the whole crew in it when anyone is new. Opening its door takes everyone inside
+  through together (the first builds the level, the rest wait for it and drop in). Settings has a
+  FRIENDS / INVITE row, and the rows scroll.
 - Not built: a private/solo server (reserving a server needs a published place; `Party.luau` has
   the lobby/teleport path for that), a party leader, kicking.
 
