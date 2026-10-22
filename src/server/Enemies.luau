@@ -87,7 +87,8 @@ end
 function Enemies.spawn(
 	level: World.Level,
 	getSources: () -> { EnemyBrain.Source },
-	onCaught: (enemy: EnemyBrain.Enemy, sourceId: number) -> ()
+	onCaught: (enemy: EnemyBrain.Enemy, sourceId: number) -> (),
+	skip: { [string]: boolean }? -- kinds left out of this level
 )
 	Enemies.clear()
 	local plan = level.plan
@@ -96,6 +97,9 @@ function Enemies.spawn(
 	folder.Parent = level.model
 	local runtimes: { Runtime } = {}
 	for _, spawn in plan.enemies do
+		if skip ~= nil and skip[spawn.kind] then
+			continue
+		end
 		local brain = EnemyBrain.new(
 			spawn.id,
 			spawn.kind,
