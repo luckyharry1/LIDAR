@@ -21,6 +21,7 @@ local SoundService = game:GetService("SoundService")
 local Avatar = require(script.Parent.Avatar)
 local Config = require(ReplicatedStorage.Shared.Config)
 local Lidar = require(script.Parent.Lidar)
+local Reach = require(script.Parent.Reach)
 local State = require(script.Parent.State)
 local Ui = require(script.Parent.Ui)
 
@@ -435,7 +436,7 @@ local function measureNearest(): number
 	for model, voice in voices do
 		-- A Mimic that is still pretending gives nothing away: no breath, no heartbeat.
 		if not CollectionService:HasTag(model, Config.Tags.disguised) then
-			closest = math.min(closest, (voice.root.Position - position).Magnitude)
+			closest = math.min(closest, Reach.distance(position, voice.root.Position))
 		end
 	end
 	return closest

@@ -444,3 +444,13 @@ progression between runs and room for monetization; then a faint pull towards un
   0.78 transparency if they vanish), the meter text fits, sweep denied at 0 without a sound glitch,
   a double cell's dots, the server and client counts staying in step, and how often players run
   dry (cells per tier is the knob).
+- Doorways (22 Oct, Vasco: "there's still the exit door"): the level exit and the haven's way on
+  are open doorways now. `Director.watchDoorway` polls who stands within 2.5 studs in front of the
+  door panel; walking in starts the leave (no prompt). A locked level exit toasts at most every
+  4 s. The level door lost its handle and no longer collides; the haven's exit panel is a black
+  gap that does not collide. The step through takes 1 s (`DOORWAY_LEAVE_SECONDS`, also the wait
+  at the bottom of the stairwell) and the client fade-out is 0.8 s.
+- Red aura with no monster near (Vasco): the aura, heartbeat, sting, FOV narrowing and light
+  flicker used the straight line, so a monster in the next corridor through a wall counted as
+  close. `client/Reach.distance` now uses the walk through the maze (BFS over open sides from the
+  player's cell, cached per cell); same or next cell keeps the straight line.

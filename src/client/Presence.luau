@@ -18,6 +18,7 @@ local Audio = require(script.Parent.Audio)
 local Config = require(ReplicatedStorage.Shared.Config)
 local Dots = require(script.Parent.Dots)
 local Hud = require(script.Parent.Hud)
+local Reach = require(script.Parent.Reach)
 local State = require(script.Parent.State)
 local Ui = require(script.Parent.Ui)
 
@@ -249,7 +250,8 @@ local function update(dt: number)
 			continue
 		end
 		local distance = (walker.root.Position - eye).Magnitude
-		closest = math.min(closest, distance)
+		-- The aura follows the walk through the maze, not the line through the wall.
+		closest = math.min(closest, Reach.distance(eye, walker.root.Position))
 		stepWalker(walker, walker.root.Position, eye)
 		if distance <= tracks.mistRange then
 			breathe(walker, now)
