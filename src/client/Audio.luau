@@ -235,8 +235,8 @@ function Audio.setLit(value: boolean)
 end
 
 -- Per-floor sound: the ambience's pitch, how much the drips carry, and the room's echo.
-function Audio.setMood(speed: number, drips: number, reverb: Enum.ReverbType)
-	moodSpeed, moodDrips, moodReverb = speed, drips, reverb
+function Audio.setMood(speed: number, dripScale: number, reverb: Enum.ReverbType)
+	moodSpeed, moodDrips, moodReverb = speed, dripScale, reverb
 end
 
 -- Dulls everything (a lowpass) while the screen goes black between levels.

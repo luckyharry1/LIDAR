@@ -175,11 +175,9 @@ local function flickerLights(camera: Camera, threat: number, now: number)
 	local here = camera.CFrame.Position
 	for light, base in baseBrightness do
 		local holder = light.Parent
-		if light.Parent == nil or not holder or not holder:IsA("BasePart") then
+		if holder == nil or not holder:IsA("BasePart") then
 			baseBrightness[light] = nil
-		elseif threat < FLICKER_THREAT then
-			light.Brightness = base
-		elseif (holder.Position - here).Magnitude <= FLICKER_RANGE then
+		elseif threat >= FLICKER_THREAT and (holder.Position - here).Magnitude <= FLICKER_RANGE then
 			-- Deterministic stutter per light: some frames dim, a few cut out completely.
 			local wave = math.sin(now * (9 + threat * 14) + holder.Position.X)
 			local cut = math.sin(now * 3.1 + holder.Position.Z) > 1 - threat * 0.9
