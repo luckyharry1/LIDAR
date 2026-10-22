@@ -518,3 +518,12 @@ progression between runs and room for monetization; then a faint pull towards un
   some real progression"; keep the batteries standing out): scatter 260 dots/s (Emitter +120 x5 to
   860), reach 65 studs (Range Coil +21 x4 to 149), sweep 44x56 (Sweep Grid 60x76, 76x96, 90x114),
   widest cone 34 degrees without Wide Lens (was 40), dot budget 14k/42k/85k. Lure unchanged.
+- Descend pop-up (Vasco: the hold prompt "only adds a step"): the doorway prompt (press E, no
+  hold, "Look down") now asks over the net (`AskDescend`); the client shows a small panel low on
+  the screen (`Menus` window "descend", backdrop 90% clear) with GO DOWN / NOT YET and answers with
+  `Descend(yes)`. The server keeps one pending ask per player (`doorwayAsk`) and re-checks
+  that the doorway is still live and the player still near before leaving. The stairwell is
+  drawn now (dark concrete, a dim emergency lamp every four steps, a brighter one at the bottom)
+  so it stays in view behind the pop-up and the walk is one place, not a cut.
+- Posters no longer flash near monsters: `Immersion.refreshLights` skips lights on hidden
+  `Marker` parts (poster and recorder glows).
