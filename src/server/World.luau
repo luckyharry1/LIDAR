@@ -715,12 +715,6 @@ local function buildExit(
 		cframe = base * CFrame.new(0, DOOR_SIZE.Y + 0.4, 0),
 		parent = model,
 	})
-	Build.part({
-		name = "Handle",
-		size = Vector3.new(0.3, 0.9, 0.5),
-		cframe = base * CFrame.new(DOOR_SIZE.X / 2 - 0.7, 4, -0.4),
-		parent = model,
-	})
 	local prompt = Build.prompt(door, "Open", "Exit", 0.4)
 	return door, prompt
 end

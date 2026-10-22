@@ -17,7 +17,7 @@ local State = require(script.Parent.State)
 
 type Mood = { tint: Color3, speed: number, drips: number, reverb: Enum.ReverbType }
 
-local FADE_OUT_SECONDS = 2.4
+local FADE_OUT_SECONDS = 0.8 -- quick: it is a step through a doorway into the dark
 local FADE_IN_SECONDS = 2.2
 local FADE_GIVE_UP_SECONDS = 9 -- the black never outstays a lost message
 local THREAT_FOV_NARROWING = 7 -- degrees lost when something is on top of you

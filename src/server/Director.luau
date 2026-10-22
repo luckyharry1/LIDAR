@@ -65,6 +65,10 @@ type Collected = { key: boolean, cells: number, rescues: number, plate: boolean,
 type Decoy = { x: number, z: number, noise: number, expires: number }
 
 local CELL = Config.World.cellSize
+local DOORWAY_POLL_SECONDS = 0.15
+local DOORWAY_DEPTH = 2.5 -- how far in front of the doorway's plane counts as walking into it
+local DOORWAY_LEAVE_SECONDS = 1 -- the step through: the screen is black by then
+local LOCKED_TOAST_SECONDS = 4
 local PASSAGE_ORIGIN = Vector3.new(0, 0, -1500)
 local PASSAGE_END_RADIUS = 5
 local PASSAGE_MAX_SECONDS = 150 -- someone who never reaches the bottom is carried on anyway
@@ -655,6 +659,40 @@ local function levelSeed(tier: number): number
 	return (run.seedBase + tier * SEED_STEP) % (SEED_SPAN - 1) + 1
 end
 
+-- Watches an exit doorway while `alive()` holds. Anyone of `stage` (default "level") who walks
+-- into it calls `enter`, which returns true once the party is leaving.
+local function watchDoorway(
+	door: BasePart,
+	alive: () -> boolean,
+	enter: (player: Player) -> boolean,
+	stage: Stage?
+)
+	local wanted = stage or "level"
+	door.CanCollide = false
+	task.spawn(function()
+		while alive() and door.Parent ~= nil do
+			for player, member in members do
+				local root = rootOf(player)
+				if member.stage == wanted and root then
+					local localPoint = door.CFrame:PointToObjectSpace(root.Position)
+					local half = door.Size / 2
+					if
+						math.abs(localPoint.X) <= half.X + 0.5
+						and math.abs(localPoint.Z) <= DOORWAY_DEPTH
+						and localPoint.Y >= -half.Y - 2
+						and localPoint.Y <= half.Y
+					then
+						if enter(player) then
+							return
+						end
+					end
+				end
+			end
+			task.wait(DOORWAY_POLL_SECONDS)
+		end
+	end)
+end
+
 local function beginLevel(tier: number)
 	run.phase = "transition"
 	run.epoch += 1
@@ -687,27 +725,24 @@ local function beginLevel(tier: number)
 		wirePickup(level, pickup)
 	end
 	local leaving = false
-	level.exitPrompt.Triggered:Connect(function(player: Player)
-		local member = members[player]
-		if
-			leaving
-			or member == nil
-			or member.stage ~= "level"
-			or run.level ~= level
-			or not nearEnough(player, level.exitDoor)
-		then
-			return
-		end
+	-- The exit is an open doorway into the stairwell: walking into it leaves, for everyone.
+	level.exitPrompt.Enabled = false
+	local lockedToastAt: { [Player]: number } = {}
+	watchDoorway(level.exitDoor, function()
+		return run.level == level
+	end, function(player: Player): boolean
 		if level.plan.exitLocked and not run.collected.key then
-			toast(
-				player,
-				`Locked. Something on this level opens it: the {gateTitle(level.plan)}.`,
-				"warn"
-			)
-			return
+			local now = os.clock()
+			if now - (lockedToastAt[player] or -math.huge) >= LOCKED_TOAST_SECONDS then
+				lockedToastAt[player] = now
+				toast(
+					player,
+					`Locked. Something on this level opens it: the {gateTitle(level.plan)}.`,
+					"warn"
+				)
+			end
+			return false
 		end
-		leaving = true
-		level.exitPrompt.Enabled = false
 		toastStage("Exit found. Leaving together.", "good", "level", "downed")
 		for otherPlayer, other in members do
 			if inLevel(other) then
@@ -719,11 +754,12 @@ local function beginLevel(tier: number)
 				)
 			end
 		end
-		task.delay(Config.World.transitionSeconds, function()
+		task.delay(DOORWAY_LEAVE_SECONDS, function()
 			if run.level == level then
 				completeLevel()
 			end
 		end)
+		return true
 	end)
 
 	if Config.Monetization.surveyorKitPassId ~= 0 then
@@ -830,16 +866,23 @@ local function enterLore(roomId: string, nextTier: number)
 			Remotes.send(player, "OpenBench")
 		end
 	end)
-	local leaving = false
-	lore.exitPrompt.Triggered:Connect(function(player: Player)
-		local member = members[player]
-		if leaving or member == nil or member.stage ~= "lore" or run.lore ~= lore then
-			return
-		end
-		leaving = true
-		lore.exitPrompt.Enabled = false
+	-- The way on is an open doorway in the dark: walking through it leaves the haven.
+	lore.exitPrompt.Enabled = false
+	watchDoorway(lore.exitPrompt.Parent :: BasePart, function()
+		return run.lore == lore
+	end, function(): boolean
 		toastStage("Lights off behind you. Heading back in.", "info", "lore")
-		task.delay(Config.World.transitionSeconds, function()
+		for otherPlayer, other in members do
+			if other.stage == "lore" then
+				Remotes.send(
+					otherPlayer,
+					"Objective",
+					"exit",
+					{ position = lore.spawnCFrame.Position, by = 0 }
+				)
+			end
+		end
+		task.delay(DOORWAY_LEAVE_SECONDS, function()
 			if run.lore == lore then
 				run.mode = "run"
 				local tier = run.nextTier
@@ -848,7 +891,8 @@ local function enterLore(roomId: string, nextTier: number)
 				end)
 			end
 		end)
-	end)
+		return true
+	end, "lore")
 
 	for player, member in members do
 		if inLevel(member) or member.stage == "passage" then
@@ -935,7 +979,7 @@ function Director.walkPassage(next: () -> ())
 				)
 			end
 		end
-		task.wait(Config.World.transitionSeconds)
+		task.wait(DOORWAY_LEAVE_SECONDS)
 		if run.passage ~= passage then
 			return
 		end
