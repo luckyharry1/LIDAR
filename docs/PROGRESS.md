@@ -269,7 +269,10 @@ Lidar.ignore(instance: Instance)                       -- never hit this with ra
 Lidar.onBatch(listener: (count: number, meanDistance: number, enemy: boolean, friend: boolean, objective: boolean) -> ())
 Lidar.onSweep(listener: () -> ())                      -- the local player's sweep fired
 Lidar.onRadar(listener: () -> ())                      -- the Pulse Radar fired
-Lidar.recharge()                                       -- a battery cell: sweep is ready now
+Lidar.charges: number       -- sweep charges in the gun (predicted; State.server.charges is the truth)
+Lidar.freeSweeps: boolean   -- outside a level sweeps cost nothing
+Lidar.trickle: number       -- 0..1 Trickle Charger progress
+Lidar.onDenied(listener: () -> ())                     -- a sweep was asked for with no charge
 Lidar.cast(look: CFrame, count: number, halfAngleDeg: number, params: RaycastParams)
     -- Rays from anywhere, no sound, no reporting: the title screen's backdrop.
 Lidar.start()
@@ -390,3 +393,35 @@ Only what has actually been run is listed as verified.
   them on arrival (1 s and 3 s, while the level streams in) and `Lidar.onSeen` brings back
   everything within 16 studs of a part the local gun lands on, with its lights. Client only;
   a teammate's scan reveals them for you too (relayed rays go through `Lidar.onSeen`). Revealed recorders still light up as before.
+
+## Scanner power and battery cells (22 Oct, cloud thread, branch `claude/scanner-progression`; nothing seen in Studio)
+Vasco asked for a weaker base scanner, sweeps earned through battery cells (1 or 2 each), more
+progression between runs and room for monetization; then a faint pull towards unscanned finds.
+- Base scanner is weaker and grows with the bench (`Progression.effects`): scatter 380 dots/s
+  (Emitter +100 x5), reach 85 studs (Range Coil +16 x4, cap `maxRange` 150), sweep grid 56x70
+  (Sweep Grid up to 90x114), dot budget 18k/55k/110k (Phosphor +25% x4). Teammates' relayed
+  scans are drawn at the local player's reach and the base rate and grid.
+- Sweeps cost a charge in a level (free in the tutorial and havens). The timed recharge is gone.
+  `Config.Battery`: capacity 3 (+1 per Capacitor level; the id stays `battery`), 1 at the start of
+  a run (+1 per Spare Cell), 30% of cells give 2, a charge that does not fit pays 6 Static,
+  Trickle Charger 150/110/80 s per charge (times the tier's `sweepScale`). The server owns the
+  count (`Member.charges`, sent as `State.server.charges`); it spends one on the rising edge of
+  `scanSweeping` and ignores a sweep it has no charge for. The client predicts and shows
+  `SWEEP n/cap` (or `SWEEP 0 - FIND A CELL`, flashing when denied); the first denied sweep shows
+  the `item.cell` hint.
+- Cells: `Tiers.batteries` (4,4,4,3,3,3,3,3; endless one fewer every 6 floors, min 2) placed by
+  `LevelPlan` as `cell` objectives with `charges`; the first near the start, the rest prefer
+  dead ends. Optional objectives are now surveyors only (from tier 2). A double cell is two
+  cylinders. A cell goes to whoever picks it up.
+- New upgrades: `emitter`, `range`, `grid`, `spare`, `trickle`; bench order is scanner, battery,
+  tools. Scanner plus battery rows cost about 3,100 Static. `cellBonus` 12 -> 5.
+- `client/Lure` (new): unscanned cells and story things (`EchoKind` recorder, reveal, sign; set
+  in `World.newEcho`) give off faint warm motes (ParticleEmitter, about one a second, 0.05 studs,
+  mostly transparent) within 30 studs and in line of sight; the first ray that lands on one stops
+  it for good. Distinct from the gold found-item pulse in `Immersion`.
+- `docs/MONETIZATION.md` (new): what could be sold and what never should be. No purchases added.
+- Dev: `charges N`.
+- Check in Studio: motes visible but subtle at 1080p and on a phone (raise `Brightness` or the
+  0.78 transparency if they vanish), the meter text fits, sweep denied at 0 without a sound glitch,
+  a double cell's dots, the server and client counts staying in step, and how often players run
+  dry (cells per tier is the knob).

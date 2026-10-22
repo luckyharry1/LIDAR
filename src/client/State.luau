@@ -25,7 +25,10 @@ export type ServerState = {
 	seed: number,
 	epoch: number,
 	origin: Vector3,
-	sweepScale: number, -- above 1 the sweep recharges more slowly on this level
+	sweepScale: number, -- above 1 the Trickle Charger is slower on this level
+	charges: number, -- sweep charges in the gun (the server's count)
+	sweepsFree: boolean, -- true outside a level (tutorial, havens): sweeps cost nothing
+	trickle: number, -- 0..1 Trickle Charger progress when this state was sent
 	forcedAnomaly: string,
 	allowPlate: boolean,
 	locked: boolean,
@@ -64,6 +67,9 @@ State.server = {
 	epoch = 0,
 	origin = Vector3.zero,
 	sweepScale = 1,
+	charges = 0,
+	sweepsFree = true,
+	trickle = 0,
 	forcedAnomaly = "",
 	allowPlate = false,
 	locked = false,

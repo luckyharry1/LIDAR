@@ -153,6 +153,13 @@ function Tutorial.start()
 			once("tier" .. tier, text)
 		end
 	end)
+	-- The first time a sweep is asked for with an empty battery.
+	Lidar.onDenied(function()
+		once(
+			"cells",
+			poster("item.cell", "The sweep runs on battery cells. Scan the dark for them")
+		)
+	end)
 	Lidar.onSweep(function()
 		if step == "sweep" then
 			setStep("find")

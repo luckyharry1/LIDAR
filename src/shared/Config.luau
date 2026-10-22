@@ -6,21 +6,26 @@ local Config = {}
 
 Config.SaveVersion = 2
 
--- The LIDAR gun. Left click scatters a fast stream of tiny, permanent dots inside a cone;
--- right click fires one loud top-to-bottom sweep that draws a whole grid at once.
+-- The LIDAR gun. Left click scatters a stream of tiny, permanent dots inside a cone; right
+-- click fires one loud top-to-bottom sweep that draws a whole grid at once. The scatter is
+-- free but starts weak; the sweep costs a battery charge (Config.Battery). Bench upgrades
+-- (data/Upgrades, Progression.effects) raise the base numbers below towards their caps.
 Config.Lidar = {
-	dotsPerSecond = 900, -- scatter rate
+	dotsPerSecond = 380, -- base scatter rate; the Emitter upgrade adds emitterDotsPerLevel
+	emitterDotsPerLevel = 100, -- five levels: 380 up to 880
 	coneHalfAngleDeg = 26, -- default spread
 	coneMinDeg = 8, -- the scroll wheel narrows the spread down to this
 	coneMaxDeg = 40, -- and widens it up to this
 	coneMaxWideDeg = 56, -- with the Wide Lens upgrade
 	coneStepDeg = 4,
-	maxRange = 150, -- studs
+	baseRange = 85, -- studs the scatter and sweep reach before upgrades
+	rangePerLevel = 16, -- the Range Coil upgrade adds this per level (four levels: 149)
+	maxRange = 150, -- studs; the hard cap, also what the server allows for pings and reveals
 
 	-- How many permanent dots the world can hold, by the quality setting. When the budget is
 	-- full the oldest dot is reused, so the live count can never exceed it.
-	dotBudget = { low = 30000, medium = 100000, high = 200000 },
-	budgetPerPhosphorLevel = 0.15, -- the Phosphor upgrade adds this share per level
+	dotBudget = { low = 18000, medium = 55000, high = 110000 },
+	budgetPerPhosphorLevel = 0.25, -- the Phosphor upgrade adds this share per level (four: x2)
 	fadingDots = 1600, -- separate small pool for dots that fade (people, monsters, footprints)
 
 	dotSize = 0.01, -- studs at close range
@@ -49,13 +54,13 @@ Config.Lidar = {
 	fadeStagger = 3, -- each fading dot is refreshed every N frames
 	mimicDotDelay = 0.35, -- the Mimic's tell: its dots land late
 
-	sweepRows = 90, -- lines in one sweep
-	sweepColumns = 114, -- rays per line
+	-- Lines in one sweep and rays per line, by Sweep Grid upgrade level (0 to 3).
+	sweepRowsByLevel = { 56, 68, 80, 90 },
+	sweepColumnsByLevel = { 70, 86, 100, 114 },
 	sweepSeconds = 1.3, -- time from the top line to the bottom line
 	sweepUpDeg = 30,
 	sweepDownDeg = 36,
 	sweepHalfWidthDeg = 46,
-	sweepRechargeSeconds = 7,
 
 	radarSeconds = { 8, 5 }, -- Pulse Radar interval by upgrade level
 	radarRays = 240,
@@ -68,6 +73,18 @@ Config.Lidar = {
 	teammateShare = 0.6, -- teammates' scanners are redrawn locally at this share of the rate
 	scanStateHz = 8, -- how often the client reports its scan state to the server
 	echoRevealHits = 140, -- dots that must land on a hidden object before it reveals itself
+}
+
+-- Battery cells. The sweep is the strong scan and every one costs a charge in a level; the
+-- scatter stays free so nobody is ever fully blind. Cells are hidden in each level (most in
+-- dead ends) and give 1 or 2 charges. Charges carry from level to level within a run.
+-- Sweeps in the tutorial and in havens are free.
+Config.Battery = {
+	startCharges = 1, -- charges at the start of a run
+	baseCapacity = 3, -- most charges the gun holds; the Capacitor upgrade adds one per level
+	doubleChance = 0.3, -- share of cells that give 2 charges instead of 1
+	overflowStatic = 6, -- a charge that does not fit is paid out as Static instead
+	trickleSeconds = { 150, 110, 80 }, -- Trickle Charger: one charge back every N s in a level
 }
 
 -- Footprints and breath: how monsters and teammates give themselves away.
@@ -202,7 +219,7 @@ Config.Coop = {
 }
 
 Config.Economy = {
-	cellBonus = 12, -- Static per battery cell collected
+	cellBonus = 5, -- Static per battery cell collected (there are 3 to 4 a level now)
 	rescueBonus = 30,
 	cleanClearMultiplier = 1.3, -- bonus for clearing without being caught
 	loreNoteBonus = 8,
@@ -291,6 +308,7 @@ Config.Audio = {
 }
 
 -- Monetisation placeholders. Zero means "not configured"; the game runs fine without them.
+-- The plan for what could be sold, and what never should be, is in docs/MONETIZATION.md.
 Config.Monetization = {
 	surveyorKitPassId = 0, -- convenience pass: a mid-level checkpoint beacon
 	cosmeticPackProductId = 0,
