@@ -429,3 +429,7 @@ progression between runs and room for monetization; then a faint pull towards un
   0.78 transparency if they vanish), the meter text fits, sweep denied at 0 without a sound glitch,
   a double cell's dots, the server and client counts staying in step, and how often players run
   dry (cells per tier is the knob).
+- Weaker again (22 Oct, Vasco: "the scanner can start being a little less powerful, so there's
+  some real progression"; keep the batteries standing out): scatter 260 dots/s (Emitter +120 x5 to
+  860), reach 65 studs (Range Coil +21 x4 to 149), sweep 44x56 (Sweep Grid 60x76, 76x96, 90x114),
+  widest cone 34 degrees without Wide Lens (was 40), dot budget 14k/42k/85k. Lure unchanged.

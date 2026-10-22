@@ -11,20 +11,20 @@ Config.SaveVersion = 2
 -- free but starts weak; the sweep costs a battery charge (Config.Battery). Bench upgrades
 -- (data/Upgrades, Progression.effects) raise the base numbers below towards their caps.
 Config.Lidar = {
-	dotsPerSecond = 380, -- base scatter rate; the Emitter upgrade adds emitterDotsPerLevel
-	emitterDotsPerLevel = 100, -- five levels: 380 up to 880
+	dotsPerSecond = 260, -- base scatter rate; the Emitter upgrade adds emitterDotsPerLevel
+	emitterDotsPerLevel = 120, -- five levels: 260 up to 860
 	coneHalfAngleDeg = 26, -- default spread
 	coneMinDeg = 8, -- the scroll wheel narrows the spread down to this
-	coneMaxDeg = 40, -- and widens it up to this
+	coneMaxDeg = 34, -- and widens it up to this
 	coneMaxWideDeg = 56, -- with the Wide Lens upgrade
 	coneStepDeg = 4,
-	baseRange = 85, -- studs the scatter and sweep reach before upgrades
-	rangePerLevel = 16, -- the Range Coil upgrade adds this per level (four levels: 149)
+	baseRange = 65, -- studs the scatter and sweep reach before upgrades
+	rangePerLevel = 21, -- the Range Coil upgrade adds this per level (four levels: 149)
 	maxRange = 150, -- studs; the hard cap, also what the server allows for pings and reveals
 
 	-- How many permanent dots the world can hold, by the quality setting. When the budget is
 	-- full the oldest dot is reused, so the live count can never exceed it.
-	dotBudget = { low = 18000, medium = 55000, high = 110000 },
+	dotBudget = { low = 14000, medium = 42000, high = 85000 },
 	budgetPerPhosphorLevel = 0.25, -- the Phosphor upgrade adds this share per level (four: x2)
 	fadingDots = 1600, -- separate small pool for dots that fade (people, monsters, footprints)
 
@@ -55,8 +55,8 @@ Config.Lidar = {
 	mimicDotDelay = 0.35, -- the Mimic's tell: its dots land late
 
 	-- Lines in one sweep and rays per line, by Sweep Grid upgrade level (0 to 3).
-	sweepRowsByLevel = { 56, 68, 80, 90 },
-	sweepColumnsByLevel = { 70, 86, 100, 114 },
+	sweepRowsByLevel = { 44, 60, 76, 90 },
+	sweepColumnsByLevel = { 56, 76, 96, 114 },
 	sweepSeconds = 1.3, -- time from the top line to the bottom line
 	sweepUpDeg = 30,
 	sweepDownDeg = 36,
