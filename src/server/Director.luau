@@ -724,7 +724,6 @@ local function beginLevel(tier: number)
 	for _, pickup in level.pickups do
 		wirePickup(level, pickup)
 	end
-	local leaving = false
 	-- The exit is an open doorway into the stairwell: walking into it leaves, for everyone.
 	level.exitPrompt.Enabled = false
 	local lockedToastAt: { [Player]: number } = {}
