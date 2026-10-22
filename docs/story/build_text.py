@@ -10,7 +10,8 @@ Entry fields: id, kind, section, where, lines, optional speaker, title, glow, no
               thought (Theo's reaction line, subtitled and ideally voiced), look (key in LOOKS),
               vo (voice + delivery).
 Scenes (cutscenes, tapes, dialogue): id, kind, title, where, trigger, beats.
-  beat = {sp, line} spoken, or {shot} a picture/sound direction.
+  beat = {sp, line} spoken, {shot} a picture/sound direction (not shown), or {cap} a caption
+  shown on screen for a couple of seconds.
 Looks: per-area backdrop spec the builder uses when a light ignites.
 Placeholders: {deaths} {floor} {n} {party}. ASCII only.
 """
@@ -183,6 +184,8 @@ def scene(id, kind, title, where, trigger, beats, note=None, look=None):
     for b in beats:
         if b[0] == "~":
             out.append({"shot": b[1]})
+        elif b[0] == "^":
+            out.append({"cap": b[1]})
         else:
             out.append({"sp": b[0], "line": b[1]})
     d = {"id": id, "kind": kind, "title": title, "where": where, "trigger": trigger, "beats": out}
@@ -607,6 +610,8 @@ add("rev.dorm.model", "reveal", "dorm", "Model of the Halden Building",
 # --- OPENING CUTSCENE (plays on New Game; skippable on repeat)
 scene("cs.open", "cutscene", "The Halden Building", "New Game start", "Automatic, once per profile; skippable after first view", [
     ("~", "Black. A single office-night sound: ventilation, a clock, a sprung chair."),
+    ("^", "TUESDAY, 11:42 PM"),
+    ("^", "HALDEN BUILDING, FLOOR 3"),
     ("Theo", "Tuesday, eleven forty-two p.m. Halden Building, floor three."),
     ("Theo", "Corbel and Pike want a full point cloud before the demolition crew arrives."),
     ("~", "Slow track across an empty condemned office floor. Dust. A tripod-mounted scanner sweeps; red laser dots build the room. The sweep is exactly the player's gun, on a bigger scale."),
@@ -616,6 +621,7 @@ scene("cs.open", "cutscene", "The Halden Building", "New Game start", "Automatic
     ("~", "Theo unplugs the tripod, steps backward, and leans a hand on the far wall. His hand sinks in. The wall is not there."),
     ("Theo", "Wait. That's not--"),
     ("~", "The floor goes soft. Fluorescents flare and die. Cut to black. A low electrical hum. Title card: LIDAR."),
+    ("^", "LIDAR"),
     ("~", "Wake. Fluorescent buzz. Theo's POV, blurred, then slowly sharp: damp yellow wallpaper, wet carpet. His handheld scanner is in his hand."),
     ("Theo", "Okay. Okay. Scanner still works. Hands still work."),
     ("Theo", "This is not floor three."),
@@ -884,7 +890,7 @@ def validate():
             strings.append((e["id"] + ".thought", e["thought"]))
     for s in SCENES:
         for b in s["beats"]:
-            strings.append((s["id"], b.get("line") or b.get("shot")))
+            strings.append((s["id"], b.get("line") or b.get("shot") or b.get("cap")))
     for i, ln in strings:
         if not ln.isascii():
             print("NON-ASCII", i, ln)
@@ -935,7 +941,7 @@ def main():
            "export type Entry = {", "\tid: string,", "\tkind: string,", "\tsection: string,", "\twhere: string,", "\tlines: { string },",
            "\tspeaker: string?,", "\ttitle: string?,", "\tglow: { color: string, radius: number, look: string? }?,", "\tnote: string?,",
            "\tthought: string?,", "\tlook: string?,", "\tvo: string?,", "\tlegacy: boolean?,", "}",
-           "export type Beat = { sp: string?, line: string?, shot: string? }",
+           "export type Beat = { sp: string?, line: string?, shot: string?, cap: string? }",
            "export type Scene = { id: string, kind: string, title: string, where: string, trigger: string, beats: { Beat }, note: string?, look: string? }",
            "", "local entries: { Entry } = {"]
     for e in E:
@@ -956,7 +962,7 @@ def main():
     out += ["}", "", "local scenes: { Scene } = {"]
     for s in SCENES:
         beats = ", ".join(
-            "{ " + (("sp = " + luau_str(b["sp"]) + ", line = " + luau_str(b["line"])) if "sp" in b else ("shot = " + luau_str(b["shot"]))) + " }"
+            "{ " + (("sp = " + luau_str(b["sp"]) + ", line = " + luau_str(b["line"])) if "sp" in b else (("cap = " + luau_str(b["cap"])) if "cap" in b else ("shot = " + luau_str(b["shot"])))) + " }"
             for b in s["beats"])
         parts = ["id = " + luau_str(s["id"]), "kind = " + luau_str(s["kind"]), "title = " + luau_str(s["title"]),
                  "where = " + luau_str(s["where"]), "trigger = " + luau_str(s["trigger"]), "beats = { " + beats + " }"]
@@ -1008,7 +1014,9 @@ def main():
             cs.append("- **Note:** " + s["note"])
         cs.append("")
         for b in s["beats"]:
-            if "shot" in b:
+            if "cap" in b:
+                cs.append("> **[caption]** %s" % b["cap"])
+            elif "shot" in b:
                 cs.append("> *[%s]*" % b["shot"])
             else:
                 cs.append("> **%s:** %s" % (b["sp"], b["line"]))

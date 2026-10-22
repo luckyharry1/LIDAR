@@ -1455,7 +1455,15 @@ local function onReveal(player: Player, echoId: number)
 				grant(other, Config.Economy.echoBonus, "Echo")
 				sendProfile(other)
 			end
-			Remotes.send(otherPlayer, "Echo", echo.id, echo.position, speaker, line)
+			Remotes.send(
+				otherPlayer,
+				"Echo",
+				echo.id,
+				echo.position,
+				speaker,
+				line,
+				echo.thought or ""
+			)
 		end
 	end
 	sendStateAll()

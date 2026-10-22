@@ -13,6 +13,14 @@ Status 2026-10-22: v2 written. v1 ("The Understory") is kept in `v1/`.
 | `lore-text.json` | Same data as JSON |
 | `build_text.py` | Source of truth. Edit it and run `python3 build_text.py` |
 
+## In the game (22 Oct, PR luckyharry1/LIDAR#12)
+
+Cards, recorders, manual rules, radio, camp notes, hidden objects, the finale and the end cards
+now read the v2 ids; only lamp-bag tags and a few signs and items still use v1 text. The opening
+cutscene, the orientation tape, Theo's subtitled thoughts, surveyor scenes at the camps and
+the HUD goal are live. Unused so far: tapes 2 to 7 (no screens placed yet), POIs with no prop
+(copier, ticket machine, Pike's table, rope bridge, doorframe), the journal, voice audio.
+
 ## For the build thread
 
 - `LoreText.luau` keeps the v1 API (`get`, `ofKind`) and adds `scene(id)` and `look(key)`.

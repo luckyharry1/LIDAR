@@ -80,8 +80,9 @@ local SPARK_SIZE = 2.6
 local SPARK_SECONDS = 0.3
 local EXIT_NAME = "ExitDoor"
 local ECHO_ATTRIBUTE = "EchoId"
-local LIGHT_ATTRIBUTE = "Light" -- set on lamps and beacons: they reveal on a glance
+local LIGHT_ATTRIBUTE = "Light" -- set on lamps and beacons: they wake after a short scan
 local LIGHT_REFRESH_SECONDS = 2
+local LIGHT_CLEARANCE = 1.2 -- studs: a sight line to a lamp stops this far short of it
 
 local Lidar = {}
 
@@ -286,7 +287,25 @@ local function refreshLightSpots(now: number)
 end
 
 -- The local player's own dots feed the map, the exit needle and hidden recorders.
-local function noteOwnHit(position: Vector3, target: Target, now: number)
+-- Whether a ray from `origin` reaches `spot` without a wall in between (it stops a little short,
+-- so the wall a lamp hangs on does not count). A dot that lands beside a lamp on the far side of
+-- a wall must not wake it.
+local function canSee(origin: Vector3, spot: Vector3, params: RaycastParams): boolean
+	local offset = spot - origin
+	local distance = offset.Magnitude
+	if distance <= LIGHT_CLEARANCE then
+		return true
+	end
+	return workspace:Raycast(origin, offset.Unit * (distance - LIGHT_CLEARANCE), params) == nil
+end
+
+local function noteOwnHit(
+	position: Vector3,
+	target: Target,
+	now: number,
+	origin: Vector3,
+	params: RaycastParams
+)
 	local plan = State.plan
 	if plan ~= nil and State.inLevel() then
 		local relative = (position - State.server.origin) / CELL
@@ -317,7 +336,11 @@ local function noteOwnHit(position: Vector3, target: Target, now: number)
 	-- by finds them: the player does not have to know exactly where they are.
 	refreshLightSpots(now)
 	for id, spot in lightSpots do
-		if id ~= echoId and (position - spot).Magnitude <= lidar.lightReach then
+		if
+			id ~= echoId
+			and (position - spot).Magnitude <= lidar.lightReach
+			and canSee(origin, spot, params)
+		then
 			countEcho(id, lidar.lightRevealHits, now)
 		end
 	end
@@ -372,7 +395,7 @@ local function castRay(
 	stats.friend = stats.friend or (kind == "friend" and not late)
 	stats.objective = stats.objective or kind == "objective"
 	if own then
-		noteOwnHit(position, target, now)
+		noteOwnHit(position, target, now, origin, params)
 		for _, listener in hitListeners do
 			listener(position)
 		end

@@ -33,6 +33,7 @@ export type Echo = {
 	revealed: boolean,
 	lines: { string }, -- what it says when revealed (a recorder's tape is the Director's to pick)
 	glow: Places.Glow?, -- the light it gives off once revealed; nil for a recorder's own lamp
+	thought: string?, -- Theo's reaction, said after the words (hidden objects)
 	anchor: BasePart?, -- where that light hangs
 	dead: boolean, -- a burnt-out lamp-bag: hidden until scanned, then only a dim glow
 }
@@ -568,6 +569,7 @@ local function newEcho(
 		revealed = false,
 		lines = lines,
 		glow = glow,
+		thought = nil,
 		anchor = nil,
 		dead = false,
 	}
@@ -664,6 +666,7 @@ local function buildReveals(
 		model.Name = "Reveal_" .. reveal.id
 		local echo = newEcho(id, "reveal", reveal.cell, model, details.lines, details.glow)
 		echo.anchor = addMarker(model, base * MARKER_OFFSET)
+		echo.thought = details.thought
 		markScannable(model, id, true)
 		Build.hide(model)
 		table.insert(echoes, echo)

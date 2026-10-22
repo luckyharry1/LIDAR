@@ -68,7 +68,7 @@ Config.Lidar = {
 	teammateShare = 0.6, -- teammates' scanners are redrawn locally at this share of the rate
 	scanStateHz = 8, -- how often the client reports its scan state to the server
 	echoRevealHits = 140, -- dots that must land on a hidden object before it reveals itself
-	lightRevealHits = 2, -- dots a lamp or beacon needs to wake: a glance finds a light
+	lightRevealHits = 10, -- dots a lamp, beacon or patch needs to wake: a short scan finds a light
 	lightReach = 9, -- studs: a dot this close to a lamp or beacon counts as a hit on it
 	concealTrigger = 7, -- studs: a dot this close to a hidden lamp-bag patch brings it back
 }

@@ -38,7 +38,7 @@ Net.serverToClient = {
 	"OpenBench", -- ()
 	"OpenNote", -- (title: string, body: string)
 	"Objective", -- (kind: string, detail table) pickups, rescues, key, exit
-	"Echo", -- (echoId: number, position: Vector3, speaker: string, line: string) a recorder spoke
+	"Echo", -- (echoId, position: Vector3, speaker: string, line: string, thought: string?) a recorder spoke
 	"Hazard", -- (kind: "plate" | "pit", position: Vector3, userId: number)
 	"DailyBoard", -- (board table)
 	"Ending", -- (title: string, body: string)

@@ -13,7 +13,7 @@ local LoreText = require("./LoreText")
 
 export type SignAt = "start" | "exit" | "pit" | "plate" | "any"
 export type Glow = { color: { number }, radius: number }
-export type Reveal = { id: string, kit: string, lines: { string }, glow: Glow }
+export type Reveal = { id: string, kit: string, lines: { string }, glow: Glow, thought: string? }
 export type Sign = { id: string, at: SignAt }
 export type TierPlaces = { reveals: { string }, signs: { Sign } }
 
@@ -30,86 +30,90 @@ local Places = {}
 
 -- The prop kit drawn for each hidden object.
 local KITS: { [string]: string } = {
-	["rev.annex.lamp"] = "desklamp",
-	["rev.annex.whiteboard"] = "whiteboard",
-	["rev.annex.kettle"] = "teabags",
-	["rev.annex.coat"] = "coat",
-	["rev.flood.headphones"] = "headphones",
-	["rev.flood.valve"] = "valvestation",
-	["rev.flood.boat"] = "dinghy",
-	["rev.flood.lifering"] = "lifering",
-	["rev.over.greenhouse"] = "growlight",
-	["rev.over.tapcode"] = "tapplate",
-	["rev.over.camp"] = "campstove",
-	["rev.found.camera"] = "camera",
-	["rev.found.stone"] = "cornerstone",
-	["rev.found.chalk"] = "chalkarrows",
+	["poi.l0.desk"] = "desklamp",
+	["poi.l0.whiteboard"] = "whiteboard",
+	["poi.l0.vending"] = "teabags",
+	["poi.l0.coat"] = "coat",
+	["poi.l1.headphones"] = "headphones",
+	["poi.l1.valve"] = "valvestation",
+	["poi.l1.dinghy"] = "dinghy",
+	["poi.l1.lifering"] = "lifering",
+	["poi.l2.tapcode"] = "tapplate",
+	["poi.l2.chart"] = "cardindex",
+	["poi.l2.gurney"] = "pottingbench",
+	["poi.l2.pa"] = "growlight",
+	["poi.l3.camera"] = "camera",
+	["poi.l3.crystal"] = "growlight",
+	["poi.l4.stone"] = "cornerstone",
+	["poi.l4.chalk"] = "chalkarrows",
 }
 
 -- Per tier: hidden objects (one own cell each) and signs (on a wall, in the cell they name).
 Places.tiers = {
 	[1] = {
-		reveals = { "rev.annex.lamp", "rev.annex.whiteboard" },
+		reveals = { "poi.l0.desk", "poi.l0.whiteboard" },
 		signs = {
-			{ id = "sign.intake.1", at = "start" },
-			{ id = "sign.intake.2", at = "start" },
-			{ id = "sign.intake.5", at = "start" },
-			{ id = "sign.annex.1", at = "any" },
+			{ id = "plaque.l0", at = "start" },
+			{ id = "rule.04", at = "start" },
+			{ id = "rule.03", at = "start" },
+			{ id = "rule.02", at = "any" },
 		},
 	},
 	[2] = {
-		reveals = { "rev.annex.kettle", "rev.annex.coat" },
+		reveals = { "poi.l0.vending", "poi.l0.coat" },
 		signs = {
-			{ id = "sign.annex.2", at = "any" },
-			{ id = "sign.annex.3", at = "any" },
+			{ id = "rule.05", at = "any" },
+			{ id = "rule.06", at = "any" },
 			{ id = "sign.pit.1", at = "pit" },
 		},
 	},
 	[3] = {
-		reveals = { "rev.flood.headphones", "rev.flood.valve" },
+		reveals = { "poi.l1.headphones", "poi.l1.valve" },
 		signs = {
-			{ id = "sign.flood.1", at = "any" },
+			{ id = "plaque.l1", at = "start" },
+			{ id = "rule.07", at = "any" },
 			{ id = "sign.plate.1", at = "plate" },
 			{ id = "sign.flood.grate", at = "pit" },
 		},
 	},
 	[4] = {
-		reveals = { "rev.flood.boat", "rev.flood.lifering" },
+		reveals = { "poi.l1.dinghy", "poi.l1.lifering" },
 		signs = {
-			{ id = "sign.flood.2", at = "any" },
 			{ id = "rule.09", at = "any" },
+			{ id = "rule.08", at = "any" },
 			{ id = "sign.plate.1", at = "plate" },
 		},
 	},
 	[5] = {
-		reveals = { "rev.over.greenhouse", "rev.over.tapcode" },
+		reveals = { "poi.l2.tapcode", "poi.l2.chart" },
 		signs = {
-			{ id = "sign.over.1", at = "any" },
-			{ id = "sign.over.2", at = "any" },
+			{ id = "plaque.l2", at = "start" },
+			{ id = "rule.08", at = "any" },
 			{ id = "sign.pit.2", at = "pit" },
 			{ id = "sign.plate.2", at = "plate" },
 		},
 	},
 	[6] = {
-		reveals = { "rev.over.camp" },
+		reveals = { "poi.l2.gurney", "poi.l2.pa" },
 		signs = {
-			{ id = "sign.over.1", at = "any" },
+			{ id = "rule.10", at = "any" },
 			{ id = "sign.pit.2", at = "pit" },
 			{ id = "sign.plate.2", at = "plate" },
 		},
 	},
 	[7] = {
-		reveals = { "rev.found.chalk", "rev.found.camera" },
+		reveals = { "poi.l3.camera", "poi.l3.crystal" },
 		signs = {
-			{ id = "sign.found.1", at = "start" },
-			{ id = "sign.found.2", at = "any" },
+			{ id = "plaque.l3", at = "start" },
+			{ id = "rule.10", at = "any" },
 			{ id = "sign.pit.3", at = "pit" },
 		},
 	},
 	[8] = {
-		reveals = { "rev.found.stone", "rev.found.chalk" },
+		reveals = { "poi.l4.stone", "poi.l4.chalk" },
 		signs = {
-			{ id = "sign.found.3", at = "any" },
+			{ id = "plaque.l4", at = "start" },
+			{ id = "rule.11", at = "any" },
 			{ id = "sign.plate.3", at = "plate" },
 			{ id = "sign.pit.3", at = "pit" },
 		},
@@ -141,6 +145,7 @@ function Places.reveal(id: string): Reveal
 		id = id,
 		kit = kit,
 		lines = entry.lines,
+		thought = entry.thought,
 		glow = { color = color, radius = if glow then glow.radius else 6 },
 	}
 end
