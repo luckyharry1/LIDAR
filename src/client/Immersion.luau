@@ -80,7 +80,21 @@ local FLICKER_THREAT = 0.15
 local FLICKER_RANGE = 45
 local LIGHT_REFRESH_SECONDS = 4
 
+-- Lanterns and the patches of floor and wall around them are built visible, but the player
+-- must find them by scanning: they start dark and everything within CONCEAL_REACH of a part
+-- the gun lands on comes back, with its lights.
+local CONCEAL_REACH = 16
+local CONCEAL_DELAYS = { 1, 3 } -- seconds after arriving; the level streams in
+
+type Concealed = { part: BasePart, transparency: number }
+type Switch = { light: Instance, brightness: number }
+
 local Immersion = {}
+
+local concealed: { [BasePart]: Concealed } = {}
+local concealedList: { Concealed } = {}
+local switches: { Switch } = {}
+local processed: { [Instance]: boolean } = {} -- each part or light is hidden at most once
 
 local pois: { [string]: Vector3 } = {}
 local poiTimer = 0
@@ -188,6 +202,67 @@ local function flickerLights(camera: Camera, threat: number, now: number)
 	end
 end
 
+local function concealLevelLights()
+	for _, model in workspace:GetDescendants() do
+		if
+			model:IsA("Model")
+			and model.Name == "Lit"
+			and model.Parent ~= nil
+			and model.Parent:GetAttribute("AllowPlate") ~= nil
+		then
+			for _, descendant in model:GetDescendants() do
+				if processed[descendant] then
+					continue
+				end
+				processed[descendant] = true
+				if descendant:IsA("BasePart") then
+					local record = { part = descendant, transparency = descendant.Transparency }
+					concealed[descendant] = record
+					table.insert(concealedList, record)
+					descendant.Transparency = 1
+				elseif
+					(descendant:IsA("Light") or descendant:IsA("ParticleEmitter"))
+					and (descendant :: any).Enabled
+				then
+					local light: any = descendant
+					table.insert(switches, { light = descendant, brightness = light.Brightness })
+					light.Enabled = false
+				end
+			end
+		end
+	end
+	refreshLights()
+end
+
+local function showNear(seen: BasePart)
+	local record = concealed[seen]
+	if record == nil then
+		return
+	end
+	local center = seen.Position
+	for index = #concealedList, 1, -1 do
+		local other = concealedList[index]
+		if (other.part.Position - center).Magnitude <= CONCEAL_REACH then
+			other.part.Transparency = other.transparency
+			concealed[other.part] = nil
+			table.remove(concealedList, index)
+		end
+	end
+	for index = #switches, 1, -1 do
+		local switch = switches[index]
+		local holder = switch.light.Parent
+		if holder ~= nil and holder:IsA("BasePart") then
+			if (holder.Position - center).Magnitude <= CONCEAL_REACH then
+				(switch.light :: any).Enabled = true
+				table.remove(switches, index)
+			end
+		else
+			table.remove(switches, index)
+		end
+	end
+	refreshLights()
+end
+
 local function applyMood(tier: number)
 	local section = Lore.sectionFor(tier)
 	local mood = if section ~= nil then MOODS[section.first] or DEFAULT_MOOD else DEFAULT_MOOD
@@ -208,6 +283,7 @@ function Immersion.start()
 		end
 	end)
 
+	Lidar.onSeen(showNear)
 	Lidar.onPoi(function(position: Vector3)
 		pois[poiKey(position)] = position
 	end)
@@ -226,6 +302,15 @@ function Immersion.start()
 			or server.stage ~= previous.stage and previous.stage ~= "downed"
 		if arrived then
 			comeUp(server.stage == "lore")
+			if server.stage == "level" then
+				table.clear(concealed)
+				table.clear(concealedList)
+				table.clear(switches)
+				table.clear(processed)
+				for _, delay in CONCEAL_DELAYS do
+					task.delay(delay, concealLevelLights)
+				end
+			end
 		end
 	end)
 
