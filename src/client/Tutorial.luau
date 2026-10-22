@@ -310,21 +310,23 @@ function Tutorial.start()
 			end
 		end
 	end);
-	(Net.get("Hazard") :: RemoteEvent).OnClientEvent
-		:Connect(function(kind: string, _position: Vector3, userId: number)
+	(Net.get("Hazard") :: RemoteEvent).OnClientEvent:Connect(
+		function(kind: string, _position: Vector3, userId: number)
 			if kind == "plate" then
 				think("plate")
 			elseif kind == "pit" and userId == Players.LocalPlayer.UserId then
 				think("pit")
 			end
-		end)(Net.get("Caught") :: RemoteEvent).OnClientEvent
-		:Connect(function(_kind: string, downed: boolean)
-			if not downed then
-				task.delay(Config.World.respawnSeconds + 2.5, function()
-					think(if thoughts["respawn.first"] then "respawn.ines" else "respawn.first")
-				end)
-			end
-		end)
+		end
+	)
+	local caught = Net.get("Caught") :: RemoteEvent
+	caught.OnClientEvent:Connect(function(_kind: string, downed: boolean)
+		if not downed then
+			task.delay(Config.World.respawnSeconds + 2.5, function()
+				think(if thoughts["respawn.first"] then "respawn.ines" else "respawn.first")
+			end)
+		end
+	end)
 	RunService.Heartbeat:Connect(update)
 end
 
