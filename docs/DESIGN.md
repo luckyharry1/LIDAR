@@ -30,15 +30,29 @@ and then, and a warm lit room every two levels.
 | | Scatter (hold) | Sweep (one shot) |
 | --- | --- | --- |
 | Input | Left mouse, RT, touch SCAN | Right mouse or F, LT, touch SWEEP |
-| What it does | A fast stream of rays (320 a second) in a cone round the crosshair | A line of rays travels from the top of the view to the bottom (60 lines of 76 rays in 1.3 s) and draws a whole grid |
-| Spread | 26 degrees half-angle by default; the scroll wheel narrows it to 8 or widens it to 40 (56 with Wide Lens) | 30 up, 36 down, 46 to each side |
+| What it does | A stream of rays in a cone round the crosshair: 260 a second at first, up to 860 with Emitter. Reach 65 studs, up to 149 with Range Coil | A line of rays travels from the top of the view to the bottom (44 lines of 56 rays in 1.3 s, up to 90 x 114 with Sweep Grid) and draws a whole grid |
+| Spread | 26 degrees half-angle by default; the scroll wheel narrows it to 8 or widens it to 34 (56 with Wide Lens) | 30 up, 36 down, 46 to each side |
 | Noise | Quiet: heard about a third of a cell away | Loud: heard 4 cells away (less with Quiet Shutter) |
-| Cost | Nothing | Recharges over 7 s (scaled per tier and by the Capacitor upgrade); a battery cell recharges it at once |
+| Cost | Nothing: never fully blind | One battery charge in a level (free in the tutorial and in havens). The gun holds 3 (Capacitor adds more); a run starts with 1 (Spare Cell adds more) |
+
+**Battery cells** are the only way to charge the sweep in a level. Each level hides 3 or 4 (2
+deep in the Relay), the first near the start, the rest mostly in dead ends, so looking round a
+corner pays. A cell gives 1 sweep, or 2 (about 3 in 10, drawn as a double cell). A cell that
+does not fit pays 6 Static per charge instead. Charges carry from level to level within a run
+and reset on a new run. The cell goes to whoever picks it up. Trickle Charger, late on the
+bench, wins one charge back every 150 / 110 / 80 s while walking a level (slower on harder
+tiers).
+
+**Lures.** Unscanned cells, recorders, story objects and posters give off a few dim, slow
+motes of warm light, one every few seconds, when the player is within 18 studs and nothing is in between: too faint to
+read as a marker, just enough to pull the eye. The first ray that lands on the thing stops them
+for good, and from then on the gold found-item pulse takes over (`client/Lure`) until the item
+is picked up or revealed.
 
 **Dots** are tiny Neon cubes coloured by what they hit: wall, floor, ceiling, water (blue),
 friend (green), monster (red), objective (gold), hazard (violet). The world's dots are
-permanent, up to a budget set by the DOT DETAIL setting (12,000 / 36,000 / 72,000, raised by
-Phosphor); when the budget is full the oldest dot moves. They are packed one per grid cell
+permanent, up to a budget set by the DOT DETAIL setting (14,000 / 42,000 / 85,000, up to
+twice that with Phosphor); when the budget is full the oldest dot moves. They are packed one per grid cell
 (finer close up), so scanning the same wall twice costs nothing. People and monsters are only
 marked briefly: friends' dots fade in 2.5 s, monsters' in 1.2 s, and only about a third of
 the rays that cross a monster mark it. Glimpses, never a silhouette.
@@ -123,22 +137,31 @@ says Here, Wait, Go, Danger or Thanks.
 ## Economy
 
 **Static** is earned by clearing levels (30 at tier 1 to 150 at tier 8, more on Relay floors),
-x1.3 for a clear without being caught, plus 12 per cell, 30 per surveyor, 10 per recorder, 8
+x1.3 for a clear without being caught, plus 5 per cell, 30 per surveyor, 10 per recorder, 8
 per lit-room note read for the first time, 50 for the first daily clear, and a visit streak
 (10 to 60). It is spent at the workbench:
 
 | Upgrade | Levels | Effect |
 | --- | --- | --- |
-| Capacitor | 4 | The sweep recharges faster |
+| Emitter | 5 | Scatter +120 dots a second per level (260 to 860) |
+| Range Coil | 4 | Reach +21 studs per level (65 to 149) |
+| Sweep Grid | 3 | A finer sweep grid (44 x 56 up to 90 x 114) |
+| Phosphor | 4 | The world holds 25% more dots per level |
+| Capacitor | 4 | The gun holds one more sweep charge |
+| Spare Cell | 2 | Start every run with one more charge |
+| Trickle Charger | 3 | Wins back a charge while walking a level (150 / 110 / 80 s) |
 | Quiet Shutter | 3 | The sweep is quieter |
-| Phosphor | 4 | The world holds more dots |
 | Wide Lens | 1 | The spread opens to 56 degrees |
 | Pulse Radar | 2 (switchable) | A ring of dots pulses out on its own |
 | Echo Beacon | 3 | Pings last longer and lure listeners |
 | Wayfinder | 2 | A needle to the exit once scanned, then a map of what you scanned |
 | Soft Soles | 3 | Footsteps carry less far |
 
-Cosmetics (dot tints, gun housings) cost 80 to 100 and never affect play.
+Cosmetics (dot tints, gun housings) cost 80 to 100 and never affect play. Maxing the scanner
+and battery rows costs about 3,100 Static. A full clean run to the Lamp Room pays about 1,000,
+an early run that dies on tier 3 or 4 about 150 to 250, so a new player buys something after
+nearly every run and maxes the scanner after many. What could be sold, and
+what never should be, is in `docs/MONETIZATION.md`.
 
 ## What to tune first
 
@@ -173,5 +196,6 @@ What stands out, as measurements rather than verdicts (the bot is not a person):
   and two on the second (1, 2, 1, 2, ...) would line them up with the same twelve in all.
 
 Then, from playtests rather than the bot: the dot budget on phones (DOT DETAIL), how often
-the sweep is needed (`Config.Lidar.sweepRechargeSeconds`), and how loud each action is
+the sweep is needed (cells per tier in `Tiers.luau`, `Config.Battery`), the base scanner
+(`Config.Lidar.dotsPerSecond`, `baseRange`), and how loud each action is
 (`Config.Noise`).

@@ -284,9 +284,7 @@ local function onObjective(kind: string, detail: { position: Vector3, by: number
 		return
 	end
 	Audio.pickup()
-	if kind == "cell" then
-		Lidar.recharge()
-	elseif kind == "rescue" then
+	if kind == "rescue" then
 		drawTrail(detail.position)
 	end
 end

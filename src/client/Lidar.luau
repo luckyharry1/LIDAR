@@ -3,7 +3,9 @@
 --  * Holding the trigger scatters a fast stream of rays inside a cone round the crosshair;
 --    every hit lands a dot (see Dots). The cone's spread can be narrowed or widened.
 --  * The sweep sends one line of rays from the top of the view to the bottom and draws a
---    whole grid at once. It is loud to anything that listens, and then has to recharge.
+--    whole grid at once. It is loud to anything that listens. In a level every sweep spends
+--    a battery charge; charges come from battery cells found in the maze (Config.Battery).
+--  * Rate, reach and sweep grid start weak and grow with bench upgrades (State.effects).
 --  * With the Pulse Radar upgrade a ring of rays turns once round the player every few
 --    seconds on its own.
 -- All of it is local. The server is only told what monsters react to: whether the gun is
@@ -80,7 +82,10 @@ local Lidar = {}
 Lidar.enabled = false -- controllers switch the gun off on the title screen
 Lidar.firing = false -- the scatter stream is producing dots this frame
 Lidar.sweeping = false -- a sweep is travelling down the view right now
-Lidar.charge = 1 -- 0..1; the sweep can fire at 1
+Lidar.charge = 1 -- 1 when a sweep can fire now; otherwise the Trickle Charger's progress
+Lidar.charges = 0 -- sweep charges in the gun (predicted here, corrected by the server)
+Lidar.freeSweeps = true -- outside a level (tutorial, havens) sweeps cost nothing
+Lidar.trickle = 0 -- 0..1 progress towards the next charge from the Trickle Charger
 Lidar.spread = lidar.coneHalfAngleDeg -- cone half-angle in degrees
 Lidar.echoProgress = 0 -- 0..1 progress on the hidden recorder being scanned
 
@@ -103,6 +108,9 @@ local poiListeners: { (position: Vector3) -> () } = {}
 local seenListeners: { (instance: BasePart) -> () } = {}
 local sweepListeners: { () -> () } = {}
 local radarListeners: { () -> () } = {}
+local deniedListeners: { () -> () } = {}
+local trickleBase = 0
+local trickleAt = 0
 local cellHits: { [number]: number } = {}
 local echoHits: { [number]: number } = {}
 local echoAskedAt: { [number]: number } = {}
@@ -156,9 +164,9 @@ function Lidar.onRadar(listener: () -> ())
 	table.insert(radarListeners, listener)
 end
 
--- A battery cell: the sweep is ready now.
-function Lidar.recharge()
-	Lidar.charge = 1
+-- Called when a sweep is asked for in a level and the gun has no charge.
+function Lidar.onDenied(listener: () -> ())
+	table.insert(deniedListeners, listener)
 end
 
 local function describe(instance: Instance, now: number): Target
@@ -285,7 +293,8 @@ local function castRay(
 	beams: BeamPool?,
 	muzzle: Vector3?
 )
-	local result = workspace:Raycast(origin, direction * lidar.maxRange, params)
+	local range = State.effects.range
+	local result = workspace:Raycast(origin, direction * range, params)
 	if result == nil then
 		return
 	end
@@ -295,11 +304,8 @@ local function castRay(
 		-- Most rays pass straight through a monster and land on whatever is behind it, so a
 		-- scan leaves a few red glimpses rather than an outline, and no shadow on the wall.
 		stats.enemy = true
-		result = workspace:Raycast(
-			result.Position,
-			direction * (lidar.maxRange - result.Distance),
-			throughParams
-		)
+		result =
+			workspace:Raycast(result.Position, direction * (range - result.Distance), throughParams)
 		if result == nil then
 			return
 		end
@@ -489,10 +495,19 @@ end
 
 local function startSweep()
 	local camera = workspace.CurrentCamera
-	if camera == nil or not canFire() or Lidar.sweeping or Lidar.charge < 1 then
+	if camera == nil or not canFire() or Lidar.sweeping then
 		return
 	end
-	ownRun = { index = 0, rows = lidar.sweepRows, columns = lidar.sweepColumns }
+	if not Lidar.freeSweeps then
+		if Lidar.charges < 1 then
+			for _, listener in deniedListeners do
+				task.spawn(listener)
+			end
+			return
+		end
+		Lidar.charges -= 1
+	end
+	ownRun = { index = 0, rows = State.effects.sweepRows, columns = State.effects.sweepColumns }
 	Lidar.sweeping = true
 	Lidar.charge = 0
 	report(camera) -- at once: the sweep is what monsters hear
@@ -510,7 +525,7 @@ local function stepOwn(camera: Camera, dt: number, now: number)
 	local stats = newStats()
 
 	if firing then
-		accumulator += lidar.dotsPerSecond * dt
+		accumulator += State.effects.dotsPerSecond * dt
 		local count = math.min(math.floor(accumulator), MAX_SCATTER_PER_FRAME)
 		accumulator -= math.floor(accumulator)
 		scatter(look, count, Lidar.spread, raycastParams, now, stats, true, ownBeams, muzzle)
@@ -526,12 +541,23 @@ local function stepOwn(camera: Camera, dt: number, now: number)
 		then
 			ownRun = nil
 			Lidar.sweeping = false
+			report(camera) -- at once, so the server sees the next sweep start as a new one
 		end
+	end
+	-- What the charge light and meter show. The Trickle Charger's progress is estimated from
+	-- the last state the server sent; the server's own count is what counts.
+	local trickleSeconds = State.effects.trickleSeconds * State.server.sweepScale
+	if State.server.stage == "level" and trickleSeconds > 0 and not Lidar.freeSweeps then
+		Lidar.trickle = math.clamp(trickleBase + (now - trickleAt) / trickleSeconds, 0, 1)
 	else
-		local seconds = lidar.sweepRechargeSeconds
-			* State.server.sweepScale
-			* State.effects.sweepRechargeMul
-		Lidar.charge = DotRules.stepCharge(Lidar.charge, dt, seconds)
+		Lidar.trickle = 0
+	end
+	if Lidar.sweeping then
+		Lidar.charge = 0
+	elseif Lidar.freeSweeps or Lidar.charges >= 1 then
+		Lidar.charge = 1
+	else
+		Lidar.charge = Lidar.trickle
 	end
 
 	-- Pulse Radar: a ring of rays that turns once round the player, on its own timer.
@@ -646,8 +672,8 @@ local function onRelay(
 		local scale = math.sqrt(lidar.teammateShare)
 		mate.run = {
 			index = 0,
-			rows = math.max(2, math.floor(lidar.sweepRows * scale)),
-			columns = math.max(2, math.floor(lidar.sweepColumns * scale)),
+			rows = math.max(2, math.floor(lidar.sweepRowsByLevel[1] * scale)),
+			columns = math.max(2, math.floor(lidar.sweepColumnsByLevel[1] * scale)),
 		}
 	end
 	mate.firing = firing
@@ -686,13 +712,18 @@ function Lidar.start()
 		changeSpread(lidar.coneStepDeg)
 	end)
 	Input.onAction("spreadCycle", cycleSpread)
+	State.onState(function(server)
+		Lidar.charges = server.charges
+		Lidar.freeSweeps = server.sweepsFree
+		trickleBase = server.trickle
+		trickleAt = os.clock()
+	end)
 	State.onLevel(function()
 		table.clear(cellHits)
 		table.clear(echoHits)
 		table.clear(echoAskedAt)
 		ownRun = nil
 		Lidar.sweeping = false
-		Lidar.charge = 1
 		Lidar.echoProgress = 0
 		radarTimer = 0
 		radarRemaining = 0

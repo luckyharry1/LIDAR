@@ -559,6 +559,7 @@ local function newEcho(
 	lines: { string },
 	glow: Places.Glow?
 ): Echo
+	model:SetAttribute("EchoKind", kind) -- clients lure the eye to unscanned story things
 	return {
 		id = id,
 		kind = kind,
@@ -948,16 +949,25 @@ local function buildPickup(
 			buildGateItem(gate, center + Vector3.new(0, 3, 0), model)
 			prompt = Build.prompt(stand, "Take", gateTitle, 0.3)
 		elseif objective.kind == "cell" then
-			Build.part({
-				name = "Cell",
-				size = Vector3.new(1.8, 0.9, 0.9),
-				cframe = CFrame.new(center + Vector3.new(0, 3.5, 0))
-					* CFrame.Angles(0, 0, math.rad(90)),
-				shape = Enum.PartType.Cylinder,
-				collide = false,
-				parent = model,
-			})
-			prompt = Build.prompt(stand, "Take", "Battery cell", 0.3)
+			-- A double cell is two cylinders side by side, so its dots read differently.
+			local charges = objective.charges or 1
+			for index = 1, charges do
+				local offset = (index - (charges + 1) / 2) * 1.05
+				Build.part({
+					name = "Cell",
+					size = Vector3.new(1.8, 0.9, 0.9),
+					cframe = CFrame.new(center + Vector3.new(offset, 3.5, 0))
+						* CFrame.Angles(0, 0, math.rad(90)),
+					shape = Enum.PartType.Cylinder,
+					collide = false,
+					parent = model,
+				})
+			end
+			model:SetAttribute("Charges", charges)
+			local title = if charges > 1
+				then "Battery cells (2 sweeps)"
+				else "Battery cell (1 sweep)"
+			prompt = Build.prompt(stand, "Take", title, 0.3)
 		else -- plate
 			Build.part({
 				name = "Plate",

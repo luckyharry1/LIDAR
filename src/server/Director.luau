@@ -53,6 +53,8 @@ type Member = {
 	lastPingAt: number,
 	ownsKit: boolean,
 	effects: Progression.Effects,
+	charges: number, -- sweep charges in the gun; a sweep in a level spends one
+	trickle: number, -- 0..1 progress of the Trickle Charger towards the next charge
 	sessionStatic: number,
 	sessionLevels: number,
 	sessionCatches: number,
@@ -250,6 +252,9 @@ local function sendState(member: Member)
 		epoch = run.epoch,
 		origin = if level then level.origin else Vector3.zero,
 		sweepScale = if level and inLevel(member) then level.plan.def.sweepScale else 1,
+		charges = member.charges,
+		sweepsFree = not inLevel(member),
+		trickle = member.trickle,
 		-- With (tier, seed) these two options let the client rebuild the exact same plan.
 		forcedAnomaly = if level then level.model:GetAttribute("ForcedAnomaly") else "",
 		allowPlate = level ~= nil and level.model:GetAttribute("AllowPlate") == true,
@@ -641,7 +646,26 @@ local function wirePickup(level: World.Level, pickup: World.Pickup)
 			)
 		elseif kind == "cell" then
 			run.collected.cells += 1
-			toastStage("Battery cell. The sweep is charged.", "good", "level", "downed")
+			local gained = pickup.objective.charges or 1
+			local kept, spilled =
+				Progression.addCharges(member.charges, gained, member.effects.chargeCapacity)
+			local added = kept - member.charges
+			member.charges = kept
+			local sweeps = if added == 1 then "1 sweep" else `{added} sweeps`
+			if spilled > 0 then
+				local static = spilled * Config.Battery.overflowStatic
+				grant(member, static, "Cell")
+				sendProfile(member)
+				toast(
+					player,
+					if added > 0
+						then `Battery cell: +{sweeps}. Battery full, +{static} Static.`
+						else `Battery full. The cell gives +{static} Static.`,
+					"good"
+				)
+			else
+				toast(player, `Battery cell: +{sweeps}.`, "good")
+			end
 		elseif kind == "rescue" then
 			run.collected.rescues += 1
 			profileOf(member).stats.rescues += 1
@@ -1125,6 +1149,8 @@ end
 
 local function joinRun(member: Member, mode: string)
 	local profile = profileOf(member)
+	member.charges = member.effects.startCharges
+	member.trickle = 0
 	if not run.active then
 		run.active = true
 		run.mode = if mode == "daily" then "daily" else "run"
@@ -1349,6 +1375,8 @@ local function onPlayerAdded(player: Player)
 		lastPingAt = 0,
 		ownsKit = false,
 		effects = Progression.effects(profile),
+		charges = 0,
+		trickle = 0,
 		sessionStatic = 0,
 		sessionLevels = 0,
 		sessionCatches = 0,
@@ -1456,6 +1484,16 @@ local function onScanState(
 		return
 	end
 	local standing = member.stage ~= "downed"
+	-- A sweep in a level spends a charge when it starts. One the gun has no charge for is
+	-- not believed: nothing hears it, and teammates are not shown it.
+	if sweeping and standing and not member.scanSweeping and member.stage == "level" then
+		if member.charges > 0 then
+			member.charges -= 1
+			sendState(member)
+		else
+			sweeping = false
+		end
+	end
 	member.scanFiring = firing and standing
 	member.scanSweeping = sweeping and standing
 	member.crouching = crouching
@@ -1709,9 +1747,24 @@ end
 --------------------------------------------------------------------------------------------
 -- Periodic logic
 
-local function tickMembers()
+local function tickMembers(dt: number)
 	local level = run.level
 	for player, member in members do
+		-- Trickle Charger: a charge comes back slowly while walking a level.
+		local trickleSeconds = member.effects.trickleSeconds
+		if
+			level ~= nil
+			and member.stage == "level"
+			and trickleSeconds > 0
+			and member.charges < member.effects.chargeCapacity
+		then
+			member.trickle += dt / (trickleSeconds * level.plan.def.sweepScale)
+			if member.trickle >= 1 then
+				member.trickle = 0
+				member.charges += 1
+				sendState(member)
+			end
+		end
 		local root = rootOf(player)
 		if root ~= nil and member.stage ~= "title" then
 			local last = member.lastPosition
@@ -1877,6 +1930,14 @@ function Director.dev.grant(amount: number)
 	end
 end
 
+-- Sets everyone's sweep charges (capped at their battery's capacity).
+function Director.dev.charges(count: number)
+	for _, member in members do
+		member.charges = math.clamp(count, 0, member.effects.chargeCapacity)
+		sendState(member)
+	end
+end
+
 function Director.start()
 	Players.CharacterAutoLoads = false
 
@@ -1908,7 +1969,7 @@ function Director.start()
 		accumulator += dt
 		if accumulator >= interval then
 			tickRevives(accumulator)
-			tickMembers()
+			tickMembers(accumulator)
 			accumulator = 0
 		end
 	end)

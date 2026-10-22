@@ -30,7 +30,7 @@ tests["buying spends Static exactly once and never overdraws"] = function()
 		not ok and profile.static == 0 and profile.upgrades.battery == nil,
 		"bought with no Static"
 	)
-	profile.static = 40
+	profile.static = Upgrades.byId.battery.baseCost
 	ok = Progression.buyUpgrade(profile, "battery")
 	assert(
 		ok and profile.static == 0 and profile.upgrades.battery == 1,
@@ -47,8 +47,16 @@ end
 tests["effects follow upgrade levels"] = function()
 	local profile = SaveData.default()
 	local base = Progression.effects(profile)
+	local lidar = Config.Lidar
 	assert(
-		base.sweepRechargeMul == 1 and base.shutterLevel == 0 and base.phosphorLevel == 0,
+		base.dotsPerSecond == lidar.dotsPerSecond
+			and base.range == lidar.baseRange
+			and base.sweepRows == lidar.sweepRowsByLevel[1]
+			and base.chargeCapacity == Config.Battery.baseCapacity
+			and base.startCharges == Config.Battery.startCharges
+			and base.trickleSeconds == 0
+			and base.shutterLevel == 0
+			and base.phosphorLevel == 0,
 		"base effects are not neutral"
 	)
 	assert(
@@ -67,7 +75,10 @@ tests["effects follow upgrade levels"] = function()
 	}
 	profile.toggles.radar = true
 	local effects = Progression.effects(profile)
-	assert(effects.sweepRechargeMul < 1, "Capacitor should shorten the recharge")
+	assert(
+		effects.chargeCapacity == Config.Battery.baseCapacity + 2,
+		"Capacitor should add a charge per level"
+	)
 	assert(
 		effects.shutterLevel == 1 and effects.phosphorLevel == 3,
 		"shutter or phosphor level wrong"
@@ -84,6 +95,38 @@ tests["effects follow upgrade levels"] = function()
 		not Progression.setToggle(profile, "battery", true),
 		"toggled an upgrade that has no toggle"
 	)
+end
+
+tests["scanner upgrades make the gun stronger, up to its caps"] = function()
+	local profile = SaveData.default()
+	local base = Progression.effects(profile)
+	for _, id in { "emitter", "range", "grid", "battery", "spare", "trickle" } do
+		profile.upgrades[id] = Upgrades.byId[id].maxLevel
+	end
+	local full = Progression.effects(profile)
+	local lidar = Config.Lidar
+	assert(full.dotsPerSecond > base.dotsPerSecond, "Emitter did nothing")
+	assert(full.range > base.range and full.range <= lidar.maxRange, "Range Coil wrong")
+	assert(
+		full.sweepRows == lidar.sweepRowsByLevel[#lidar.sweepRowsByLevel]
+			and full.sweepColumns > base.sweepColumns,
+		"Sweep Grid wrong"
+	)
+	assert(full.startCharges > base.startCharges, "Spare Cell did nothing")
+	assert(full.startCharges <= full.chargeCapacity, "start charges exceed capacity")
+	assert(full.trickleSeconds > 0, "Trickle Charger did nothing")
+	-- The base gun must be clearly weaker than before the battery rework (900 dots a second,
+	-- 150 studs): that gap is what the bench is for.
+	assert(base.dotsPerSecond <= 450 and base.range <= 100, "the base scanner is too strong")
+end
+
+tests["battery cells fill the gun and spill the rest"] = function()
+	local kept, spilled = Progression.addCharges(0, 2, 3)
+	assert(kept == 2 and spilled == 0, "two charges into an empty gun")
+	kept, spilled = Progression.addCharges(2, 2, 3)
+	assert(kept == 3 and spilled == 1, "one should spill at capacity")
+	kept, spilled = Progression.addCharges(3, 1, 3)
+	assert(kept == 3 and spilled == 1, "a full gun keeps nothing")
 end
 
 tests["buying a switchable upgrade turns it on"] = function()
