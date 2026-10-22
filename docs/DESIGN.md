@@ -30,8 +30,8 @@ and then, and a warm lit room every two levels.
 | | Scatter (hold) | Sweep (one shot) |
 | --- | --- | --- |
 | Input | Left mouse, RT, touch SCAN | Right mouse or F, LT, touch SWEEP |
-| What it does | A stream of rays in a cone round the crosshair: 380 a second at first, up to 880 with Emitter. Reach 85 studs, up to 149 with Range Coil | A line of rays travels from the top of the view to the bottom (56 lines of 70 rays in 1.3 s, up to 90 x 114 with Sweep Grid) and draws a whole grid |
-| Spread | 26 degrees half-angle by default; the scroll wheel narrows it to 8 or widens it to 40 (56 with Wide Lens) | 30 up, 36 down, 46 to each side |
+| What it does | A stream of rays in a cone round the crosshair: 260 a second at first, up to 860 with Emitter. Reach 65 studs, up to 149 with Range Coil | A line of rays travels from the top of the view to the bottom (44 lines of 56 rays in 1.3 s, up to 90 x 114 with Sweep Grid) and draws a whole grid |
+| Spread | 26 degrees half-angle by default; the scroll wheel narrows it to 8 or widens it to 34 (56 with Wide Lens) | 30 up, 36 down, 46 to each side |
 | Noise | Quiet: heard about a third of a cell away | Loud: heard 4 cells away (less with Quiet Shutter) |
 | Cost | Nothing: never fully blind | One battery charge in a level (free in the tutorial and in havens). The gun holds 3 (Capacitor adds more); a run starts with 1 (Spare Cell adds more) |
 
@@ -51,7 +51,7 @@ is picked up or revealed.
 
 **Dots** are tiny Neon cubes coloured by what they hit: wall, floor, ceiling, water (blue),
 friend (green), monster (red), objective (gold), hazard (violet). The world's dots are
-permanent, up to a budget set by the DOT DETAIL setting (18,000 / 55,000 / 110,000, up to
+permanent, up to a budget set by the DOT DETAIL setting (14,000 / 42,000 / 85,000, up to
 twice that with Phosphor); when the budget is full the oldest dot moves. They are packed one per grid cell
 (finer close up), so scanning the same wall twice costs nothing. People and monsters are only
 marked briefly: friends' dots fade in 2.5 s, monsters' in 1.2 s, and only about a third of
@@ -143,9 +143,9 @@ per lit-room note read for the first time, 50 for the first daily clear, and a v
 
 | Upgrade | Levels | Effect |
 | --- | --- | --- |
-| Emitter | 5 | Scatter +100 dots a second per level (380 to 880) |
-| Range Coil | 4 | Reach +16 studs per level (85 to 149) |
-| Sweep Grid | 3 | A finer sweep grid (56 x 70 up to 90 x 114) |
+| Emitter | 5 | Scatter +120 dots a second per level (260 to 860) |
+| Range Coil | 4 | Reach +21 studs per level (65 to 149) |
+| Sweep Grid | 3 | A finer sweep grid (44 x 56 up to 90 x 114) |
 | Phosphor | 4 | The world holds 25% more dots per level |
 | Capacitor | 4 | The gun holds one more sweep charge |
 | Spare Cell | 2 | Start every run with one more charge |

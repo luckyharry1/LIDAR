@@ -12,7 +12,7 @@ fits Roblox's guidance on fair monetization.
 
 ## What players work towards for free (built)
 
-- **The scanner** starts weak (380 dots a second, 85 studs, a coarse sweep). Static from every
+- **The scanner** starts weak (260 dots a second, 65 studs, a coarse sweep, a narrow cone). Static from every
   run buys Emitter, Range Coil, Sweep Grid and Phosphor at the workbench.
 - **The battery**: sweeps cost charges found as battery cells in the maze. Capacitor, Spare
   Cell and Trickle Charger make the battery better.

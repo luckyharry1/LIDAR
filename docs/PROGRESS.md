@@ -502,3 +502,7 @@ progression between runs and room for monetization; then a faint pull towards un
 - Doorway confirm (Vasco: walking in by accident in the dark was confusing): the doorways keep no
   panel to bump into, but leaving needs a 0.6 s hold on a "Go down / Stairwell" prompt again
   (`watchDoorway` now wraps the exit prompt instead of polling positions).
+- Weaker again (22 Oct, Vasco: "the scanner can start being a little less powerful, so there's
+  some real progression"; keep the batteries standing out): scatter 260 dots/s (Emitter +120 x5 to
+  860), reach 65 studs (Range Coil +21 x4 to 149), sweep 44x56 (Sweep Grid 60x76, 76x96, 90x114),
+  widest cone 34 degrees without Wide Lens (was 40), dot budget 14k/42k/85k. Lure unchanged.
