@@ -29,17 +29,23 @@ Config.Lidar = {
 	-- straight down a corridor, which is where the crosshair points, drop out while the near
 	-- walls at the screen edges still show.
 	dotSizeDistanceScale = 0.002,
-	dotSizeMax = 0.2,
+	-- The cap must sit beyond maxRange: at 0.2 it bit at 95 studs, so the farthest dots (straight
+	-- down a long corridor, round the crosshair) shrank back to about one pixel.
+	dotSizeMax = 0.32,
 	itemDotScale = 0.5, -- items and objects are drawn with finer dots
 	markDotScale = 1.6, -- people, monsters and footprints are a little larger
 
 	-- Dots are not stacked: one per grid cell, with the grid chosen by how far away the
 	-- surface was when it was scanned (close surfaces get fine detail).
+	-- On screen a grid step is about step / distance * 770 px at 1080p. With a 0.8 far grid the
+	-- band just past the mid range (45 to 80 studs: the middle of the view down a corridor)
+	-- could never hold dots closer than 8 to 14 px apart, so it stayed sparse however long it
+	-- was scanned. These keep every range at or under about 9 px.
 	gridNear = 0.15,
-	gridMid = 0.35,
-	gridFar = 0.8,
+	gridMid = 0.3,
+	gridFar = 0.45,
 	gridNearRange = 14, -- studs within which the near grid is used
-	gridMidRange = 45,
+	gridMidRange = 40,
 	gridItem = 0.08,
 
 	friendLifetime = 2.5, -- seconds; people fade fast, the world stays
@@ -116,6 +122,8 @@ Config.Tags = {
 	water = "Lidar_Water",
 	hazard = "Lidar_Hazard", -- pit rims and alarm plates
 	sound = "Lidar_Sound", -- server-made sounds the client routes through its volume setting
+	light = "Lidar_Light", -- every server-made light, so clients find them without a scan
+	concealed = "Lidar_Concealed", -- built dark; each client shows it once its scan lands near
 }
 
 Config.World = {

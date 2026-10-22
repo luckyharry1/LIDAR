@@ -3,11 +3,13 @@
 -- place comes up out of the black, each floor has its own colour, echo and ambience, and the
 -- view narrows a little when something is close.
 
+local CollectionService = game:GetService("CollectionService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
 local Atmosphere = require(script.Parent.Atmosphere)
 local Audio = require(script.Parent.Audio)
+local Config = require(ReplicatedStorage.Shared.Config)
 local Dots = require(script.Parent.Dots)
 local Hud = require(script.Parent.Hud)
 local Lidar = require(script.Parent.Lidar)
@@ -80,21 +82,14 @@ local FLICKER_THREAT = 0.15
 local FLICKER_RANGE = 45
 local LIGHT_REFRESH_SECONDS = 4
 
--- Lanterns and the patches of floor and wall around them are built visible, but the player
--- must find them by scanning: they start dark and everything within CONCEAL_REACH of a part
--- the gun lands on comes back, with its lights.
+-- Lanterns and the patches of floor and wall around them arrive dark (the server builds them
+-- concealed, see Build.conceal): the player must find them by scanning. Everything concealed
+-- within CONCEAL_REACH of a part the gun lands on comes back, with its lights.
 local CONCEAL_REACH = 16
-local CONCEAL_DELAYS = { 1, 3 } -- seconds after arriving; the level streams in
-
-type Concealed = { part: BasePart, transparency: number }
-type Switch = { light: Instance, brightness: number }
 
 local Immersion = {}
 
-local concealed: { [BasePart]: Concealed } = {}
-local concealedList: { Concealed } = {}
-local switches: { Switch } = {}
-local processed: { [Instance]: boolean } = {} -- each part or light is hidden at most once
+local hidden: { [Instance]: boolean } = {} -- concealed parts and lights not yet shown here
 
 local pois: { [string]: Vector3 } = {}
 local poiTimer = 0
@@ -161,7 +156,11 @@ local function pulsePois(camera: Camera)
 				POI_DOT_SECONDS
 			)
 		end
-		Audio.poiHum(position)
+	end
+	-- One tone, from the nearest: several copies of the same ping started in one frame comb
+	-- into a harsh, glitchy buzz, and each would steal one of the few positional emitters.
+	if #near > 0 then
+		Audio.poiHum(near[1].position)
 	end
 end
 
@@ -173,12 +172,14 @@ local function wrongSound(camera: Camera)
 	Audio.wrong(WRONG_KINDS[math.random(#WRONG_KINDS)], position)
 end
 
+-- Lights are tagged by the server, so this never walks the workspace (which holds every dot:
+-- tens of thousands of parts after a long scan, and a visible stall each time).
 local function refreshLights()
 	table.clear(baseBrightness)
-	for _, descendant in workspace:GetDescendants() do
-		if descendant:IsA("PointLight") or descendant:IsA("SpotLight") then
-			local light = descendant :: Light
-			if descendant.Enabled then
+	for _, instance in CollectionService:GetTagged(Config.Tags.light) do
+		if instance:IsA("PointLight") or instance:IsA("SpotLight") then
+			local light = instance :: Light
+			if light.Enabled then
 				baseBrightness[light] = light.Brightness
 			end
 		end
@@ -202,65 +203,42 @@ local function flickerLights(camera: Camera, threat: number, now: number)
 	end
 end
 
-local function concealLevelLights()
-	for _, model in workspace:GetDescendants() do
-		if
-			model:IsA("Model")
-			and model.Name == "Lit"
-			and model.Parent ~= nil
-			and model.Parent:GetAttribute("AllowPlate") ~= nil
-		then
-			for _, descendant in model:GetDescendants() do
-				if processed[descendant] then
-					continue
-				end
-				processed[descendant] = true
-				if descendant:IsA("BasePart") then
-					local record = { part = descendant, transparency = descendant.Transparency }
-					concealed[descendant] = record
-					table.insert(concealedList, record)
-					descendant.Transparency = 1
-				elseif
-					(descendant:IsA("Light") or descendant:IsA("ParticleEmitter"))
-					and (descendant :: any).Enabled
-				then
-					local light: any = descendant
-					table.insert(switches, { light = descendant, brightness = light.Brightness })
-					light.Enabled = false
-				end
-			end
-		end
+local function holderOf(instance: Instance): BasePart?
+	if instance:IsA("BasePart") then
+		return instance
 	end
-	refreshLights()
+	local parent = instance.Parent
+	return if parent ~= nil and parent:IsA("BasePart") then parent else nil
+end
+
+local function show(instance: Instance)
+	hidden[instance] = nil
+	if instance:IsA("BasePart") then
+		local shown = instance:GetAttribute("ShowTransparency")
+		instance.Transparency = if type(shown) == "number" then shown else 0
+	else
+		(instance :: any).Enabled = true
+	end
 end
 
 local function showNear(seen: BasePart)
-	local record = concealed[seen]
-	if record == nil then
+	if not hidden[seen] then
 		return
 	end
 	local center = seen.Position
-	for index = #concealedList, 1, -1 do
-		local other = concealedList[index]
-		if (other.part.Position - center).Magnitude <= CONCEAL_REACH then
-			other.part.Transparency = other.transparency
-			concealed[other.part] = nil
-			table.remove(concealedList, index)
+	local shown = false
+	for instance in hidden do
+		local holder = holderOf(instance)
+		if holder == nil or instance.Parent == nil then
+			hidden[instance] = nil
+		elseif (holder.Position - center).Magnitude <= CONCEAL_REACH then
+			show(instance)
+			shown = true
 		end
 	end
-	for index = #switches, 1, -1 do
-		local switch = switches[index]
-		local holder = switch.light.Parent
-		if holder ~= nil and holder:IsA("BasePart") then
-			if (holder.Position - center).Magnitude <= CONCEAL_REACH then
-				(switch.light :: any).Enabled = true
-				table.remove(switches, index)
-			end
-		else
-			table.remove(switches, index)
-		end
+	if shown then
+		refreshLights()
 	end
-	refreshLights()
 end
 
 local function applyMood(tier: number)
@@ -283,6 +261,15 @@ function Immersion.start()
 		end
 	end)
 
+	for _, instance in CollectionService:GetTagged(Config.Tags.concealed) do
+		hidden[instance] = true
+	end
+	CollectionService:GetInstanceAddedSignal(Config.Tags.concealed):Connect(function(instance)
+		hidden[instance] = true
+	end)
+	CollectionService:GetInstanceRemovedSignal(Config.Tags.concealed):Connect(function(instance)
+		hidden[instance] = nil
+	end)
 	Lidar.onSeen(showNear)
 	Lidar.onPoi(function(position: Vector3)
 		pois[poiKey(position)] = position
@@ -302,15 +289,6 @@ function Immersion.start()
 			or server.stage ~= previous.stage and previous.stage ~= "downed"
 		if arrived then
 			comeUp(server.stage == "lore")
-			if server.stage == "level" then
-				table.clear(concealed)
-				table.clear(concealedList)
-				table.clear(switches)
-				table.clear(processed)
-				for _, delay in CONCEAL_DELAYS do
-					task.delay(delay, concealLevelLights)
-				end
-			end
 		end
 	end)
 

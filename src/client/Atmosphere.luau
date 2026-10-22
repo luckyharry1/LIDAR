@@ -14,8 +14,11 @@ local Config = require(ReplicatedStorage.Shared.Config)
 
 local EASE_IN_SECONDS = 1.6 -- dark to lit
 local EASE_OUT_SECONDS = 0.9 -- lit to dark
-local DARK_FOG_START = 36
-local DARK_FOG_END = 210 -- black fog: distant dots dim with range, which reads as depth
+-- Black fog: distant dots dim with range, which reads as depth. It used to start at 36 and end
+-- at 210, so a dot at the scanner's 150 stud reach was two thirds black on top of being a
+-- pixel or two wide, and the far end of a corridor (round the crosshair) looked empty.
+local DARK_FOG_START = 70
+local DARK_FOG_END = 380
 local LIT_FOG = 100000
 local LIT_AMBIENT_SCALE = 0.55
 local DARK_BLOOM = { intensity = 0.55, size = 14, threshold = 1 }

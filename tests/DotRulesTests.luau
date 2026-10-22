@@ -53,7 +53,7 @@ tests["dots are tiny, grow with distance, and items are finest"] = function()
 	assert(DotRules.size("wall", 5) <= 0.1, "near dots should be tiny")
 	assert(DotRules.size("wall", 120) > DotRules.size("wall", 5), "far dots should be larger")
 	assert(DotRules.size("wall", 100000) == Config.Lidar.dotSizeMax, "size should cap")
-	for distance = 10, 90, 10 do
+	for distance = 10, Config.Lidar.maxRange, 10 do
 		-- the far dots straight ahead must stay visible: not much under 1.5 px on screen
 		local angular = DotRules.size("wall", distance) / distance
 		assert(angular >= 0.0018, "far dots should not shrink to nothing")
@@ -76,6 +76,11 @@ tests["closer surfaces are packed more finely"] = function()
 	local sizes = DotRules.gridSizes
 	assert(sizes[1] < sizes[2] and sizes[2] < sizes[3], "grids should get coarser with distance")
 	assert(sizes[4] < sizes[1], "the item grid should be the finest")
+	-- No band of the view may be packed much coarser on screen than the rest (about 9 px at
+	-- 1080p; step / distance * 770): a coarse band reads as a hole round the crosshair.
+	local lidar = Config.Lidar
+	assert(sizes[2] / lidar.gridNearRange * 770 <= 20, "mid grid too coarse just past near")
+	assert(sizes[3] / lidar.gridMidRange * 770 <= 9, "far grid too coarse just past mid")
 end
 
 tests["dot budget follows the quality setting and the Phosphor upgrade"] = function()
