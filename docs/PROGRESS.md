@@ -385,3 +385,8 @@ Only what has actually been run is listed as verified.
   lights within 45 studs stutter and cut out as threat rises (re-collected every 4 s); (d) 3% of
   the local scan's dots flare at 2.6x size for 0.3 s as they land. Not built: the walkable
   stairwell between levels (needs a new member stage and a corridor model; best done with Studio).
+- Level start dark (22 Oct, Vasco): lanterns, lamp-bags and the floor/wall patches around them
+  (the level's `Lit` model) were visible from the start. `Immersion.concealLevelLights` now hides
+  them on arrival (1 s and 3 s, while the level streams in) and `Lidar.onSeen` brings back
+  everything within 16 studs of a part the local gun lands on, with its lights. Client only, so
+  each player finds the lamps themselves. Revealed recorders still light up as before.
