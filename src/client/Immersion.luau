@@ -3,6 +3,7 @@
 -- place comes up out of the black, each floor has its own colour, echo and ambience, and the
 -- view narrows a little when something is close.
 
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
@@ -11,6 +12,7 @@ local Audio = require(script.Parent.Audio)
 local Dots = require(script.Parent.Dots)
 local Hud = require(script.Parent.Hud)
 local Lidar = require(script.Parent.Lidar)
+local Config = require(ReplicatedStorage.Shared.Config)
 local Lore = require(ReplicatedStorage.Shared.data.Lore)
 local Net = require(ReplicatedStorage.Shared.Net)
 local State = require(script.Parent.State)
@@ -23,7 +25,7 @@ local FADE_GIVE_UP_SECONDS = 9 -- the black never outstays a lost message
 local THREAT_FOV_NARROWING = 7 -- degrees lost when something is on top of you
 local FOV_EASE_PER_SECOND = 3
 
--- The four floors (by the first tier of each); past them, the Relay keeps the last mood.
+-- The Levels (by the first tier of each; the Garage shares the Hollow's); past them, the Relay keeps the last mood.
 local MOODS: { [number]: Mood } = {
 	[1] = {
 		tint = Color3.fromRGB(240, 255, 234),
@@ -50,6 +52,7 @@ local MOODS: { [number]: Mood } = {
 		reverb = Enum.ReverbType.StoneCorridor,
 	},
 }
+MOODS[8] = MOODS[7] -- the Garage (tier 8) sits under the same stone as the Hollow
 local DEFAULT_MOOD: Mood = {
 	tint = Color3.new(1, 1, 1),
 	speed = 1,
@@ -87,6 +90,8 @@ local STUTTER_PATTERN = { 0.07, 0.05, 0.14, 0.06, 0.25 } -- off, on, off, on, of
 -- the gun lands on comes back, with its lights.
 local CONCEAL_REACH = 16
 local CONCEAL_DELAYS = { 1, 3 } -- seconds after arriving; the level streams in
+local DOT_CHECK_SECONDS = 0.05
+local SIGHT_CLEARANCE = 1.2 -- studs: a sight line to a patch stops this far short of it
 
 type Concealed = { part: BasePart, transparency: number }
 type Switch = { light: Instance, brightness: number }
@@ -97,6 +102,10 @@ local concealed: { [BasePart]: Concealed } = {}
 local concealedList: { Concealed } = {}
 local switches: { Switch } = {}
 local processed: { [Instance]: boolean } = {} -- each part or light is hidden at most once
+local lastDotCheck = 0
+local patchHits: { [BasePart]: number } = {} -- dots counted toward each hidden patch
+local sightParams = RaycastParams.new()
+sightParams.FilterType = Enum.RaycastFilterType.Exclude
 
 local pois: { [string]: Vector3 } = {}
 local poiTimer = 0
@@ -303,12 +312,8 @@ local function concealLevelLights()
 	refreshLights()
 end
 
-local function showNear(seen: BasePart)
-	local record = concealed[seen]
-	if record == nil then
-		return
-	end
-	local center = seen.Position
+-- Brings back every hidden part and light within CONCEAL_REACH of `center`.
+local function revealAround(center: Vector3)
 	for index = #concealedList, 1, -1 do
 		local other = concealedList[index]
 		if (other.part.Position - center).Magnitude <= CONCEAL_REACH then
@@ -330,6 +335,72 @@ local function showNear(seen: BasePart)
 		end
 	end
 	refreshLights()
+end
+
+-- The first hidden part within CONCEAL_REACH of `center`: it stands for its whole patch, so
+-- dots on any part of the patch add up in one count.
+local function anchorNear(center: Vector3): Concealed?
+	for _, record in concealedList do
+		if (record.part.Position - center).Magnitude <= CONCEAL_REACH then
+			return record
+		end
+	end
+	return nil
+end
+
+-- One more dot on a hidden patch. A short scan wakes it, so a glance is not enough but the
+-- player need not scan every part of it.
+local function countHit(anchor: Concealed)
+	local hits = (patchHits[anchor.part] or 0) + 1
+	if hits >= Config.Lidar.lightRevealHits then
+		patchHits[anchor.part] = nil
+		revealAround(anchor.part.Position)
+	else
+		patchHits[anchor.part] = hits
+	end
+end
+
+local function showNear(seen: BasePart)
+	local record = concealed[seen]
+	if record == nil then
+		return
+	end
+	countHit(anchorNear(seen.Position) or record)
+end
+
+-- Whether the camera has a clear line to `spot` (stopping a little short of it, so the wall a
+-- lamp hangs on does not count).
+local function canSee(camera: Camera, spot: Vector3): boolean
+	local from = camera.CFrame.Position
+	local offset = spot - from
+	local distance = offset.Magnitude
+	if distance <= SIGHT_CLEARANCE then
+		return true
+	end
+	local character = Players.LocalPlayer.Character
+	sightParams.FilterDescendantsInstances = if character then { character } else {}
+	return workspace:Raycast(from, offset.Unit * (distance - SIGHT_CLEARANCE), sightParams) == nil
+end
+
+-- A dot that lands close to a hidden patch counts toward waking it, so the player need not
+-- know exactly where a lamp-bag hangs, but only while the patch is in view: a dot on the other
+-- side of a wall does nothing. Checked a few times a second, from the newest dot.
+local function showNearDot(position: Vector3)
+	local now = os.clock()
+	local camera = workspace.CurrentCamera
+	if now - lastDotCheck < DOT_CHECK_SECONDS or #concealedList == 0 or camera == nil then
+		return
+	end
+	lastDotCheck = now
+	local reach = Config.Lidar.concealTrigger
+	for _, record in concealedList do
+		if (record.part.Position - position).Magnitude <= reach then
+			if canSee(camera, record.part.Position) then
+				countHit(anchorNear(record.part.Position) or record)
+			end
+			return
+		end
+	end
 end
 
 local function applyMood(tier: number)
@@ -361,6 +432,7 @@ function Immersion.start()
 	end)
 
 	Lidar.onSeen(showNear)
+	Lidar.onHit(showNearDot)
 	Lidar.onPoi(function(position: Vector3)
 		if not isForgotten(position) then
 			pois[poiKey(position)] = position

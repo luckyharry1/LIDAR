@@ -293,12 +293,22 @@ end
 -- Recorders and hazards
 
 -- A hidden recorder revealed itself: its line is spoken to everyone in the level.
-local function onEcho(_echoId: number, position: Vector3, speaker: string, line: string)
+local function onEcho(
+	_echoId: number,
+	position: Vector3,
+	speaker: string,
+	line: string,
+	thought: string?
+)
 	Audio.echo(position)
 	if speaker ~= "" then
 		Effects.pulse(0.25, 0.1) -- a tape starts; a poster or a lamp-bag tag just says its words
 	end
 	Hud.dialogue(speaker, line)
+	if thought ~= nil and thought ~= "" then
+		State.storyLive = true
+		Hud.dialogue("Theo", thought)
+	end
 end
 
 local function onHazard(kind: string, position: Vector3, userId: number)

@@ -1574,7 +1574,7 @@ local function onReveal(player: Player, echoId: number)
 		if
 			not beacon.revealed
 			and (beacon.position - root.Position).Magnitude
-				<= Config.Lidar.maxRange + PROMPT_SLACK
+				<= Config.Lidar.maxRange + Config.Lidar.lightReach + PROMPT_SLACK
 		then
 			beacon.reveal()
 			for otherPlayer, other in members do
@@ -1599,7 +1599,8 @@ local function onReveal(player: Player, echoId: number)
 	if
 		echo == nil
 		or echo.revealed
-		or (echo.position - root.Position).Magnitude > Config.Lidar.maxRange + PROMPT_SLACK
+		or (echo.position - root.Position).Magnitude
+			> Config.Lidar.maxRange + Config.Lidar.lightReach + PROMPT_SLACK
 	then
 		return
 	end
@@ -1627,7 +1628,15 @@ local function onReveal(player: Player, echoId: number)
 				grant(other, Config.Economy.echoBonus, "Echo")
 				sendProfile(other)
 			end
-			Remotes.send(otherPlayer, "Echo", echo.id, echo.position, speaker, line)
+			Remotes.send(
+				otherPlayer,
+				"Echo",
+				echo.id,
+				echo.position,
+				speaker,
+				line,
+				echo.thought or ""
+			)
 		end
 	end
 	sendStateAll()

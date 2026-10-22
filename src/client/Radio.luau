@@ -1,9 +1,9 @@
 --!strict
--- Base, on the radio. In the story Base is Ines Calder, keeping the lamp at the bottom of the
--- building; the player only ever hears her report and count. Base checks in on a new floor,
--- when the dark gives you back, when a level is logged, the first time you reach the Night
--- Desk (and, briefly, in each small haven), and now and then in the dark.
--- Real Base reports. Real Base counts. Real Base never gives directions. Close to an Echo
+-- Base, on the radio. In the story Base is Ines Calder, keeping the Lamp at the bottom of the
+-- Backrooms. Base checks in on a new Level, when the dark gives you back, when a level is
+-- logged, the first time you reach the Night Desk, and now and then in the dark. (The camps'
+-- surveyors talk for themselves: see Cutscene.)
+-- Real Base asks what you see, counts with you and never says "come to me". Close to an Echo
 -- that is still pretending to be one of ours, a second voice comes on calling itself Base,
 -- and it does give directions: that difference is the tell, and nobody points it out.
 
@@ -14,7 +14,6 @@ local RunService = game:GetService("RunService")
 local Atmosphere = require(script.Parent.Atmosphere)
 local Audio = require(script.Parent.Audio)
 local Config = require(ReplicatedStorage.Shared.Config)
-local Difficulty = require(ReplicatedStorage.Shared.pure.Difficulty)
 local Hud = require(script.Parent.Hud)
 local Lore = require(ReplicatedStorage.Shared.data.Lore)
 local Net = require(ReplicatedStorage.Shared.Net)
@@ -30,28 +29,21 @@ local CHECK_HZ = 4
 local Radio = {}
 
 local deskHeard = false
-local havensHeard: { [string]: boolean } = {} -- each small haven gets one call, the first visit
 local nextDarkCall = 0
 local fakeReadyAt = 0
 local nextFake = 1
 local checkTimer = 0
 
 local function say(line: string, fake: boolean?)
+	if not State.storyLive then
+		return -- the first minutes stay quiet: the first hidden object starts the talking
+	end
 	Audio.sequence({ 0.55, 0.62, 0.5 }, 0.035, 0.16) -- a crackle of static first
 	Hud.dialogue(if fake then Lore.radio.fakeSpeaker else Lore.radio.speaker, line)
 end
 
 local function pick(lines: { string }): string
 	return lines[math.random(1, #lines)]
-end
-
--- "B3" on the authored floors, "R2" on the second Relay floor.
-local function floorName(tier: number): string
-	local section = Lore.sectionFor(tier)
-	if section ~= nil then
-		return section.floor
-	end
-	return "R" .. math.max(1, tier - Difficulty.authoredCount)
 end
 
 local function resetDarkCall()
@@ -105,7 +97,7 @@ function Radio.start()
 		local tier = server.tier
 		task.delay(FLOOR_CALL_DELAY, function()
 			if State.server.tier == tier and State.server.stage == "level" then
-				say(Lore.fill(Lore.radio.floor, { floor = floorName(tier) }))
+				say(Lore.radioFor(tier))
 			end
 		end)
 		resetDarkCall()
@@ -133,11 +125,6 @@ function Radio.start()
 		if roomId == "office" and not deskHeard then
 			deskHeard = true
 			say(Lore.radio.desk)
-		elseif Lore.rooms[roomId] ~= nil and Lore.rooms[roomId].size == "haven" then
-			if not havensHeard[roomId] then
-				havensHeard[roomId] = true
-				say(Lore.radio.haven)
-			end
 		end
 	end)
 	RunService.Heartbeat:Connect(update)

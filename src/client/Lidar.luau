@@ -26,7 +26,13 @@ local Maze = require(ReplicatedStorage.Shared.pure.Maze)
 local Net = require(ReplicatedStorage.Shared.Net)
 local State = require(script.Parent.State)
 
-type Target = { tags: { [string]: boolean }, echoId: number?, exit: boolean, at: number }
+type Target = {
+	tags: { [string]: boolean },
+	echoId: number?,
+	light: boolean, -- a lamp or beacon: it wakes after a couple of dots
+	exit: boolean,
+	at: number,
+}
 type Stats = {
 	hits: number,
 	distance: number,
@@ -76,6 +82,9 @@ local SPARK_SIZE = 2.6
 local SPARK_SECONDS = 0.3
 local EXIT_NAME = "ExitDoor"
 local ECHO_ATTRIBUTE = "EchoId"
+local LIGHT_ATTRIBUTE = "Light" -- set on lamps and beacons: they wake after a short scan
+local LIGHT_REFRESH_SECONDS = 2
+local LIGHT_CLEARANCE = 1.2 -- studs: a sight line to a lamp stops this far short of it
 
 local Lidar = {}
 
@@ -105,6 +114,7 @@ local radarYaw = 0
 local teammates: { [number]: Teammate } = {}
 local batchListeners: { BatchListener } = {}
 local poiListeners: { (position: Vector3) -> () } = {}
+local hitListeners: { (position: Vector3) -> () } = {}
 local seenListeners: { (instance: BasePart) -> () } = {}
 local sweepListeners: { () -> () } = {}
 local radarListeners: { () -> () } = {}
@@ -115,6 +125,8 @@ local cellHits: { [number]: number } = {}
 local echoHits: { [number]: number } = {}
 local echoAskedAt: { [number]: number } = {}
 local echoSeenAt = 0
+local lightSpots: { [number]: Vector3 } = {} -- unrevealed lamps and beacons, by echo id
+local lightsCheckedAt = 0
 
 local beamFolder = Instance.new("Folder")
 beamFolder.Name = "LidarBeams"
@@ -149,6 +161,11 @@ function Lidar.onPoi(listener: (position: Vector3) -> ())
 	table.insert(poiListeners, listener)
 end
 
+-- Called with the position of every dot the local gun lands.
+function Lidar.onHit(listener: (position: Vector3) -> ())
+	table.insert(hitListeners, listener)
+end
+
 -- Called with every part the local gun's rays land on.
 function Lidar.onSeen(listener: (instance: BasePart) -> ())
 	table.insert(seenListeners, listener)
@@ -176,6 +193,7 @@ local function describe(instance: Instance, now: number): Target
 	end
 	local tags: { [string]: boolean } = {}
 	local echoId: number? = nil
+	local light = false
 	local node: Instance? = instance
 	while node ~= nil and node ~= workspace do
 		for _, tag in CollectionService:GetTags(node) do
@@ -185,11 +203,15 @@ local function describe(instance: Instance, now: number): Target
 		if type(id) == "number" then
 			echoId = id
 		end
+		if node:GetAttribute(LIGHT_ATTRIBUTE) == true then
+			light = true
+		end
 		node = node.Parent
 	end
 	local target = {
 		tags = tags,
 		echoId = if tags[Config.Tags.echo] then echoId else nil,
+		light = light,
 		exit = instance.Name == EXIT_NAME,
 		at = now,
 	}
@@ -242,8 +264,56 @@ local function fadeBeams(pool: BeamPool, now: number)
 	end
 end
 
+-- One more dot on a hidden object; at `needed` dots it asks the server to reveal it.
+local function countEcho(echoId: number, needed: number, now: number)
+	local hits = (echoHits[echoId] or 0) + 1
+	echoHits[echoId] = hits
+	echoSeenAt = now
+	if needed == lidar.echoRevealHits then
+		Lidar.echoProgress = math.min(1, hits / needed)
+	end
+	if hits >= needed and now - (echoAskedAt[echoId] or 0) > REVEAL_RETRY_SECONDS then
+		echoAskedAt[echoId] = now
+		revealRemote:FireServer(echoId)
+	end
+end
+
+-- Re-reads where the unrevealed lamps and beacons are. Revealing one removes its echo tag.
+local function refreshLightSpots(now: number)
+	if now - lightsCheckedAt < LIGHT_REFRESH_SECONDS then
+		return
+	end
+	lightsCheckedAt = now
+	table.clear(lightSpots)
+	for _, instance in CollectionService:GetTagged(Config.Tags.echo) do
+		local id = instance:GetAttribute(ECHO_ATTRIBUTE)
+		if instance:GetAttribute(LIGHT_ATTRIBUTE) == true and type(id) == "number" then
+			local spot = (instance :: any):GetPivot().Position
+			lightSpots[id] = spot
+		end
+	end
+end
+
 -- The local player's own dots feed the map, the exit needle and hidden recorders.
-local function noteOwnHit(position: Vector3, target: Target, now: number)
+-- Whether a ray from `origin` reaches `spot` without a wall in between (it stops a little short,
+-- so the wall a lamp hangs on does not count). A dot that lands beside a lamp on the far side of
+-- a wall must not wake it.
+local function canSee(origin: Vector3, spot: Vector3, params: RaycastParams): boolean
+	local offset = spot - origin
+	local distance = offset.Magnitude
+	if distance <= LIGHT_CLEARANCE then
+		return true
+	end
+	return workspace:Raycast(origin, offset.Unit * (distance - LIGHT_CLEARANCE), params) == nil
+end
+
+local function noteOwnHit(
+	position: Vector3,
+	target: Target,
+	now: number,
+	origin: Vector3,
+	params: RaycastParams
+)
 	local plan = State.plan
 	if plan ~= nil and State.inLevel() then
 		local relative = (position - State.server.origin) / CELL
@@ -267,16 +337,19 @@ local function noteOwnHit(position: Vector3, target: Target, now: number)
 	end
 	local echoId = target.echoId
 	if echoId ~= nil then
-		local hits = (echoHits[echoId] or 0) + 1
-		echoHits[echoId] = hits
-		echoSeenAt = now
-		Lidar.echoProgress = math.min(1, hits / lidar.echoRevealHits)
+		local needed = if target.light then lidar.lightRevealHits else lidar.echoRevealHits
+		countEcho(echoId, needed, now)
+	end
+	-- Lamps and beacons also wake to dots that land near them, so a casual sweep that passes
+	-- by finds them: the player does not have to know exactly where they are.
+	refreshLightSpots(now)
+	for id, spot in lightSpots do
 		if
-			hits >= lidar.echoRevealHits
-			and now - (echoAskedAt[echoId] or 0) > REVEAL_RETRY_SECONDS
+			id ~= echoId
+			and (position - spot).Magnitude <= lidar.lightReach
+			and canSee(origin, spot, params)
 		then
-			echoAskedAt[echoId] = now
-			revealRemote:FireServer(echoId)
+			countEcho(id, lidar.lightRevealHits, now)
 		end
 	end
 end
@@ -328,7 +401,10 @@ local function castRay(
 	stats.friend = stats.friend or (kind == "friend" and not late)
 	stats.objective = stats.objective or kind == "objective"
 	if own then
-		noteOwnHit(position, target, now)
+		noteOwnHit(position, target, now, origin, params)
+		for _, listener in hitListeners do
+			listener(position)
+		end
 		-- A few fresh dots flare for a moment before settling to their dim size: the scan
 		-- crackles where it lands.
 		if math.random() < SPARK_CHANCE then

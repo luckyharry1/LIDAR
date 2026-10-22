@@ -60,6 +60,7 @@ local auraEdges: { UIGradient } = {}
 local flashFrame: Frame
 local tierLabel: TextLabel
 local objectiveLabel: TextLabel
+local goalLabel: TextLabel
 local staticLabel: TextLabel
 local toastStack: Frame
 local hintLabel: TextLabel
@@ -446,6 +447,14 @@ local function build()
 		LayoutOrder = 2,
 		Parent = info,
 	})
+	goalLabel = Ui.label({
+		TextSize = Ui.text.small,
+		TextColor3 = Ui.colors.gold,
+		Size = UDim2.new(1, 0, 0, 32),
+		TextYAlignment = Enum.TextYAlignment.Top,
+		LayoutOrder = 3,
+		Parent = info,
+	})
 
 	staticLabel = Ui.label({
 		FontFace = Ui.fontBold,
@@ -626,12 +635,15 @@ local function refreshInfo()
 			table.insert(parts, `HIDDEN {server.echoes}/{server.echoesTotal}`)
 		end
 		objectiveLabel.Text = table.concat(parts, "   ")
+		goalLabel.Text = if server.mode == "daily" then "" else Lore.goalFor(server.tier)
 	elseif stage == "tutorial" then
 		tierLabel.Text = "INTAKE"
 		objectiveLabel.Text = "FIND THE WAY OUT"
+		goalLabel.Text = ""
 	else
 		tierLabel.Text = ""
 		objectiveLabel.Text = ""
+		goalLabel.Text = if stage == "lore" then Lore.roomGoal(server.loreRoom) else ""
 	end
 end
 
