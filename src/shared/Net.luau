@@ -22,6 +22,8 @@ Net.clientToServer = {
 	"Start", -- (mode: "continue" | "new" | "daily")
 	"Funnel", -- (step: string) onboarding steps only the client can observe
 	"Choose", -- (choice: "up" | "stay") the finale: climb the ladder or keep the lamp
+	"PartyReady", -- (on: boolean) Play Together: ready to go in with the others on this server
+	"PartyStart", -- (mode: "continue" | "new" | "daily") go in now, with everyone who is ready
 }
 
 -- Server to client.
