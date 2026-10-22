@@ -3,16 +3,17 @@
 -- place comes up out of the black, each floor has its own colour, echo and ambience, and the
 -- view narrows a little when something is close.
 
+local CollectionService = game:GetService("CollectionService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
 local Atmosphere = require(script.Parent.Atmosphere)
 local Audio = require(script.Parent.Audio)
+local Config = require(ReplicatedStorage.Shared.Config)
 local Dots = require(script.Parent.Dots)
 local Hud = require(script.Parent.Hud)
 local Lidar = require(script.Parent.Lidar)
-local Config = require(ReplicatedStorage.Shared.Config)
 local Lore = require(ReplicatedStorage.Shared.data.Lore)
 local Net = require(ReplicatedStorage.Shared.Net)
 local State = require(script.Parent.State)
@@ -85,23 +86,16 @@ local LIGHT_REFRESH_SECONDS = 4
 local STUTTER_GAP = { 0.8, 4 } -- seconds between stutters: right on top of you, and at the edge
 local STUTTER_PATTERN = { 0.07, 0.05, 0.14, 0.06, 0.25 } -- off, on, off, on, off, then back
 
--- Lanterns and the patches of floor and wall around them are built visible, but the player
--- must find them by scanning: they start dark and everything within CONCEAL_REACH of a part
--- the gun lands on comes back, with its lights.
+-- Lanterns and the patches of floor and wall around them arrive dark (the server builds them
+-- concealed, see Build.conceal): the player must find them by scanning. Everything concealed
+-- within CONCEAL_REACH of a part the gun lands on comes back, with its lights.
 local CONCEAL_REACH = 16
-local CONCEAL_DELAYS = { 1, 3 } -- seconds after arriving; the level streams in
 local DOT_CHECK_SECONDS = 0.05
 local SIGHT_CLEARANCE = 1.2 -- studs: a sight line to a patch stops this far short of it
 
-type Concealed = { part: BasePart, transparency: number }
-type Switch = { light: Instance, brightness: number }
-
 local Immersion = {}
 
-local concealed: { [BasePart]: Concealed } = {}
-local concealedList: { Concealed } = {}
-local switches: { Switch } = {}
-local processed: { [Instance]: boolean } = {} -- each part or light is hidden at most once
+local hidden: { [Instance]: boolean } = {} -- concealed parts and lights not yet shown here
 local lastDotCheck = 0
 local patchHits: { [BasePart]: number } = {} -- dots counted toward each hidden patch
 local sightParams = RaycastParams.new()
@@ -197,7 +191,11 @@ local function pulsePois(camera: Camera)
 				POI_DOT_SECONDS
 			)
 		end
-		Audio.poiHum(position)
+	end
+	-- One tone, from the nearest: several copies of the same ping started in one frame comb
+	-- into a harsh, glitchy buzz, and each would steal one of the few positional emitters.
+	if #near > 0 then
+		Audio.poiHum(near[1].position)
 	end
 end
 
@@ -209,15 +207,17 @@ local function wrongSound(camera: Camera)
 	Audio.wrong(WRONG_KINDS[math.random(#WRONG_KINDS)], position)
 end
 
+-- Lights are tagged by the server, so this never walks the workspace (which holds every dot:
+-- tens of thousands of parts after a long scan, and a visible stall each time).
 local function refreshLights()
-	for _, descendant in workspace:GetDescendants() do
-		if descendant:IsA("PointLight") or descendant:IsA("SpotLight") then
-			local light = descendant :: Light
+	for _, instance in CollectionService:GetTagged(Config.Tags.light) do
+		if instance:IsA("PointLight") or instance:IsA("SpotLight") then
+			local light = instance :: Light
 			-- A light mid-stutter keeps the brightness it had before, not its dimmed one.
 			-- Poster and recorder glows (on hidden markers) keep a steady light.
-			local holder = descendant.Parent
+			local holder = instance.Parent
 			local steady = holder ~= nil and holder:GetAttribute("Marker") == true
-			if descendant.Enabled and not steady and baseBrightness[light] == nil then
+			if light.Enabled and not steady and baseBrightness[light] == nil then
 				baseBrightness[light] = light.Brightness
 			end
 		end
@@ -277,72 +277,51 @@ local function flickerLights(camera: Camera, threat: number, dt: number)
 	end
 end
 
-local function concealLevelLights()
-	for _, model in workspace:GetDescendants() do
-		if
-			model:IsA("Model")
-			and model.Name == "Lit"
-			and model.Parent ~= nil
-			and model.Parent:GetAttribute("AllowPlate") ~= nil
-		then
-			for _, descendant in model:GetDescendants() do
-				if processed[descendant] then
-					continue
-				end
-				processed[descendant] = true
-				if descendant:IsA("BasePart") then
-					local record = { part = descendant, transparency = descendant.Transparency }
-					concealed[descendant] = record
-					table.insert(concealedList, record)
-					descendant.Transparency = 1
-				elseif
-					(
-						descendant:IsA("Light")
-						or descendant:IsA("ParticleEmitter")
-						or descendant:IsA("SurfaceGui")
-					) and (descendant :: any).Enabled
-				then
-					local light: any = descendant
-					table.insert(switches, { light = descendant, brightness = light.Brightness })
-					light.Enabled = false
-				end
-			end
-		end
+local function holderOf(instance: Instance): BasePart?
+	if instance:IsA("BasePart") then
+		return instance
 	end
-	refreshLights()
+	local parent = instance.Parent
+	return if parent ~= nil and parent:IsA("BasePart") then parent else nil
+end
+
+local function show(instance: Instance)
+	hidden[instance] = nil
+	if instance:IsA("BasePart") then
+		local shown = instance:GetAttribute("ShowTransparency")
+		instance.Transparency = if type(shown) == "number" then shown else 0
+	else
+		(instance :: any).Enabled = true
+	end
 end
 
 -- Brings back every hidden part and light within CONCEAL_REACH of `center`.
 local function revealAround(center: Vector3)
-	for index = #concealedList, 1, -1 do
-		local other = concealedList[index]
-		if (other.part.Position - center).Magnitude <= CONCEAL_REACH then
-			other.part.Transparency = other.transparency
-			concealed[other.part] = nil
-			table.remove(concealedList, index)
+	local shown = false
+	for instance in hidden do
+		local holder = holderOf(instance)
+		if holder == nil or instance.Parent == nil then
+			hidden[instance] = nil
+		elseif (holder.Position - center).Magnitude <= CONCEAL_REACH then
+			show(instance)
+			shown = true
 		end
 	end
-	for index = #switches, 1, -1 do
-		local switch = switches[index]
-		local holder = switch.light.Parent
-		if holder ~= nil and holder:IsA("BasePart") then
-			if (holder.Position - center).Magnitude <= CONCEAL_REACH then
-				(switch.light :: any).Enabled = true
-				table.remove(switches, index)
-			end
-		else
-			table.remove(switches, index)
-		end
+	if shown then
+		refreshLights()
 	end
-	refreshLights()
 end
 
 -- The first hidden part within CONCEAL_REACH of `center`: it stands for its whole patch, so
 -- dots on any part of the patch add up in one count.
-local function anchorNear(center: Vector3): Concealed?
-	for _, record in concealedList do
-		if (record.part.Position - center).Magnitude <= CONCEAL_REACH then
-			return record
+local function anchorNear(center: Vector3): BasePart?
+	for instance in hidden do
+		if
+			instance:IsA("BasePart")
+			and instance.Parent ~= nil
+			and (instance.Position - center).Magnitude <= CONCEAL_REACH
+		then
+			return instance
 		end
 	end
 	return nil
@@ -350,22 +329,21 @@ end
 
 -- One more dot on a hidden patch. A short scan wakes it, so a glance is not enough but the
 -- player need not scan every part of it.
-local function countHit(anchor: Concealed)
-	local hits = (patchHits[anchor.part] or 0) + 1
+local function countHit(anchor: BasePart)
+	local hits = (patchHits[anchor] or 0) + 1
 	if hits >= Config.Lidar.lightRevealHits then
-		patchHits[anchor.part] = nil
-		revealAround(anchor.part.Position)
+		patchHits[anchor] = nil
+		revealAround(anchor.Position)
 	else
-		patchHits[anchor.part] = hits
+		patchHits[anchor] = hits
 	end
 end
 
 local function showNear(seen: BasePart)
-	local record = concealed[seen]
-	if record == nil then
+	if not hidden[seen] then
 		return
 	end
-	countHit(anchorNear(seen.Position) or record)
+	countHit(anchorNear(seen.Position) or seen)
 end
 
 -- Whether the camera has a clear line to `spot` (stopping a little short of it, so the wall a
@@ -388,15 +366,19 @@ end
 local function showNearDot(position: Vector3)
 	local now = os.clock()
 	local camera = workspace.CurrentCamera
-	if now - lastDotCheck < DOT_CHECK_SECONDS or #concealedList == 0 or camera == nil then
+	if now - lastDotCheck < DOT_CHECK_SECONDS or next(hidden) == nil or camera == nil then
 		return
 	end
 	lastDotCheck = now
 	local reach = Config.Lidar.concealTrigger
-	for _, record in concealedList do
-		if (record.part.Position - position).Magnitude <= reach then
-			if canSee(camera, record.part.Position) then
-				countHit(anchorNear(record.part.Position) or record)
+	for instance in hidden do
+		if
+			instance:IsA("BasePart")
+			and instance.Parent ~= nil
+			and (instance.Position - position).Magnitude <= reach
+		then
+			if canSee(camera, instance.Position) then
+				countHit(anchorNear(instance.Position) or instance)
 			end
 			return
 		end
@@ -431,6 +413,15 @@ function Immersion.start()
 		forgetPoi(position)
 	end)
 
+	for _, instance in CollectionService:GetTagged(Config.Tags.concealed) do
+		hidden[instance] = true
+	end
+	CollectionService:GetInstanceAddedSignal(Config.Tags.concealed):Connect(function(instance)
+		hidden[instance] = true
+	end)
+	CollectionService:GetInstanceRemovedSignal(Config.Tags.concealed):Connect(function(instance)
+		hidden[instance] = nil
+	end)
 	Lidar.onSeen(showNear)
 	Lidar.onHit(showNearDot)
 	Lidar.onPoi(function(position: Vector3)
@@ -457,21 +448,13 @@ function Immersion.start()
 			or server.stage ~= previous.stage and previous.stage ~= "downed"
 		if arrived then
 			comeUp(server.stage == "lore")
-			if server.stage == "level" then
-				table.clear(concealed)
-				table.clear(concealedList)
-				table.clear(switches)
-				table.clear(processed)
-				for _, delay in CONCEAL_DELAYS do
-					task.delay(delay, concealLevelLights)
-				end
-			end
 		end
 	end)
 
 	State.onLevel(function()
 		table.clear(pois)
 		table.clear(forgotten)
+		table.clear(patchHits)
 		wrongTimer = WRONG_CALM[1]
 		lightTimer = 0
 	end)

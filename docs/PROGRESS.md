@@ -468,6 +468,34 @@ Only what has actually been run is listed as verified.
   everything within 16 studs of a part the local gun lands on, with its lights. Client only;
   a teammate's scan reveals them for you too (relayed rays go through `Lidar.onSeen`). Revealed recorders still light up as before.
 
+## Sound glitch, dots round the crosshair, lamp on first start (22 Oct, cloud thread; not seen in Studio)
+Vasco on latest main (after PRs #4 to #6): sound glitches after holding scan a while, dots round
+the crosshair still go missing, and a lamp is lit when a level starts for the first time.
+- Lamp lit on first start: the client hid the level's `Lit` model 1 s and 3 s after arriving.
+  A restart covers that with the fade to black; a first start (title or tutorial into tier 1) has
+  no fade, so the start lamp showed lit. Now the server builds lamps and their patches dark
+  (`Build.conceal(lit)` in `World.buildLevel`): parts get `Transparency = 1` with the old value in
+  the `ShowTransparency` attribute, lights go off, and each is tagged `Config.Tags.concealed`.
+  `Immersion` tracks that tag and shows what is within 16 studs of a scanned concealed part, as
+  before (relayed teammate rays count). Nothing is visible before the first scan, however late
+  the level arrives. Revealed recorders and burnt-out lamps are untouched.
+- Sound glitch: `Immersion.refreshLights` walked `workspace:GetDescendants()` every 4 s and on
+  every lamp reveal. The dots live in the workspace, so after a long scan that was 100k+ parts
+  and a stall that grew with every dot (the scan ticks stutter through it). Every server light is
+  now tagged `Config.Tags.light` in `Build.pointLight` and the client reads the tag. Also the
+  point-of-interest pulse played the same ping from up to five spots in one frame (a harsh,
+  combed buzz that also stole the positional emitters); it now plays one, from the nearest.
+- Dots round the crosshair: three causes stacked at range, which is where the crosshair points
+  down a corridor. (1) `dotSizeMax` 0.2 capped dot growth at 95 studs, so dots out to the 150 stud
+  reach shrank back to about a pixel: now 0.32 (test covers the whole range). (2) The far packing
+  grid (0.8 studs past 45) let the 45 to 80 stud band hold dots only 8 to 14 px apart, however long
+  it was scanned: now mid 0.3 to 40 studs, far 0.45 (about 9 px or finer everywhere; far surfaces
+  can hold about 3x the dots, so the budget turns over sooner). (3) Black fog from 36 to 210 dimmed
+  a 150 stud dot by two thirds: now 70 to 380.
+- Check in Studio: no lamp or patch shows on a first start until scanned; holding scan for a
+  minute or more (MicroProfiler: no spike every 4 s); the far end of a long corridor fills in;
+  frame rate with the denser far grid; light flicker near monsters still works.
+
 ## Stairwell between places (22 Oct, cloud thread; nothing seen in Studio)
 - `server/Passage.luau` builds a 7-wide flight of 28 steps (0.9 drop, 2.6 run) with landings, side
   and end walls and a sloped ceiling at (0, 0, -1500), all invisible like the maze, with one dim
