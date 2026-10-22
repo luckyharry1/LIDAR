@@ -378,3 +378,10 @@ Only what has actually been run is listed as verified.
 - Check in Studio: that the fade covers the teleport, the title card still shows after the
   fade-in, tint strength, reverb not too wet, FOV narrowing not nauseating, `Hud.fade` shared with
   the caught flash.
+- Second pass (22 Oct): `Immersion` also does (a) found points of interest (`Lidar.onPoi`, objective
+  dots) pulse a rising gold ring and a faint tone every 2.6 s while within 90 studs (nearest 5);
+  (b) distant wrong sounds (`Audio.wrong`: door slam, running steps, tick crackle, bump) from a
+  random bearing 35-70 studs away, every 22-45 s, 6-12 s when a monster is near; (c) point and spot
+  lights within 45 studs stutter and cut out as threat rises (re-collected every 4 s); (d) 3% of
+  the local scan's dots flare at 2.6x size for 0.3 s as they land. Not built: the walkable
+  stairwell between levels (needs a new member stage and a corridor model; best done with Studio).

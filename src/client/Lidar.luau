@@ -69,6 +69,9 @@ local TEAMMATE_MUZZLE = CFrame.new(0.6, -0.6, -1.4) -- roughly where a teammate 
 local SCAN_CELL_HITS = 3 -- dots needed in a cell before the map counts it as scanned
 local ECHO_LINGER_SECONDS = 1 -- recorder progress stays on screen this long after the last hit
 local REVEAL_RETRY_SECONDS = 2
+local SPARK_CHANCE = 0.03 -- share of the local scan's dots that flare as they land
+local SPARK_SIZE = 2.6
+local SPARK_SECONDS = 0.3
 local EXIT_NAME = "ExitDoor"
 local ECHO_ATTRIBUTE = "EchoId"
 
@@ -96,6 +99,7 @@ local radarRemaining = 0
 local radarYaw = 0
 local teammates: { [number]: Teammate } = {}
 local batchListeners: { BatchListener } = {}
+local poiListeners: { (position: Vector3) -> () } = {}
 local sweepListeners: { () -> () } = {}
 local radarListeners: { () -> () } = {}
 local cellHits: { [number]: number } = {}
@@ -128,6 +132,12 @@ end
 -- Called once per frame that produced dots, for the scan audio.
 function Lidar.onBatch(listener: BatchListener)
 	table.insert(batchListeners, listener)
+end
+
+-- Called with the spot of every point of interest (an item, the exit) the local gun lands a
+-- dot on.
+function Lidar.onPoi(listener: (position: Vector3) -> ())
+	table.insert(poiListeners, listener)
 end
 
 -- Called when the local player's sweep fires.
@@ -307,6 +317,16 @@ local function castRay(
 	stats.objective = stats.objective or kind == "objective"
 	if own then
 		noteOwnHit(position, target, now)
+		-- A few fresh dots flare for a moment before settling to their dim size: the scan
+		-- crackles where it lands.
+		if math.random() < SPARK_CHANCE then
+			Dots.mark(position, kind, DotRules.size(kind, distance) * SPARK_SIZE, SPARK_SECONDS)
+		end
+		if kind == "objective" then
+			for _, listener in poiListeners do
+				listener(position)
+			end
+		end
 	end
 	if beams ~= nil and muzzle ~= nil then
 		showBeam(beams, muzzle, position, Dots.color(kind), now)

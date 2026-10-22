@@ -253,6 +253,35 @@ function Audio.arrive(haven: boolean)
 	end
 end
 
+-- A faint tone from a point of interest the player has found: it draws the ear to it.
+function Audio.poiHum(position: Vector3)
+	playAt(position, audio.ping, 0.14, 0.5, 45)
+end
+
+-- Something is wrong somewhere out of sight. `kind` picks the sound; `position` is where it
+-- seems to come from.
+function Audio.wrong(kind: string, position: Vector3)
+	if kind == "door" then
+		playAt(position, audio.door, 0.7, 0.7, 120)
+	elseif kind == "run" then
+		task.spawn(function()
+			for _ = 1, 7 do
+				playAt(position, audio.wandererStep, 0.6, 1.5, 100)
+				task.wait(0.22)
+			end
+		end)
+	elseif kind == "crackle" then
+		task.spawn(function()
+			for _ = 1, 9 do
+				playAt(position, audio.tick, 0.5, 0.4 + math.random() * 1.6, 70)
+				task.wait(0.04 + math.random() * 0.06)
+			end
+		end)
+	else
+		playAt(position, audio.bumps, 0.8, 0.8 + math.random() * 0.4, 120)
+	end
+end
+
 function Audio.threat(): number
 	return threat
 end
