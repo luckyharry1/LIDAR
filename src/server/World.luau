@@ -1045,6 +1045,23 @@ function World.buildLevel(plan: LevelPlan.LevelPlan, origin: Vector3): Level
 	for _, echo in buildSigns(plan, origin, dark, #echoes + 1) do
 		table.insert(echoes, echo)
 	end
+	if plan.tier == 1 then
+		-- Level 1 starts where the player lands: the wall behind them has melted.
+		local center = World.cellCenter(origin, maze.start)
+		local closed = closedSides(maze, maze.start)
+		local facing = "N"
+		for _, name in Maze.DIR_NAMES do
+			if Maze.isOpen(maze, maze.start.x, maze.start.y, name) then
+				facing = name
+				break
+			end
+		end
+		local behind = ({ N = "S", S = "N", E = "W", W = "E" })[facing]
+		local side = if table.find(closed, behind) then behind else closed[1]
+		if side ~= nil then
+			Props.meltedWall(wallBase(center, side), dark)
+		end
+	end
 	Build.hide(dark)
 	for _, echo in buildLamps(plan, origin, lit, rng, #echoes + 1) do
 		table.insert(echoes, echo)

@@ -44,6 +44,13 @@ is now what the game reads.
   counts only if the scanner has a clear line to the lamp (`Lidar.canSee`), so a lamp behind a
   wall does not wake. Hidden lamp-bag patches count dots (direct hits, and nearby dots that the
   camera can see) and come back at 10 (`Immersion.countHit`).
+- Round 2 (Vasco's test): the opening cutscene is shorter (3 spoken lines) and hides the mouse
+  cursor; the intake no longer forces the tape (the television still plays it if scanned); Theo's
+  thoughts and Base's calls stay silent until the first hidden object speaks (`State.storyLive`),
+  and Theo thinks aloud at most every 40 s; posters shrink their text to fit the paper
+  (`Props.sign`, 60 px per stud, `TextScaled`); tier 2 has one hidden object and one poster fewer;
+  a melted wall (`Props.meltedWall`) stands behind the spawn point in the intake room and on
+  tier 1.
 - Not done: spoken audio and per-area sound cues; the Bunk Room still has no surveyor scene; unused
   POIs (copier, vending extras, ticket machine, Pike's table, rope bridge, doorframe) have no
   prop yet; journal UI; the tapes after the first are not placed in the world; the Night Shift

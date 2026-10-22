@@ -91,6 +91,7 @@ State.meta =
 State.profileLoaded = false
 State.plan = nil :: LevelPlan.LevelPlan?
 State.menuOpen = false -- true while a full-screen menu has the player's attention
+State.storyLive = false -- set once the first hidden object has spoken: until then the story is quiet
 State.exitScanned = false -- has the LIDAR touched this level's exit yet (drives the Wayfinder)
 State.scannedCells = {} :: { [number]: boolean }
 

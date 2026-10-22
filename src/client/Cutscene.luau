@@ -47,6 +47,7 @@ local skipped = false
 local typing = false
 local finishTyping = false
 local heldBefore = false
+local cursorBefore = true
 
 local function build()
 	built = true
@@ -204,6 +205,8 @@ function Cutscene.play(id: string, onDone: (() -> ())?)
 	Cutscene.playing = true
 	skipped = false
 	heldBefore = State.menuOpen
+	cursorBefore = UserInputService.MouseIconEnabled
+	UserInputService.MouseIconEnabled = false -- no pointer over the picture
 	State.menuOpen = true
 	Input.menuChanged()
 
@@ -265,6 +268,7 @@ function Cutscene.play(id: string, onDone: (() -> ())?)
 		task.wait(FADE_SECONDS)
 		backdrop.Visible = false
 		Ui.focus(nil)
+		UserInputService.MouseIconEnabled = cursorBefore
 		State.menuOpen = heldBefore
 		Input.menuChanged()
 		Cutscene.playing = false

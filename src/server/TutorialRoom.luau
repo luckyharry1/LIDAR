@@ -8,6 +8,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Build = require(script.Parent.Build)
 local Config = require(ReplicatedStorage.Shared.Config)
+local Props = require(script.Parent.Props)
 
 export type Tutorial = {
 	model: Model,
@@ -60,6 +61,10 @@ function TutorialRoom.build(origin: Vector3): Tutorial
 	slab("TVCart", Vector3.new(2.4, 1.6, 3.2), cart + Vector3.new(0, 0.8, 0))
 	slab("TVBody", Vector3.new(2, 1.7, 2.6), cart + Vector3.new(0, 2.45, 0))
 	slab("TVScreen", Vector3.new(0.1, 1.3, 2), cart + Vector3.new(-1.05, 2.45, 0))
+
+	-- Behind the spawn point: the wall Theo fell through, run like wax.
+	local meltPoint = origin + Vector3.new(0, 0, HALF_Z)
+	Props.meltedWall(CFrame.lookAt(meltPoint, meltPoint - Vector3.new(0, 0, 1)), model)
 
 	local doorBase = CFrame.new(origin + Vector3.new(0, 0, -HALF_Z + DOOR_SIZE.Z / 2))
 	local door = Build.part({

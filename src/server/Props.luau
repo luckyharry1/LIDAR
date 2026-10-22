@@ -667,7 +667,8 @@ for name, kit in StoryKits do
 end
 
 local SIGN_WIDTH, SIGN_HEIGHT = 4, 5.6
-local SIGN_PIXELS = 36 -- pixels per stud on the sign's surface
+local SIGN_PIXELS = 60 -- pixels per stud on the sign's surface
+local SIGN_MAX_TEXT = 26 -- the text shrinks to fit the paper, but never grows past this
 local SIGN_INK = Color3.fromRGB(34, 32, 30)
 local MARGIN_PREFIX = "margin: "
 
@@ -694,7 +695,7 @@ function Props.sign(base: CFrame, lines: { string }, parent: Instance): Model
 	for index, line in lines do
 		if string.sub(line, 1, #MARGIN_PREFIX) == MARGIN_PREFIX then
 			local note = escape(string.sub(line, #MARGIN_PREFIX + 1))
-			table.insert(rich, `<i><font color="rgb(150,40,40)" size="20">{note}</font></i>`)
+			table.insert(rich, `<i><font color="rgb(150,40,40)">{note}</font></i>`)
 		elseif index == 1 then
 			table.insert(rich, `<b>{escape(line)}</b>`)
 		else
@@ -712,11 +713,72 @@ function Props.sign(base: CFrame, lines: { string }, parent: Instance): Model
 	label.BackgroundTransparency = 1
 	label.TextColor3 = SIGN_INK
 	label.Font = Enum.Font.Code
-	label.TextSize = 22
+	label.TextSize = SIGN_MAX_TEXT
+	label.TextScaled = true -- long bulletins shrink to stay on the paper
 	label.TextWrapped = true
 	label.RichText = true
 	label.Text = table.concat(rich, "\n")
 	label.Parent = gui
+	local limit = Instance.new("UITextSizeConstraint")
+	limit.MaxTextSize = SIGN_MAX_TEXT
+	limit.MinTextSize = 6
+	limit.Parent = label
+	local inset = Instance.new("UIPadding")
+	inset.PaddingLeft = UDim.new(0.06, 0)
+	inset.PaddingRight = UDim.new(0.06, 0)
+	inset.PaddingTop = UDim.new(0.05, 0)
+	inset.PaddingBottom = UDim.new(0.05, 0)
+	inset.Parent = label
+	return model
+end
+
+-- The wall Theo fell through: wallpaper that has slumped and run like wax, with drips down to
+-- a puddle on the floor. `base` is on the wall face looking into the room (as World.wallBase
+-- makes it). Nothing here blocks the way; it is there to be found by the scanner.
+local MELT_COLOR = Color3.fromRGB(196, 170, 92)
+local MELT_DRIPS = { -5.6, -4.1, -2.2, -0.6, 1.0, 2.9, 4.4, 5.8 }
+local MELT_BULGES = {
+	{ x = -2.6, y = 6.6, size = { 5.2, 1.7, 1.3 }, roll = -4 },
+	{ x = 2.4, y = 5.4, size = { 4.4, 1.5, 1.5 }, roll = 6 },
+	{ x = -0.4, y = 3.2, size = { 3.4, 1.3, 1.1 }, roll = -3 },
+}
+
+function Props.meltedWall(base: CFrame, parent: Instance): Model
+	local model = Build.model("MeltedWall", parent)
+	local function piece(size: Vector3, at: CFrame, shape: Enum.PartType?)
+		Build.part({
+			name = "Melt",
+			size = size,
+			cframe = base * at,
+			color = MELT_COLOR,
+			material = Enum.Material.SmoothPlastic,
+			shape = shape,
+			collide = false,
+			parent = model,
+		})
+	end
+	for index, x in MELT_DRIPS do
+		local length = 3.2 + (index * 7 % 5) * 0.9 -- how far this drip has run
+		local width = 0.7 + (index * 3 % 4) * 0.22
+		-- A cylinder lies along X; rolling it a quarter turn stands it up.
+		piece(
+			Vector3.new(length, width, width),
+			CFrame.new(x, 7.4 - length / 2, -(0.5 + (index % 3) * 0.25))
+				* CFrame.Angles(0, 0, math.rad(90)),
+			Enum.PartType.Cylinder
+		)
+	end
+	for _, bulge in MELT_BULGES do
+		piece(
+			Vector3.new(bulge.size[1], bulge.size[2], bulge.size[3]),
+			CFrame.new(bulge.x, bulge.y, -0.6) * CFrame.Angles(0, 0, math.rad(bulge.roll))
+		)
+	end
+	piece(
+		Vector3.new(0.2, 6.4, 6.4),
+		CFrame.new(0, 0.1, -3.2) * CFrame.Angles(0, 0, math.rad(90)),
+		Enum.PartType.Cylinder
+	)
 	return model
 end
 
