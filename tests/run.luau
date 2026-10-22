@@ -13,6 +13,7 @@ local suites: { { name: string, tests: { [string]: () -> () } } } = {
 	{ name = "Daily", tests = require("./DailyTests") },
 	{ name = "Simulation", tests = require("./SimTests") },
 	{ name = "Lore", tests = require("./LoreTests") },
+	{ name = "Source", tests = require("./SourceTests") },
 }
 
 local passed, failed = 0, 0

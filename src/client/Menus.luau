@@ -389,12 +389,13 @@ local function buildTitle()
 		BackgroundTransparency = 1,
 		LayoutOrder = 5,
 		Parent = frame,
-	}, { Ui.list(Enum.FillDirection.Vertical, 2) })(Net.get("Toast") :: RemoteEvent).OnClientEvent
-		:Connect(function(text: string, kind: string?)
-			if State.server.stage == "title" then
-				titleNotice(text, kind)
-			end
-		end)
+	}, { Ui.list(Enum.FillDirection.Vertical, 2) })
+	local toastRemote = Net.get("Toast") :: RemoteEvent
+	toastRemote.OnClientEvent:Connect(function(text: string, kind: string?)
+		if State.server.stage == "title" then
+			titleNotice(text, kind)
+		end
+	end)
 end
 
 --------------------------------------------------------------------------------------------
