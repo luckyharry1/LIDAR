@@ -14,16 +14,40 @@ objects, posters, gate items and the secret alcove are written. See "Story place
 it has been run in Studio. `scripts/check.sh` could not run in full in the cloud (see there).
 
 **Backrooms story pivot and light sensitivity (cloud thread, 22 Oct 2026, branch
-`claude/haven-lights`, based on `claude/stairwell`):** Vasco asked for a clearer story. The new
-story (a Backrooms setting stated from the start, Theo as a learning protagonist, videotape
-cutscenes, voiced radio, surveyors as the goal, a distinct look per area) is written in
-`docs/story/` (v1 kept in `docs/story/v1/`). It is data only: the game still reads the old ids,
-and `LoreText.luau` in `docs/story/` keeps them as `legacy` entries so the build thread can migrate
-callers one by one. Code in this slice: lamps and a dark room's beacon now wake after
-`Config.Lidar.lightRevealHits` (2) dots instead of 140, a dot within `lightReach` studs of one
-counts as a hit on it, and hidden lamp-bag patches come back for any dot within `concealTrigger`
-studs, not only a dot on the exact part. Not run in Studio; `scripts/check.sh` could not run in
-the cloud (no Rojo, Lune, StyLua or Selene available), so format, lint and tests are unchecked.
+`claude/haven-lights`, based on `claude/stairwell`):** Vasco asked for a clearer story, then (after
+a first look) for the lore to be felt from the first minute of the game. The story (a Backrooms
+setting stated from the start, Theo as a learning protagonist, videotape cutscenes, voiced radio,
+surveyors as the goal, a distinct look per area) is in `docs/story/` (v1 in `docs/story/v1/`) and
+is now what the game reads.
+
+- `src/shared/data/LoreText.luau` is the v2 file. v1 entries without a v2 replacement stay in it
+  marked `legacy` (lamp-bag tags `rev.nook.*`, a few signs, `item.*` extras); delete them once
+  nothing asks for them.
+- `Lore.luau` and `Places.luau` point at v2 ids: Level cards (L0 to L4; tiers 7 and 8 are now
+  separate Levels), recorders `rec.l0.*` to `rec.l3.*`, the 11 manual rules, Base's radio
+  (`Lore.radioFor(tier)`; the haven call is gone, surveyors speak instead), camp notes (found
+  objects with Theo's thought underneath), the Dormitory and Lamp Room notes, the finale (built
+  from the `npc.ines` scene, with the fall count) and the end cards (`end.up`, `end.stay`). Hidden
+  objects are now the `poi.*` entries (same props, new words); they send Theo's `thought` after the
+  words (`Echo` remote has a 5th argument).
+- `client/Cutscene.luau` plays any scene (cutscene, tape, surveyor talk): captions on black,
+  subtitled speech that types out, click, tap, Space, Enter or E to continue, SKIP always shown.
+  Controls are held still while it plays. No voice audio yet.
+- `client/Tutorial.luau`: a new player (profile `tutorialDone` false) sees `cs.open` first, then
+  the intake: scan, a television in the intake room (`TutorialRoom` `TVScreen`) whose tape
+  `tape.orientation` plays after 10 dots land on it (or after 50 s), the sweep, the colour key,
+  the door. Theo's `thought.*` lines are subtitled at each first (first dot, water, pit, plate,
+  each monster, a green dot, respawn, the Falls). Arriving at a camp (Supply Closet, Pump House,
+  Falls, Ward Station, Hollow Camp) plays the surveyor's scene once per session (`Room.scene`).
+  The HUD shows the current goal under the objectives (`Lore.goalFor`, `Lore.roomGoal`).
+- Lights: `Config.Lidar.lightRevealHits` is 10. A dot within `lightReach` of a lamp or beacon
+  counts only if the scanner has a clear line to the lamp (`Lidar.canSee`), so a lamp behind a
+  wall does not wake. Hidden lamp-bag patches count dots (direct hits, and nearby dots that the
+  camera can see) and come back at 10 (`Immersion.countHit`).
+- Not done: spoken audio and per-area sound cues; the Bunk Room still has no surveyor scene; unused
+  POIs (copier, vending extras, ticket machine, Pike's table, rope bridge, doorframe) have no
+  prop yet; journal UI; the tapes after the first are not placed in the world; the Night Shift
+  difficulty mentioned at the end of `end.up`. Not run in Studio.
 
 ## Where things stand
 

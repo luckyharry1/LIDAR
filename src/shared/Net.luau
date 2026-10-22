@@ -42,7 +42,7 @@ Net.serverToClient = {
 	"OpenNote", -- (title: string, body: string)
 	"AskDescend", -- (body: string) a doorway asks whether to go down the stairwell
 	"Objective", -- (kind: string, detail table) pickups, rescues, key, exit
-	"Echo", -- (echoId: number, position: Vector3, speaker: string, line: string) a recorder spoke
+	"Echo", -- (echoId, position: Vector3, speaker: string, line: string, thought: string?) a recorder spoke
 	"Hazard", -- (kind: "plate" | "pit", position: Vector3, userId: number)
 	"DailyBoard", -- (board table)
 	"Ending", -- (title: string, body: string)

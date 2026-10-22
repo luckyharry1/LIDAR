@@ -3,6 +3,8 @@
 -- from LoreText, and fit the places the builders put it.
 local Difficulty = require("../src/shared/pure/Difficulty")
 local Lore = require("../src/shared/data/Lore")
+local LoreText = require("../src/shared/data/LoreText")
+local Places = require("../src/shared/data/Places")
 local Tiers = require("../src/shared/data/Tiers")
 
 local HAVEN_NOTES = 1 -- a small haven has one page to read
@@ -82,7 +84,13 @@ tests["manual pages are the eleven printed rules"] = function()
 			`page {index} is out of order`
 		)
 	end
-	assert(string.find(Lore.plates[2], "In the margin: ", 1, true) ~= nil, "margins are not marked")
+	local margins = 0
+	for _, page in Lore.plates do
+		if string.find(page, "In the margin: ", 1, true) ~= nil then
+			margins += 1
+		end
+	end
+	assert(margins > 0, "margins are not marked")
 end
 
 tests["every authored tier has a floor and endless tiers are the Relay"] = function()
@@ -104,7 +112,9 @@ tests["only known placeholders appear, and fill replaces them"] = function()
 	for _, echo in Lore.echoes do
 		table.insert(texts, echo.line)
 	end
-	table.insert(texts, Lore.radio.floor)
+	for tier = 1, #Tiers + 1 do
+		table.insert(texts, Lore.radioFor(tier))
+	end
 	table.insert(texts, Lore.relayCard.title)
 	for _, text in texts do
 		for _, key in placeholdersIn(text) do
@@ -131,6 +141,70 @@ tests["every monster has a manual page"] = function()
 	for _, kind in { "wanderer", "listener", "mimic", "stalker" } do
 		local entity = Lore.entities[kind]
 		assert(entity ~= nil and entity.name ~= "" and entity.page ~= "", `{kind} has no page`)
+	end
+end
+
+tests["every camp's surveyor, goal and radio call exists"] = function()
+	for id, room in Lore.rooms do
+		if room.scene ~= nil then
+			assert(LoreText.scene(room.scene) ~= nil, `{id} names a missing scene {room.scene}`)
+		end
+	end
+	for tier = 1, #Tiers do
+		assert(Lore.goalFor(tier) ~= "", `tier {tier} has no goal`)
+		assert(Lore.radioFor(tier) ~= "", `tier {tier} has no radio call`)
+	end
+	assert(Lore.roomGoal("cistern") ~= "" and Lore.roomGoal("stairwell") ~= "", "room goals")
+	assert(Lore.roomGoal("office") == "", "an unlisted room has no goal")
+end
+
+tests["every scene opens with something to show and every beat is one thing"] = function()
+	assert(LoreText.scene("cs.open") ~= nil and LoreText.scene("tape.orientation") ~= nil)
+	for _, scene in LoreText.scenes do
+		assert(#scene.beats > 0, `{scene.id} has no beats`)
+		for index, beat in scene.beats do
+			local parts = (if beat.cap then 1 else 0)
+				+ (if beat.shot then 1 else 0)
+				+ (if beat.sp or beat.line then 1 else 0)
+			assert(parts == 1, `{scene.id} beat {index} is not exactly one kind`)
+			if beat.sp ~= nil then
+				assert(beat.line ~= nil and beat.line ~= "", `{scene.id} beat {index} says nothing`)
+			end
+		end
+	end
+end
+
+tests["Theo has a thought for every first the tutorial reacts to"] = function()
+	for _, key in
+		{
+			"wake",
+			"firstdot",
+			"water",
+			"pit",
+			"plate",
+			"falls",
+			"surveyor",
+			"keys",
+			"hush",
+			"echo",
+			"still",
+			"respawn.first",
+			"respawn.ines",
+		}
+	do
+		assert(Lore.thought(key) ~= "", `no thought for {key}`)
+	end
+end
+
+tests["hidden objects carry a thought and a prop"] = function()
+	for tier, places in Places.tiers do
+		for _, id in places.reveals do
+			local reveal = Places.reveal(id)
+			assert(
+				reveal.thought ~= nil and reveal.thought ~= "",
+				`tier {tier}: {id} has no thought`
+			)
+		end
 	end
 end
 
