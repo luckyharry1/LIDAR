@@ -654,6 +654,7 @@ local function darken(
 	end
 	model:SetAttribute("Dark", true)
 	target:SetAttribute("EchoId", BEACON_ID)
+	target:SetAttribute("Light", true) -- a dark room's lamp wakes to a glance
 	CollectionService:AddTag(target, Config.Tags.echo)
 	CollectionService:AddTag(target, Config.Tags.objective)
 	local beacon: Beacon
