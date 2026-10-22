@@ -24,7 +24,13 @@ local Maze = require(ReplicatedStorage.Shared.pure.Maze)
 local Net = require(ReplicatedStorage.Shared.Net)
 local State = require(script.Parent.State)
 
-type Target = { tags: { [string]: boolean }, echoId: number?, exit: boolean, at: number }
+type Target = {
+	tags: { [string]: boolean },
+	echoId: number?,
+	light: boolean, -- a lamp or beacon: it wakes after a couple of dots
+	exit: boolean,
+	at: number,
+}
 type Stats = {
 	hits: number,
 	distance: number,
@@ -74,6 +80,8 @@ local SPARK_SIZE = 2.6
 local SPARK_SECONDS = 0.3
 local EXIT_NAME = "ExitDoor"
 local ECHO_ATTRIBUTE = "EchoId"
+local LIGHT_ATTRIBUTE = "Light" -- set on lamps and beacons: they reveal on a glance
+local LIGHT_REFRESH_SECONDS = 2
 
 local Lidar = {}
 
@@ -100,6 +108,7 @@ local radarYaw = 0
 local teammates: { [number]: Teammate } = {}
 local batchListeners: { BatchListener } = {}
 local poiListeners: { (position: Vector3) -> () } = {}
+local hitListeners: { (position: Vector3) -> () } = {}
 local seenListeners: { (instance: BasePart) -> () } = {}
 local sweepListeners: { () -> () } = {}
 local radarListeners: { () -> () } = {}
@@ -107,6 +116,8 @@ local cellHits: { [number]: number } = {}
 local echoHits: { [number]: number } = {}
 local echoAskedAt: { [number]: number } = {}
 local echoSeenAt = 0
+local lightSpots: { [number]: Vector3 } = {} -- unrevealed lamps and beacons, by echo id
+local lightsCheckedAt = 0
 
 local beamFolder = Instance.new("Folder")
 beamFolder.Name = "LidarBeams"
@@ -141,6 +152,11 @@ function Lidar.onPoi(listener: (position: Vector3) -> ())
 	table.insert(poiListeners, listener)
 end
 
+-- Called with the position of every dot the local gun lands.
+function Lidar.onHit(listener: (position: Vector3) -> ())
+	table.insert(hitListeners, listener)
+end
+
 -- Called with every part the local gun's rays land on.
 function Lidar.onSeen(listener: (instance: BasePart) -> ())
 	table.insert(seenListeners, listener)
@@ -168,6 +184,7 @@ local function describe(instance: Instance, now: number): Target
 	end
 	local tags: { [string]: boolean } = {}
 	local echoId: number? = nil
+	local light = false
 	local node: Instance? = instance
 	while node ~= nil and node ~= workspace do
 		for _, tag in CollectionService:GetTags(node) do
@@ -177,11 +194,15 @@ local function describe(instance: Instance, now: number): Target
 		if type(id) == "number" then
 			echoId = id
 		end
+		if node:GetAttribute(LIGHT_ATTRIBUTE) == true then
+			light = true
+		end
 		node = node.Parent
 	end
 	local target = {
 		tags = tags,
 		echoId = if tags[Config.Tags.echo] then echoId else nil,
+		light = light,
 		exit = instance.Name == EXIT_NAME,
 		at = now,
 	}
@@ -234,6 +255,36 @@ local function fadeBeams(pool: BeamPool, now: number)
 	end
 end
 
+-- One more dot on a hidden object; at `needed` dots it asks the server to reveal it.
+local function countEcho(echoId: number, needed: number, now: number)
+	local hits = (echoHits[echoId] or 0) + 1
+	echoHits[echoId] = hits
+	echoSeenAt = now
+	if needed == lidar.echoRevealHits then
+		Lidar.echoProgress = math.min(1, hits / needed)
+	end
+	if hits >= needed and now - (echoAskedAt[echoId] or 0) > REVEAL_RETRY_SECONDS then
+		echoAskedAt[echoId] = now
+		revealRemote:FireServer(echoId)
+	end
+end
+
+-- Re-reads where the unrevealed lamps and beacons are. Revealing one removes its echo tag.
+local function refreshLightSpots(now: number)
+	if now - lightsCheckedAt < LIGHT_REFRESH_SECONDS then
+		return
+	end
+	lightsCheckedAt = now
+	table.clear(lightSpots)
+	for _, instance in CollectionService:GetTagged(Config.Tags.echo) do
+		local id = instance:GetAttribute(ECHO_ATTRIBUTE)
+		if instance:GetAttribute(LIGHT_ATTRIBUTE) == true and type(id) == "number" then
+			local spot = (instance :: any):GetPivot().Position
+			lightSpots[id] = spot
+		end
+	end
+end
+
 -- The local player's own dots feed the map, the exit needle and hidden recorders.
 local function noteOwnHit(position: Vector3, target: Target, now: number)
 	local plan = State.plan
@@ -259,16 +310,15 @@ local function noteOwnHit(position: Vector3, target: Target, now: number)
 	end
 	local echoId = target.echoId
 	if echoId ~= nil then
-		local hits = (echoHits[echoId] or 0) + 1
-		echoHits[echoId] = hits
-		echoSeenAt = now
-		Lidar.echoProgress = math.min(1, hits / lidar.echoRevealHits)
-		if
-			hits >= lidar.echoRevealHits
-			and now - (echoAskedAt[echoId] or 0) > REVEAL_RETRY_SECONDS
-		then
-			echoAskedAt[echoId] = now
-			revealRemote:FireServer(echoId)
+		local needed = if target.light then lidar.lightRevealHits else lidar.echoRevealHits
+		countEcho(echoId, needed, now)
+	end
+	-- Lamps and beacons also wake to dots that land near them, so a casual sweep that passes
+	-- by finds them: the player does not have to know exactly where they are.
+	refreshLightSpots(now)
+	for id, spot in lightSpots do
+		if id ~= echoId and (position - spot).Magnitude <= lidar.lightReach then
+			countEcho(id, lidar.lightRevealHits, now)
 		end
 	end
 end
@@ -323,6 +373,9 @@ local function castRay(
 	stats.objective = stats.objective or kind == "objective"
 	if own then
 		noteOwnHit(position, target, now)
+		for _, listener in hitListeners do
+			listener(position)
+		end
 		-- A few fresh dots flare for a moment before settling to their dim size: the scan
 		-- crackles where it lands.
 		if math.random() < SPARK_CHANCE then

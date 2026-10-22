@@ -612,6 +612,7 @@ local function buildLamps(
 		echo.dead = dead
 		echo.anchor = bulb
 		markScannable(lantern, echo.id, false)
+		lantern:SetAttribute("Light", true) -- wakes to a glance (Config.Lidar.lightRevealHits)
 		if dead then
 			Build.hide(lantern)
 		end

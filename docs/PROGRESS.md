@@ -13,6 +13,18 @@ into `main` yet.
 objects, posters, gate items and the secret alcove are written. See "Story places" below. None of
 it has been run in Studio. `scripts/check.sh` could not run in full in the cloud (see there).
 
+**Backrooms story pivot and light sensitivity (cloud thread, 22 Oct 2026, branch
+`claude/haven-lights`, based on `claude/stairwell`):** Vasco asked for a clearer story. The new
+story (a Backrooms setting stated from the start, Theo as a learning protagonist, videotape
+cutscenes, voiced radio, surveyors as the goal, a distinct look per area) is written in
+`docs/story/` (v1 kept in `docs/story/v1/`). It is data only: the game still reads the old ids,
+and `LoreText.luau` in `docs/story/` keeps them as `legacy` entries so the build thread can migrate
+callers one by one. Code in this slice: lamps and a dark room's beacon now wake after
+`Config.Lidar.lightRevealHits` (2) dots instead of 140, a dot within `lightReach` studs of one
+counts as a hit on it, and hidden lamp-bag patches come back for any dot within `concealTrigger`
+studs, not only a dot on the exact part. Not run in Studio; `scripts/check.sh` could not run in
+the cloud (no Rojo, Lune, StyLua or Selene available), so format, lint and tests are unchecked.
+
 ## Where things stand
 
 v1 (commits up to `41db249` on `main`) is a complete, playable loop that was verified in

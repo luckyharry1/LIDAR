@@ -11,6 +11,7 @@ local Audio = require(script.Parent.Audio)
 local Dots = require(script.Parent.Dots)
 local Hud = require(script.Parent.Hud)
 local Lidar = require(script.Parent.Lidar)
+local Config = require(ReplicatedStorage.Shared.Config)
 local Lore = require(ReplicatedStorage.Shared.data.Lore)
 local Net = require(ReplicatedStorage.Shared.Net)
 local State = require(script.Parent.State)
@@ -87,6 +88,7 @@ local STUTTER_PATTERN = { 0.07, 0.05, 0.14, 0.06, 0.25 } -- off, on, off, on, of
 -- the gun lands on comes back, with its lights.
 local CONCEAL_REACH = 16
 local CONCEAL_DELAYS = { 1, 3 } -- seconds after arriving; the level streams in
+local DOT_CHECK_SECONDS = 0.05
 
 type Concealed = { part: BasePart, transparency: number }
 type Switch = { light: Instance, brightness: number }
@@ -97,6 +99,7 @@ local concealed: { [BasePart]: Concealed } = {}
 local concealedList: { Concealed } = {}
 local switches: { Switch } = {}
 local processed: { [Instance]: boolean } = {} -- each part or light is hidden at most once
+local lastDotCheck = 0
 
 local pois: { [string]: Vector3 } = {}
 local poiTimer = 0
@@ -277,12 +280,8 @@ local function concealLevelLights()
 	refreshLights()
 end
 
-local function showNear(seen: BasePart)
-	local record = concealed[seen]
-	if record == nil then
-		return
-	end
-	local center = seen.Position
+-- Brings back every hidden part and light within CONCEAL_REACH of `center`.
+local function revealAround(center: Vector3)
 	for index = #concealedList, 1, -1 do
 		local other = concealedList[index]
 		if (other.part.Position - center).Magnitude <= CONCEAL_REACH then
@@ -306,6 +305,31 @@ local function showNear(seen: BasePart)
 	refreshLights()
 end
 
+local function showNear(seen: BasePart)
+	local record = concealed[seen]
+	if record == nil then
+		return
+	end
+	revealAround(seen.Position)
+end
+
+-- A dot that lands close to a hidden patch is enough: the player need not know exactly where
+-- a lamp-bag hangs. Checked a few times a second, from the newest dot.
+local function showNearDot(position: Vector3)
+	local now = os.clock()
+	if now - lastDotCheck < DOT_CHECK_SECONDS or #concealedList == 0 then
+		return
+	end
+	lastDotCheck = now
+	local reach = Config.Lidar.concealTrigger
+	for _, record in concealedList do
+		if (record.part.Position - position).Magnitude <= reach then
+			revealAround(record.part.Position)
+			return
+		end
+	end
+end
+
 local function applyMood(tier: number)
 	local section = Lore.sectionFor(tier)
 	local mood = if section ~= nil then MOODS[section.first] or DEFAULT_MOOD else DEFAULT_MOOD
@@ -327,6 +351,7 @@ function Immersion.start()
 	end)
 
 	Lidar.onSeen(showNear)
+	Lidar.onHit(showNearDot)
 	Lidar.onPoi(function(position: Vector3)
 		pois[poiKey(position)] = position
 	end)
