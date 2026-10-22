@@ -130,7 +130,7 @@ local function update(dt: number)
 	-- (A safe place in the dark has no light, so the scanner stays up there.)
 	local visible = firstPerson
 		and Atmosphere.lit < LOWERED_ABOVE
-		and (stage == "tutorial" or stage == "level" or stage == "lore")
+		and (stage == "tutorial" or stage == "level" or stage == "lore" or stage == "passage")
 	if not visible or camera == nil then
 		if model.Parent ~= nil then
 			model.Parent = nil

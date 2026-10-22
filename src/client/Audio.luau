@@ -21,6 +21,7 @@ local SoundService = game:GetService("SoundService")
 local Avatar = require(script.Parent.Avatar)
 local Config = require(ReplicatedStorage.Shared.Config)
 local Lidar = require(script.Parent.Lidar)
+local Reach = require(script.Parent.Reach)
 local State = require(script.Parent.State)
 local Ui = require(script.Parent.Ui)
 
@@ -282,6 +283,11 @@ function Audio.wrong(kind: string, position: Vector3)
 	end
 end
 
+-- The crackle of a bulb cutting out (`off`) or catching again, from the bulb.
+function Audio.spark(position: Vector3, off: boolean)
+	playAt(position, audio.tick, if off then 0.55 else 0.35, if off then 0.45 else 0.8, 50)
+end
+
 function Audio.threat(): number
 	return threat
 end
@@ -435,7 +441,7 @@ local function measureNearest(): number
 	for model, voice in voices do
 		-- A Mimic that is still pretending gives nothing away: no breath, no heartbeat.
 		if not CollectionService:HasTag(model, Config.Tags.disguised) then
-			closest = math.min(closest, (voice.root.Position - position).Magnitude)
+			closest = math.min(closest, Reach.distance(position, voice.root.Position))
 		end
 	end
 	return closest

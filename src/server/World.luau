@@ -33,6 +33,7 @@ export type Echo = {
 	revealed: boolean,
 	lines: { string }, -- what it says when revealed (a recorder's tape is the Director's to pick)
 	glow: Places.Glow?, -- the light it gives off once revealed; nil for a recorder's own lamp
+	thought: string?, -- Theo's reaction, said after the words (hidden objects)
 	anchor: BasePart?, -- where that light hangs
 	dead: boolean, -- a burnt-out lamp-bag: hidden until scanned, then only a dim glow
 }
@@ -67,7 +68,6 @@ local SEED_SALT = 5381
 local PIT_RIM = 0.5 -- width of the marked edge round a pit
 local PLATE_HEIGHT = 0.14
 local PATCH_THICKNESS = 0.04 -- visible patches sit this proud of the invisible surface
-local SKIRTING_HEIGHT = 0.6
 local PROP_SIDE_REACH = INNER - 3.2 -- how far along a wall a prop may sit from its middle
 local LAMP_BRIGHTNESS = 2.4
 local ECHO_BRIGHTNESS = 2.2
@@ -80,7 +80,19 @@ local MARKER_OFFSET = CFrame.new(0, 4, -2.2) -- a hidden object's light hangs th
 local LAMP_COLOR = Color3.fromRGB(255, 226, 170)
 local PATCH_FLOOR = Color3.fromRGB(126, 118, 104)
 local PATCH_WALL = Color3.fromRGB(150, 152, 144)
-local PATCH_TRIM = Color3.fromRGB(60, 58, 54)
+local PATCH_PIXELS_PER_STUD = 6
+-- Solid in the middle, nothing at both edges; the wall is solid at the floor, gone at the top.
+local PATCH_EDGE_FADE = NumberSequence.new({
+	NumberSequenceKeypoint.new(0, 1),
+	NumberSequenceKeypoint.new(0.35, 0.15),
+	NumberSequenceKeypoint.new(0.65, 0.15),
+	NumberSequenceKeypoint.new(1, 1),
+})
+local PATCH_WALL_FADE = NumberSequence.new({
+	NumberSequenceKeypoint.new(0, 1),
+	NumberSequenceKeypoint.new(0.6, 0.3),
+	NumberSequenceKeypoint.new(1, 0.1),
+})
 
 local SIDES = {
 	N = Vector3.new(0, 0, -1),
@@ -437,37 +449,81 @@ local function buildPlates(plan: LevelPlan.LevelPlan, origin: Vector3, parent: I
 	return plates
 end
 
--- Visible floor and wall for one cell, for a light to fall on.
-local function buildPatch(maze: Maze.Maze, origin: Vector3, cell: Maze.Cell, parent: Instance)
+-- A soft-edged painted surface: the part itself is invisible and a SurfaceGui fades from solid
+-- in the middle to nothing at the edges, so a light's patch has no hard border.
+local function fadeSurface(
+	part: BasePart,
+	face: Enum.NormalId,
+	color: Color3,
+	across: NumberSequence,
+	down: NumberSequence
+)
+	local gui = Instance.new("SurfaceGui")
+	gui.Face = face
+	gui.LightInfluence = 1
+	gui.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
+	gui.PixelsPerStud = PATCH_PIXELS_PER_STUD
+	gui.Parent = part
+	local group = Instance.new("CanvasGroup")
+	group.Size = UDim2.fromScale(1, 1)
+	group.BackgroundTransparency = 1
+	group.Parent = gui
+	local acrossGradient = Instance.new("UIGradient")
+	acrossGradient.Transparency = across
+	acrossGradient.Parent = group
+	local fill = Instance.new("Frame")
+	fill.Size = UDim2.fromScale(1, 1)
+	fill.BackgroundColor3 = color
+	fill.BorderSizePixel = 0
+	fill.Parent = group
+	local downGradient = Instance.new("UIGradient")
+	downGradient.Rotation = 90
+	downGradient.Transparency = down
+	downGradient.Parent = fill
+end
+
+-- Visible floor and one wall for a cell, for a light to fall on. Only the wall nearest `toward`
+-- (the light's own wall) shows, and both fade out toward their edges.
+local function buildPatch(
+	maze: Maze.Maze,
+	origin: Vector3,
+	cell: Maze.Cell,
+	parent: Instance,
+	toward: Vector3?
+)
 	local center = World.cellCenter(origin, cell)
 	local span = CELL - THICK
 	local patch = Build.model("Patch", parent)
-	Build.part({
+	local floor = Build.part({
 		name = "Floor",
 		size = Vector3.new(span, PATCH_THICKNESS, span),
 		cframe = CFrame.new(center),
-		color = PATCH_FLOOR,
+		transparency = 1,
 		collide = false,
 		parent = patch,
 	})
+	fadeSurface(floor, Enum.NormalId.Top, PATCH_FLOOR, PATCH_EDGE_FADE, PATCH_EDGE_FADE)
+	local target = toward or center
+	local best: CFrame? = nil
 	for _, side in closedSides(maze, cell) do
 		local base = wallBase(center, side)
-		Build.part({
+		if
+			best == nil
+			or (base.Position - target).Magnitude < (best.Position - target).Magnitude
+		then
+			best = base
+		end
+	end
+	if best ~= nil then
+		local wall = Build.part({
 			name = "Wall",
 			size = Vector3.new(span, HEIGHT, PATCH_THICKNESS),
-			cframe = base * CFrame.new(0, HEIGHT / 2, 0),
-			color = PATCH_WALL,
+			cframe = best * CFrame.new(0, HEIGHT / 2, 0),
+			transparency = 1,
 			collide = false,
 			parent = patch,
 		})
-		Build.part({
-			name = "Skirting",
-			size = Vector3.new(span, SKIRTING_HEIGHT, PATCH_THICKNESS * 3),
-			cframe = base * CFrame.new(0, SKIRTING_HEIGHT / 2, -PATCH_THICKNESS),
-			color = PATCH_TRIM,
-			collide = false,
-			parent = patch,
-		})
+		fadeSurface(wall, Enum.NormalId.Front, PATCH_WALL, PATCH_EDGE_FADE, PATCH_WALL_FADE)
 	end
 end
 
@@ -504,6 +560,7 @@ local function newEcho(
 	lines: { string },
 	glow: Places.Glow?
 ): Echo
+	model:SetAttribute("EchoKind", kind) -- clients lure the eye to unscanned story things
 	return {
 		id = id,
 		kind = kind,
@@ -513,6 +570,7 @@ local function newEcho(
 		revealed = false,
 		lines = lines,
 		glow = glow,
+		thought = nil,
 		anchor = nil,
 		dead = false,
 	}
@@ -550,13 +608,14 @@ local function buildLamps(
 		else
 			local range = Config.World.lampRange * glow.radius / LAMP_RADIUS
 			Build.pointLight(bulb, LAMP_COLOR, LAMP_BRIGHTNESS, range)
-			buildPatch(plan.maze, origin, cell, parent)
+			buildPatch(plan.maze, origin, cell, parent, base.Position)
 		end
 		local echo =
 			newEcho(firstId + index - 1, "nook", cell, lantern, Places.nookLines(variant), glow)
 		echo.dead = dead
 		echo.anchor = bulb
 		markScannable(lantern, echo.id, false)
+		lantern:SetAttribute("Light", true) -- wakes to a glance (Config.Lidar.lightRevealHits)
 		if dead then
 			Build.hide(lantern)
 		end
@@ -608,6 +667,7 @@ local function buildReveals(
 		model.Name = "Reveal_" .. reveal.id
 		local echo = newEcho(id, "reveal", reveal.cell, model, details.lines, details.glow)
 		echo.anchor = addMarker(model, base * MARKER_OFFSET)
+		echo.thought = details.thought
 		markScannable(model, id, true)
 		Build.hide(model)
 		table.insert(echoes, echo)
@@ -674,7 +734,13 @@ function World.revealEcho(level: Level, echo: Echo)
 	end
 	echo.model.Parent = level.lit
 	if echo.kind ~= "sign" then
-		buildPatch(level.plan.maze, level.origin, echo.cell, level.lit)
+		buildPatch(
+			level.plan.maze,
+			level.origin,
+			echo.cell,
+			level.lit,
+			if echo.anchor then echo.anchor.Position else echo.model:GetPivot().Position
+		)
 	end
 end
 
@@ -713,12 +779,6 @@ local function buildExit(
 		name = "Header",
 		size = Vector3.new(DOOR_SIZE.X + 1.6, 0.8, 0.9),
 		cframe = base * CFrame.new(0, DOOR_SIZE.Y + 0.4, 0),
-		parent = model,
-	})
-	Build.part({
-		name = "Handle",
-		size = Vector3.new(0.3, 0.9, 0.5),
-		cframe = base * CFrame.new(DOOR_SIZE.X / 2 - 0.7, 4, -0.4),
 		parent = model,
 	})
 	local prompt = Build.prompt(door, "Open", "Exit", 0.4)
@@ -893,16 +953,25 @@ local function buildPickup(
 			buildGateItem(gate, center + Vector3.new(0, 3, 0), model)
 			prompt = Build.prompt(stand, "Take", gateTitle, 0.3)
 		elseif objective.kind == "cell" then
-			Build.part({
-				name = "Cell",
-				size = Vector3.new(1.8, 0.9, 0.9),
-				cframe = CFrame.new(center + Vector3.new(0, 3.5, 0))
-					* CFrame.Angles(0, 0, math.rad(90)),
-				shape = Enum.PartType.Cylinder,
-				collide = false,
-				parent = model,
-			})
-			prompt = Build.prompt(stand, "Take", "Battery cell", 0.3)
+			-- A double cell is two cylinders side by side, so its dots read differently.
+			local charges = objective.charges or 1
+			for index = 1, charges do
+				local offset = (index - (charges + 1) / 2) * 1.05
+				Build.part({
+					name = "Cell",
+					size = Vector3.new(1.8, 0.9, 0.9),
+					cframe = CFrame.new(center + Vector3.new(offset, 3.5, 0))
+						* CFrame.Angles(0, 0, math.rad(90)),
+					shape = Enum.PartType.Cylinder,
+					collide = false,
+					parent = model,
+				})
+			end
+			model:SetAttribute("Charges", charges)
+			local title = if charges > 1
+				then "Battery cells (2 sweeps)"
+				else "Battery cell (1 sweep)"
+			prompt = Build.prompt(stand, "Take", title, 0.3)
 		else -- plate
 			Build.part({
 				name = "Plate",
@@ -985,6 +1054,23 @@ function World.buildLevel(plan: LevelPlan.LevelPlan, origin: Vector3): Level
 	end
 	for _, echo in buildSigns(plan, origin, dark, #echoes + 1) do
 		table.insert(echoes, echo)
+	end
+	if plan.tier == 1 then
+		-- Level 1 starts where the player lands: the wall behind them has melted.
+		local center = World.cellCenter(origin, maze.start)
+		local closed = closedSides(maze, maze.start)
+		local facing = "N"
+		for _, name in Maze.DIR_NAMES do
+			if Maze.isOpen(maze, maze.start.x, maze.start.y, name) then
+				facing = name
+				break
+			end
+		end
+		local behind = ({ N = "S", S = "N", E = "W", W = "E" })[facing]
+		local side = if table.find(closed, behind) then behind else closed[1]
+		if side ~= nil then
+			Props.meltedWall(wallBase(center, side), dark)
+		end
 	end
 	Build.hide(dark)
 	for _, echo in buildLamps(plan, origin, lit, rng, #echoes + 1) do

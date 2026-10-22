@@ -1,0 +1,5170 @@
+{
+ "entries": [
+  {
+   "id": "goal.l0",
+   "kind": "goal",
+   "section": "l0",
+   "where": "HUD objective, Level 0",
+   "lines": [
+    "Find the surveyors. Start with Joss."
+   ]
+  },
+  {
+   "id": "goal.l0b",
+   "kind": "goal",
+   "section": "l0",
+   "where": "HUD objective, after Joss",
+   "lines": [
+    "Find the fuse. Go down."
+   ]
+  },
+  {
+   "id": "goal.l1",
+   "kind": "goal",
+   "section": "l1",
+   "where": "HUD objective, Level 1",
+   "lines": [
+    "Find Hana at the pump house."
+   ]
+  },
+  {
+   "id": "goal.l1b",
+   "kind": "goal",
+   "section": "l1",
+   "where": "HUD objective, after Hana",
+   "lines": [
+    "Follow the water to the Falls."
+   ]
+  },
+  {
+   "id": "goal.falls",
+   "kind": "goal",
+   "section": "falls",
+   "where": "HUD objective, Falls",
+   "lines": [
+    "Talk to Lena. Rest."
+   ]
+  },
+  {
+   "id": "goal.l2",
+   "kind": "goal",
+   "section": "l2",
+   "where": "HUD objective, Level 2",
+   "lines": [
+    "Find Ravi. Do not answer the voices."
+   ]
+  },
+  {
+   "id": "goal.l3",
+   "kind": "goal",
+   "section": "l3",
+   "where": "HUD objective, Level 3",
+   "lines": [
+    "Find Pim in the Hollow."
+   ]
+  },
+  {
+   "id": "goal.l4",
+   "kind": "goal",
+   "section": "l4",
+   "where": "HUD objective, Level 4",
+   "lines": [
+    "Follow the chalk arrows down to the Lamp."
+   ]
+  },
+  {
+   "id": "goal.lamp",
+   "kind": "goal",
+   "section": "lamp",
+   "where": "HUD objective, Lamp Room",
+   "lines": [
+    "Speak to Ines."
+   ]
+  },
+  {
+   "id": "rule.01",
+   "kind": "rule",
+   "section": "any",
+   "where": "Survey Handbook p1; poster in the first room",
+   "lines": [
+    "1. You have entered the Backrooms.",
+    "Do not panic. Everyone does it once."
+   ]
+  },
+  {
+   "id": "rule.02",
+   "kind": "rule",
+   "section": "any",
+   "where": "Handbook p2",
+   "lines": [
+    "2. The Backrooms are made of forgotten places.",
+    "Offices, pools, wards, caves. Each one is a Level."
+   ]
+  },
+  {
+   "id": "rule.03",
+   "kind": "rule",
+   "section": "any",
+   "where": "Handbook p3",
+   "lines": [
+    "3. Your scanner does not make light. It makes a record.",
+    "A dot stays where you looked. Mapped space holds still."
+   ]
+  },
+  {
+   "id": "rule.04",
+   "kind": "rule",
+   "section": "any",
+   "where": "Handbook p4; colour key poster",
+   "lines": [
+    "4. White dots: structure. Green dots: people.",
+    "Red dots: something that was a person and is not now."
+   ]
+  },
+  {
+   "id": "rule.05",
+   "kind": "rule",
+   "section": "any",
+   "where": "Handbook p5",
+   "lines": [
+    "5. Every scan is a noise. Some things listen for it.",
+    "margin: Walk. Do not run. -T.W."
+   ]
+  },
+  {
+   "id": "rule.06",
+   "kind": "rule",
+   "section": "any",
+   "where": "Handbook p6",
+   "lines": [
+    "6. Never run toward a sound you cannot place."
+   ]
+  },
+  {
+   "id": "rule.07",
+   "kind": "rule",
+   "section": "any",
+   "where": "Handbook p7",
+   "lines": [
+    "7. Radio: Base will ask what you see.",
+    "Base will never tell you to come to her.",
+    "margin: If it says come to me, it is not Base. -R.A."
+   ]
+  },
+  {
+   "id": "rule.08",
+   "kind": "rule",
+   "section": "any",
+   "where": "Handbook p8",
+   "lines": [
+    "8. Crew greet with two taps, a breath, then one.",
+    "margin: It can copy the taps. It cannot copy the breath. -R.A."
+   ]
+  },
+  {
+   "id": "rule.09",
+   "kind": "rule",
+   "section": "any",
+   "where": "Handbook p9",
+   "lines": [
+    "9. Lamps wake when scanned. Scan every lamp you find.",
+    "margin: A bag that glows was hung by a friend. -J.B."
+   ]
+  },
+  {
+   "id": "rule.10",
+   "kind": "rule",
+   "section": "any",
+   "where": "Handbook p10",
+   "lines": [
+    "10. Stay where someone can see you.",
+    "A person nobody sees starts to fade.",
+    "margin: Green is someone looking back. -I.C."
+   ]
+  },
+  {
+   "id": "rule.11",
+   "kind": "rule",
+   "section": "any",
+   "where": "Handbook p11; Falls wall",
+   "lines": [
+    "11. Exits exist. We have not found one.",
+    "Keep mapping."
+   ]
+  },
+  {
+   "id": "rule.12",
+   "kind": "rule",
+   "section": "lamp",
+   "where": "Handbook p12, handwritten, Lamp Room",
+   "lines": [
+    "12. Someone has to keep the lamp."
+   ],
+   "speaker": "Ines Calder"
+  },
+  {
+   "id": "plaque.l0",
+   "kind": "plaque",
+   "section": "l0",
+   "where": "Bulletin on the first-room wall; level title card follows",
+   "lines": [
+    "SURVEY BULLETIN",
+    "LEVEL 0: THE OFFICE FLOOR",
+    "What: a forgotten workplace, after hours.",
+    "Hazards: the Pacer. You will hear keys.",
+    "Survey: 40% mapped. Exit: not found."
+   ],
+   "thought": "Level zero. So there are more.",
+   "look": "l0"
+  },
+  {
+   "id": "plaque.l1",
+   "kind": "plaque",
+   "section": "l1",
+   "where": "Bulletin at the stair down; level title card follows",
+   "lines": [
+    "SURVEY BULLETIN",
+    "LEVEL 1: THE FLOODED WING",
+    "What: drowned utilities. The water is safe to wade.",
+    "Do not linger in it.",
+    "Hazards: the Hush. It hears everything.",
+    "Survey: 25% mapped. Exit: not found."
+   ],
+   "thought": "Wade, don't linger. Fine. I'll be quick.",
+   "look": "l1"
+  },
+  {
+   "id": "plaque.falls",
+   "kind": "plaque",
+   "section": "falls",
+   "where": "Painted board at the Falls entrance",
+   "lines": [
+    "REFUGE: THE FALLS",
+    "No hostiles. No fading.",
+    "Everyone rests here.",
+    "Survey camp: Lena Sorrel."
+   ],
+   "look": "falls"
+  },
+  {
+   "id": "plaque.l2",
+   "kind": "plaque",
+   "section": "l2",
+   "where": "Bulletin at the ward doors; level title card follows",
+   "lines": [
+    "SURVEY BULLETIN",
+    "LEVEL 2: THE WARDS",
+    "What: an abandoned hospital.",
+    "Hazards: the Echo. It answers back.",
+    "Do not answer voices.",
+    "Survey: 15% mapped. Exit: not found."
+   ],
+   "thought": "A hospital. Great. Dark, empty, and it answers back.",
+   "look": "l2"
+  },
+  {
+   "id": "plaque.l3",
+   "kind": "plaque",
+   "section": "l3",
+   "where": "Bulletin at the cave mouth; level title card follows",
+   "lines": [
+    "SURVEY BULLETIN",
+    "LEVEL 3: THE HOLLOW",
+    "What: a cave that grows around what it holds.",
+    "Do not touch the glow.",
+    "Hazards: the Still. It moves when you look away.",
+    "Survey: 8% mapped. Exit: not found."
+   ],
+   "thought": "A cave inside a building inside whatever this is.",
+   "look": "l3"
+  },
+  {
+   "id": "plaque.l4",
+   "kind": "plaque",
+   "section": "l4",
+   "where": "Bulletin on a concrete pillar; level title card follows",
+   "lines": [
+    "SURVEY BULLETIN",
+    "LEVEL 4: THE GARAGE",
+    "What: a parking structure that only goes down.",
+    "The bottom is the Lamp.",
+    "Hazards: all of them.",
+    "Survey: 3% mapped. Exit: not found."
+   ],
+   "thought": "Down. Always down. And all of them, at once.",
+   "look": "l4"
+  },
+  {
+   "id": "journal.01",
+   "kind": "journal",
+   "section": "any",
+   "where": "Theo's journal (unlocks as learned): on waking",
+   "lines": [
+    "Halden Building, floor 3. I put my hand on the wall and there was no wall.",
+    "Now I am somewhere yellow and wet. Scanner still works. Start there."
+   ]
+  },
+  {
+   "id": "journal.02",
+   "kind": "journal",
+   "section": "l0",
+   "where": "Theo's journal (unlocks as learned): after the orientation tape",
+   "lines": [
+    "The Backrooms. A place made of forgotten places.",
+    "Offices, pools, wards, caves. Each one a Level. You walk out of one and into the next."
+   ]
+  },
+  {
+   "id": "journal.03",
+   "kind": "journal",
+   "section": "l0",
+   "where": "Theo's journal (unlocks as learned): after the orientation tape",
+   "lines": [
+    "The scanner makes a record, not light.",
+    "Dots stay. Mapped space holds still. The rest moves."
+   ]
+  },
+  {
+   "id": "journal.04",
+   "kind": "journal",
+   "section": "l0",
+   "where": "Theo's journal (unlocks as learned): after Joss",
+   "lines": [
+    "Joss Berrow. Rigger. Thirty years in the Survey, if time even counts here.",
+    "Gave me lamp-bags. Scan a bag and it wakes up."
+   ]
+  },
+  {
+   "id": "journal.05",
+   "kind": "journal",
+   "section": "l0",
+   "where": "Theo's journal (unlocks as learned): after the Halden tape",
+   "lines": [
+    "The Halden Building had a door on floor 3 that was not on the plan.",
+    "A man in a Corbel and Pike jacket stood next to it in 1994. That is my company."
+   ]
+  },
+  {
+   "id": "journal.06",
+   "kind": "journal",
+   "section": "l0",
+   "where": "Theo's journal (unlocks as learned): after the Hollis tape",
+   "lines": [
+    "Hollis, night security. Still doing his rounds. Nobody can see him, so he fades.",
+    "That is what fading is. Nobody sees you, so you stop being you."
+   ]
+  },
+  {
+   "id": "journal.07",
+   "kind": "journal",
+   "section": "l1",
+   "where": "Theo's journal (unlocks as learned): after Hana",
+   "lines": [
+    "Hana Osei, hydrologist. The water leads to the Falls.",
+    "Tobi Wren went quiet so nothing would hear him. Now nothing can. He is the Hush."
+   ]
+  },
+  {
+   "id": "journal.08",
+   "kind": "journal",
+   "section": "falls",
+   "where": "Theo's journal (unlocks as learned): after Lena",
+   "lines": [
+    "The Falls is a Refuge. Everyone remembers a place like it, so the dark cannot rewrite it.",
+    "Five Crews went down. The wall of names has thirty-one on it. I am not on it yet."
+   ]
+  },
+  {
+   "id": "journal.09",
+   "kind": "journal",
+   "section": "l2",
+   "where": "Theo's journal (unlocks as learned): after Ravi",
+   "lines": [
+    "Ravi Anand. The Echo copies his voice. It cannot copy the pause.",
+    "The scanner head in the Survey's rig is from Corbel and Pike. Serial 0007. Mine is 0041."
+   ]
+  },
+  {
+   "id": "journal.10",
+   "kind": "journal",
+   "section": "l3",
+   "where": "Theo's journal (unlocks as learned): after Pim",
+   "lines": [
+    "Pim Ashworth, youngest in the Survey. Keeps the Hollow lit for whoever comes next.",
+    "Quill is the Still. He took forty photographs of it. In the thirtieth it was closer."
+   ]
+  },
+  {
+   "id": "journal.11",
+   "kind": "journal",
+   "section": "l4",
+   "where": "Theo's journal (unlocks as learned): after the Pike tape",
+   "lines": [
+    "Anselm Pike, Corbel and Pike, 1994. First one through. Unit 0007.",
+    "He says a true scan of the real floor will match the cloud. I have forty-one."
+   ]
+  },
+  {
+   "id": "journal.12",
+   "kind": "journal",
+   "section": "lamp",
+   "where": "Theo's journal (unlocks as learned): after Ines",
+   "lines": [
+    "A forgotten place stops belonging to the world. Halden was empty ten years.",
+    "I was the last to look at it, forty-one times. That is why it let me in, and why I can leave."
+   ]
+  },
+  {
+   "id": "thought.wake",
+   "kind": "thought",
+   "section": "any",
+   "where": "Right after the opening cutscene",
+   "lines": [
+    "Okay. Okay. Scanner still works. Hands still work.",
+    "This is not floor three."
+   ],
+   "speaker": "Theo",
+   "vo": "late 20s to early 30s, tired, dry humour that cracks under pressure; speaks to himself, never to camera; shaky, whispered"
+  },
+  {
+   "id": "thought.firstdot",
+   "kind": "thought",
+   "section": "any",
+   "where": "First time a dot lands",
+   "lines": [
+    "Dots. They stay where I look. So I can see by remembering."
+   ],
+   "speaker": "Theo",
+   "vo": "late 20s to early 30s, tired, dry humour that cracks under pressure; speaks to himself, never to camera; surprised, quiet"
+  },
+  {
+   "id": "thought.firstwall",
+   "kind": "thought",
+   "section": "any",
+   "where": "First time a wall fills in",
+   "lines": [
+    "That is a wall. A real one. I can build a map out of this."
+   ],
+   "speaker": "Theo",
+   "vo": "late 20s to early 30s, tired, dry humour that cracks under pressure; speaks to himself, never to camera; relieved, whispered"
+  },
+  {
+   "id": "thought.lampwake",
+   "kind": "thought",
+   "section": "any",
+   "where": "First lamp-bag wakes",
+   "lines": [
+    "Lamp-bag. It lit the second I scanned it. Somebody wanted me to find this."
+   ],
+   "speaker": "Theo",
+   "vo": "late 20s to early 30s, tired, dry humour that cracks under pressure; speaks to himself, never to camera; grateful"
+  },
+  {
+   "id": "thought.lamplight",
+   "kind": "thought",
+   "section": "any",
+   "where": "Any lamp wakes (rotate)",
+   "lines": [
+    "The wall's yellow. The floor's carpet. This place is a real place."
+   ],
+   "speaker": "Theo",
+   "vo": "late 20s to early 30s, tired, dry humour that cracks under pressure; speaks to himself, never to camera; calm"
+  },
+  {
+   "id": "thought.keys",
+   "kind": "thought",
+   "section": "any",
+   "where": "Pacer first heard",
+   "lines": [
+    "Keys. Someone is walking a round. I should not be where they are walking."
+   ],
+   "speaker": "Theo",
+   "vo": "late 20s to early 30s, tired, dry humour that cracks under pressure; speaks to himself, never to camera; tense, whisper"
+  },
+  {
+   "id": "thought.hush",
+   "kind": "thought",
+   "section": "any",
+   "where": "Hush first heard",
+   "lines": [
+    "It's listening. I can hear it listening. Don't scan. Don't breathe."
+   ],
+   "speaker": "Theo",
+   "vo": "late 20s to early 30s, tired, dry humour that cracks under pressure; speaks to himself, never to camera; very quiet"
+  },
+  {
+   "id": "thought.echo",
+   "kind": "thought",
+   "section": "any",
+   "where": "Echo first heard",
+   "lines": [
+    "That voice is wrong. Too early, no pauses. Do not answer."
+   ],
+   "speaker": "Theo",
+   "vo": "late 20s to early 30s, tired, dry humour that cracks under pressure; speaks to himself, never to camera; whisper"
+  },
+  {
+   "id": "thought.still",
+   "kind": "thought",
+   "section": "any",
+   "where": "Still first noticed closer",
+   "lines": [
+    "It was over there. Now it's over here. Do not look away. Do not stare."
+   ],
+   "speaker": "Theo",
+   "vo": "late 20s to early 30s, tired, dry humour that cracks under pressure; speaks to himself, never to camera; controlled"
+  },
+  {
+   "id": "thought.respawn.first",
+   "kind": "thought",
+   "section": "any",
+   "where": "First time Theo wakes at a lamp after being caught",
+   "lines": [
+    "I woke up at the lamp. Something pulled me back. I'm not testing that twice."
+   ],
+   "speaker": "Theo",
+   "vo": "late 20s to early 30s, tired, dry humour that cracks under pressure; speaks to himself, never to camera; shaky"
+  },
+  {
+   "id": "thought.respawn.ines",
+   "kind": "thought",
+   "section": "any",
+   "where": "Respawn after Lena has explained",
+   "lines": [
+    "Ines, again. Thank you. I'll try to fall less."
+   ],
+   "speaker": "Theo",
+   "vo": "late 20s to early 30s, tired, dry humour that cracks under pressure; speaks to himself, never to camera; rueful"
+  },
+  {
+   "id": "thought.pit",
+   "kind": "thought",
+   "section": "any",
+   "where": "Near a pit for the first time",
+   "lines": [
+    "Painted edge. Somebody didn't want the next person to fall."
+   ],
+   "speaker": "Theo",
+   "vo": "late 20s to early 30s, tired, dry humour that cracks under pressure; speaks to himself, never to camera; careful"
+  },
+  {
+   "id": "thought.plate",
+   "kind": "thought",
+   "section": "any",
+   "where": "Near an alarm plate for the first time",
+   "lines": [
+    "A plate and a bell. Something listens to the floor. Step around."
+   ],
+   "speaker": "Theo",
+   "vo": "late 20s to early 30s, tired, dry humour that cracks under pressure; speaks to himself, never to camera; careful"
+  },
+  {
+   "id": "thought.water",
+   "kind": "thought",
+   "section": "any",
+   "where": "First time in the water",
+   "lines": [
+    "Ankle deep. Cold. It's blue. It has to come from somewhere."
+   ],
+   "speaker": "Theo",
+   "vo": "late 20s to early 30s, tired, dry humour that cracks under pressure; speaks to himself, never to camera; curious"
+  },
+  {
+   "id": "thought.falls",
+   "kind": "thought",
+   "section": "any",
+   "where": "First step into the Falls",
+   "lines": [
+    "Colour. Real colour. I forgot what it looked like."
+   ],
+   "speaker": "Theo",
+   "vo": "late 20s to early 30s, tired, dry humour that cracks under pressure; speaks to himself, never to camera; awed"
+  },
+  {
+   "id": "thought.tapes",
+   "kind": "thought",
+   "section": "any",
+   "where": "First tape picked up",
+   "lines": [
+    "A tape. Somebody wanted to be found. I should watch it."
+   ],
+   "speaker": "Theo",
+   "vo": "late 20s to early 30s, tired, dry humour that cracks under pressure; speaks to himself, never to camera; thoughtful"
+  },
+  {
+   "id": "thought.surveyor",
+   "kind": "thought",
+   "section": "any",
+   "where": "First time a green dot is a surveyor",
+   "lines": [
+    "Green. A person. A real one. Don't scare them. Don't be scared."
+   ],
+   "speaker": "Theo",
+   "vo": "late 20s to early 30s, tired, dry humour that cracks under pressure; speaks to himself, never to camera; hopeful"
+  },
+  {
+   "id": "thought.heat",
+   "kind": "thought",
+   "section": "any",
+   "where": "Scanner overheating",
+   "lines": [
+    "Scanner's getting hot. Ease off. Stay quiet."
+   ],
+   "speaker": "Theo",
+   "vo": "late 20s to early 30s, tired, dry humour that cracks under pressure; speaks to himself, never to camera; quiet"
+  },
+  {
+   "id": "thought.fading",
+   "kind": "thought",
+   "section": "any",
+   "where": "First time he sees a red dot he recognises as a former surveyor",
+   "lines": [
+    "That red used to be a person. Ines said so. I didn't believe it until now."
+   ],
+   "speaker": "Theo",
+   "vo": "late 20s to early 30s, tired, dry humour that cracks under pressure; speaks to himself, never to camera; grim"
+  },
+  {
+   "id": "thought.lamp.near",
+   "kind": "thought",
+   "section": "any",
+   "where": "Hearing the Lamp hum far below",
+   "lines": [
+    "There's a hum. Steady. That's not a monster. That's a light."
+   ],
+   "speaker": "Theo",
+   "vo": "late 20s to early 30s, tired, dry humour that cracks under pressure; speaks to himself, never to camera; drawn"
+  },
+  {
+   "id": "poi.l0.vcr",
+   "kind": "poi",
+   "section": "l0",
+   "where": "CRT and VCR on a cart in the first room: orientation tape inserted",
+   "lines": [
+    "SURVEY ORIENTATION. TAPE 1 OF 9.",
+    "PRESS PLAY."
+   ],
+   "glow": {
+    "color": "amber",
+    "radius": 9,
+    "look": "l0"
+   },
+   "note": "Plays tape.orientation on interact.",
+   "thought": "A tape already loaded. Somebody left this for whoever came through.",
+   "look": "l0"
+  },
+  {
+   "id": "poi.l0.desk",
+   "kind": "poi",
+   "section": "l0",
+   "where": "Desk with a Halden Building staff badge and a nameplate",
+   "lines": [
+    "HALDEN BUILDING. A. PIKE.",
+    "Corbel & Pike Surveying.",
+    "Valid: 1994."
+   ],
+   "glow": {
+    "color": "amber",
+    "radius": 8,
+    "look": "l0"
+   },
+   "thought": "Halden. Corbel and Pike. That is my company. This is a 1994 badge.",
+   "look": "l0"
+  },
+  {
+   "id": "poi.l0.whiteboard",
+   "kind": "poi",
+   "section": "l0",
+   "where": "Whiteboard in a meeting room",
+   "lines": [
+    "DAY 3.",
+    "WALLS MOVED WHILE WE SLEPT.",
+    "NEVER SLEEP UNLIT.",
+    "MAP EVERYTHING."
+   ],
+   "glow": {
+    "color": "amber",
+    "radius": 8,
+    "look": "l0"
+   },
+   "thought": "Walls move when nobody looks. That's the whole reason for the dots.",
+   "look": "l0"
+  },
+  {
+   "id": "poi.l0.coat",
+   "kind": "poi",
+   "section": "l0",
+   "where": "Coat on a hook; security badge; clipboard",
+   "lines": [
+    "HOLLIS, J. NIGHT SECURITY.",
+    "Round log: 11,284.",
+    "Last entry: ALL QUIET."
+   ],
+   "glow": {
+    "color": "amber",
+    "radius": 8,
+    "look": "l0"
+   },
+   "thought": "Eleven thousand rounds. That isn't a shift. That's years of walking.",
+   "look": "l0"
+  },
+  {
+   "id": "poi.l0.copier",
+   "kind": "poi",
+   "section": "l0",
+   "where": "Copier jammed on a page",
+   "lines": [
+    "EXIT GUESSES:",
+    "1. stairs - no  2. lift - no  3. roof - no ...",
+    "14. the door at the end of floor 3 - ???"
+   ],
+   "glow": {
+    "color": "amber",
+    "radius": 8,
+    "look": "l0"
+   },
+   "note": "Replaces the old Copy Room. The copier now holds the Survey's list of failed exit guesses.",
+   "thought": "Fourteen guesses. All crossed out. 'The door at the end of floor three.' That's mine.",
+   "look": "l0"
+  },
+  {
+   "id": "poi.l0.vending",
+   "kind": "poi",
+   "section": "l0",
+   "where": "Vending machine, stocked with identical cans",
+   "lines": [
+    "TEA",
+    "TEA",
+    "TEA",
+    "TEA",
+    "(coins in the tray: one token, HALDEN STAFF)"
+   ],
+   "glow": {
+    "color": "amber",
+    "radius": 8,
+    "look": "l0"
+   },
+   "thought": "Every slot is tea. Someone stocks this. The tray has a staff token.",
+   "look": "l0"
+  },
+  {
+   "id": "poi.l0.sign",
+   "kind": "poi",
+   "section": "l0",
+   "where": "Arrow sign in a hallway pointing at a wall",
+   "lines": [
+    "EXIT ->",
+    "(pencilled below) it does not go anywhere"
+   ],
+   "glow": {
+    "color": "amber",
+    "radius": 8,
+    "look": "l0"
+   },
+   "thought": "The exit sign points at a wall. Of course it does.",
+   "look": "l0"
+  },
+  {
+   "id": "poi.c0.bench",
+   "kind": "poi",
+   "section": "c0",
+   "where": "Lamp-bag workbench",
+   "lines": [
+    "LAMP-BAGS. 41 TODAY.",
+    "J.B."
+   ],
+   "glow": {
+    "color": "amber",
+    "radius": 7,
+    "look": "c0"
+   },
+   "thought": "He makes them by hand. The cheerful kind of crazy.",
+   "look": "c0"
+  },
+  {
+   "id": "poi.c0.map",
+   "kind": "poi",
+   "section": "c0",
+   "where": "Pinned map of Level 0",
+   "lines": [
+    "LEVEL 0. HOLLIS ROUTE IN RED.",
+    "STAIR DOWN: NEEDS A FUSE."
+   ],
+   "glow": {
+    "color": "amber",
+    "radius": 8,
+    "look": "c0"
+   },
+   "thought": "Pacer's route is on the map. And the way down.",
+   "look": "c0"
+  },
+  {
+   "id": "poi.desk.radio",
+   "kind": "poi",
+   "section": "desk",
+   "where": "Radio on the desk",
+   "lines": [
+    "SURVEY HANDSET. CHANNEL 1.",
+    "Base answers if you speak."
+   ],
+   "glow": {
+    "color": "amber",
+    "radius": 7,
+    "look": "desk"
+   },
+   "thought": "A handset. If someone's out there, I can reach her.",
+   "look": "desk"
+  },
+  {
+   "id": "poi.desk.signin",
+   "kind": "poi",
+   "section": "desk",
+   "where": "Sign-in sheet clipped to the desk",
+   "lines": [
+    "SURVEY SIGN-IN",
+    "CREW 1  IN",
+    "CREW 2  IN",
+    "CREW 3  IN",
+    "CREW 4  IN",
+    "CREW 5  IN",
+    "CREW 6  IN",
+    "CREW 7  IN  (blank)"
+   ],
+   "glow": {
+    "color": "amber",
+    "radius": 8,
+    "look": "desk"
+   },
+   "thought": "Seven crews. Mine is the seventh. The name line is blank.",
+   "look": "desk"
+  },
+  {
+   "id": "poi.desk.board",
+   "kind": "poi",
+   "section": "desk",
+   "where": "Corkboard of crew photographs",
+   "lines": [
+    "SIX CREWS.",
+    "Thirty-one names.",
+    "Some photos are turned face down."
+   ],
+   "glow": {
+    "color": "amber",
+    "radius": 8,
+    "look": "desk"
+   },
+   "thought": "Face down. That's how you hide the ones who faded.",
+   "look": "desk"
+  },
+  {
+   "id": "poi.l1.lifering",
+   "kind": "poi",
+   "section": "l1",
+   "where": "Life ring painted HALDEN B3",
+   "lines": [
+    "LIFE RING. HALDEN B3.",
+    "Hung 1996, after the flood."
+   ],
+   "glow": {
+    "color": "amber",
+    "radius": 8,
+    "look": "l1"
+   },
+   "thought": "The Halden's basement flooded in '96. This is that basement. Forgotten, then drowned.",
+   "look": "l1"
+  },
+  {
+   "id": "poi.l1.pumplog",
+   "kind": "poi",
+   "section": "l1",
+   "where": "Pump house log taped to a pipe",
+   "lines": [
+    "WATER LEVEL: UP.",
+    "UP.",
+    "UP.",
+    "FOLLOW IT UPSTREAM. IT ENDS SOMEWHERE LIT. -H.O."
+   ],
+   "glow": {
+    "color": "amber",
+    "radius": 8,
+    "look": "l1"
+   },
+   "thought": "Follow the water upstream. Okay. That's a plan.",
+   "look": "l1"
+  },
+  {
+   "id": "poi.l1.headphones",
+   "kind": "poi",
+   "section": "l1",
+   "where": "Headphones on a pipe with a sticky note",
+   "lines": [
+    "TOBI WREN. SOUND.",
+    "Do not call out. Do not answer if it calls.",
+    "Gain all the way up."
+   ],
+   "glow": {
+    "color": "amber",
+    "radius": 8,
+    "look": "l1"
+   },
+   "thought": "Tobi's. If he left these, he's the thing that's listening now.",
+   "look": "l1"
+  },
+  {
+   "id": "poi.l1.dinghy",
+   "kind": "poi",
+   "section": "l1",
+   "where": "Half-sunk rubber dinghy",
+   "lines": [
+    "CREW 2. B1.",
+    "Hana went ahead on foot.",
+    "Oars lost. Third seat lost."
+   ],
+   "glow": {
+    "color": "amber",
+    "radius": 8,
+    "look": "l1"
+   },
+   "thought": "Crew 2 tried to paddle. They lost a seat. That's a polite way to say it.",
+   "look": "l1"
+  },
+  {
+   "id": "poi.l1.valve",
+   "kind": "poi",
+   "section": "l1",
+   "where": "Valve station with the wheel missing",
+   "lines": [
+    "MAIN VALVE B4.",
+    "WHEEL REMOVED FOR SAFETY.",
+    "(by whom?)"
+   ],
+   "glow": {
+    "color": "amber",
+    "radius": 8,
+    "look": "l1"
+   },
+   "thought": "Wheel's gone. I need the wheel to drain the channel.",
+   "look": "l1"
+  },
+  {
+   "id": "poi.l1.tally",
+   "kind": "poi",
+   "section": "l1",
+   "where": "Chalk tally on a wall",
+   "lines": [
+    "DAY 1 ||||",
+    "DAY 2 ||||",
+    "WATER STOPPED RISING AT 40.",
+    "THEN IT STARTED FALLING."
+   ],
+   "glow": {
+    "color": "amber",
+    "radius": 8,
+    "look": "l1"
+   },
+   "thought": "Hana counted the water. She's been here a long time.",
+   "look": "l1"
+  },
+  {
+   "id": "poi.c1.chart",
+   "kind": "poi",
+   "section": "c1",
+   "where": "Hand-drawn chart of the water's route",
+   "lines": [
+    "WATER ROUTE",
+    "Wing -> Channel -> Shaft -> THE FALLS",
+    "Gate: valve wheel. Rope for the gap."
+   ],
+   "glow": {
+    "color": "amber",
+    "radius": 8,
+    "look": "c1"
+   },
+   "thought": "She mapped the whole route. All I have to do is not die on it.",
+   "look": "c1"
+  },
+  {
+   "id": "poi.falls.names",
+   "kind": "poi",
+   "section": "falls",
+   "where": "Wall of names",
+   "lines": [
+    "SURVEY ROSTER",
+    "31 names.",
+    "9 crossed out. 4 marked FADING.",
+    "(a space at the bottom: THEO?)"
+   ],
+   "glow": {
+    "color": "amber",
+    "radius": 8,
+    "look": "falls"
+   },
+   "thought": "My name, on a wall nobody wrote it on yet. They're expecting me.",
+   "look": "falls"
+  },
+  {
+   "id": "poi.falls.behind",
+   "kind": "poi",
+   "section": "falls",
+   "where": "Alcove behind the waterfall: mural of every Level in a stack",
+   "lines": [
+    "LEVEL 0 office",
+    "LEVEL 1 flooded",
+    "LEVEL 2 wards",
+    "LEVEL 3 hollow",
+    "LEVEL 4 garage",
+    "THE LAMP",
+    "(line to the top, dotted: ?)"
+   ],
+   "glow": {
+    "color": "amber",
+    "radius": 10,
+    "look": "falls"
+   },
+   "thought": "Stack of Levels. And a dotted line going up. That's the exit nobody's found.",
+   "look": "falls"
+  },
+  {
+   "id": "poi.falls.guestbook",
+   "kind": "poi",
+   "section": "falls",
+   "where": "Guest Book on a stone",
+   "lines": [
+    "GUEST BOOK",
+    "{party}",
+    "Everyone signs. Nobody says what for."
+   ],
+   "glow": {
+    "color": "amber",
+    "radius": 8,
+    "look": "falls"
+   },
+   "thought": "Everyone signs. That's how you know you're still here.",
+   "look": "falls"
+  },
+  {
+   "id": "poi.l2.pa",
+   "kind": "poi",
+   "section": "l2",
+   "where": "PA speaker above a nurse station",
+   "lines": [
+    "(PA, crackling) Staff to Ward C.",
+    "Staff to Ward C.",
+    "(a pause) ...Staff to Ward C."
+   ],
+   "glow": {
+    "color": "amber",
+    "radius": 8,
+    "look": "l2"
+   },
+   "thought": "Someone is paging staff to a ward that doesn't exist. Or does.",
+   "look": "l2"
+  },
+  {
+   "id": "poi.l2.chart",
+   "kind": "poi",
+   "section": "l2",
+   "where": "Patient chart on a bed",
+   "lines": [
+    "PATIENT: UNKNOWN.",
+    "ADMITTED: ____",
+    "CONDITION: FORGOTTEN."
+   ],
+   "glow": {
+    "color": "amber",
+    "radius": 8,
+    "look": "l2"
+   },
+   "thought": "Every chart says unknown. Nobody remembers who they were treating.",
+   "look": "l2"
+  },
+  {
+   "id": "poi.l2.tapcode",
+   "kind": "poi",
+   "section": "l2",
+   "where": "Brass plate on a pillar",
+   "lines": [
+    "TWO TAPS. A BREATH. ONE.",
+    "CREW GREETING.",
+    "(scratched below) IT CANNOT BREATHE."
+   ],
+   "glow": {
+    "color": "amber",
+    "radius": 8,
+    "look": "l2"
+   },
+   "thought": "A greeting. Two taps, a breath, one. The thing that answers cannot breathe.",
+   "look": "l2"
+  },
+  {
+   "id": "poi.l2.gurney",
+   "kind": "poi",
+   "section": "l2",
+   "where": "Gurney with Survey straps",
+   "lines": [
+    "SURVEY STRETCHER 4.",
+    "Used twice.",
+    "Used once to carry someone out. Used once to carry someone in."
+   ],
+   "glow": {
+    "color": "amber",
+    "radius": 8,
+    "look": "l2"
+   },
+   "thought": "They carried someone in. I don't want to know who.",
+   "look": "l2"
+  },
+  {
+   "id": "poi.l2.bell",
+   "kind": "poi",
+   "section": "l2",
+   "where": "Call bell on a wire",
+   "lines": [
+    "CALL BELL. RING FOR ASSISTANCE.",
+    "(someone has cut the wire)"
+   ],
+   "glow": {
+    "color": "amber",
+    "radius": 8,
+    "look": "l2"
+   },
+   "thought": "Cut the wire. Nobody wants the thing to know where they are.",
+   "look": "l2"
+  },
+  {
+   "id": "poi.c2.radio",
+   "kind": "poi",
+   "section": "c2",
+   "where": "Unplugged radio on a stool",
+   "lines": [
+    "SURVEY HANDSET. UNPLUGGED.",
+    "It has my voice, so I keep it dead. -R.A."
+   ],
+   "glow": {
+    "color": "amber",
+    "radius": 8,
+    "look": "c2"
+   },
+   "thought": "He unplugged the radio because the Echo uses it. That's careful.",
+   "look": "c2"
+  },
+  {
+   "id": "poi.l3.doorframe",
+   "kind": "poi",
+   "section": "l3",
+   "where": "Halden door frame grown into cave rock",
+   "lines": [
+    "HALDEN BLDG. FLOOR 3.",
+    "The door is open. There is only rock on the other side."
+   ],
+   "glow": {
+    "color": "amber",
+    "radius": 8,
+    "look": "l3"
+   },
+   "thought": "A Halden door frame inside a cave. Pieces of the real building are everywhere down here.",
+   "look": "l3"
+  },
+  {
+   "id": "poi.l3.crystal",
+   "kind": "poi",
+   "section": "l3",
+   "where": "Glowing mineral vein",
+   "lines": [
+    "DO NOT TOUCH THE GLOW.",
+    "It gives light. It takes warmth. It takes light back."
+   ],
+   "glow": {
+    "color": "amber",
+    "radius": 8,
+    "look": "l3"
+   },
+   "thought": "The glow feeds on light. Which means a lamp-bag is bait.",
+   "look": "l3"
+  },
+  {
+   "id": "poi.l3.camera",
+   "kind": "poi",
+   "section": "l3",
+   "where": "Camera on a tripod facing the passage",
+   "lines": [
+    "Q. QUILL. PHOTOGRAPHY.",
+    "Shutter half pressed. Never finished."
+   ],
+   "glow": {
+    "color": "amber",
+    "radius": 8,
+    "look": "l3"
+   },
+   "thought": "He was in the middle of a shot. He never took it.",
+   "look": "l3"
+  },
+  {
+   "id": "poi.l3.bridge",
+   "kind": "poi",
+   "section": "l3",
+   "where": "Rope bridge over a drop",
+   "lines": [
+    "ROPE BRIDGE. ONE AT A TIME.",
+    "DO NOT LOOK BACK."
+   ],
+   "glow": {
+    "color": "amber",
+    "radius": 8,
+    "look": "l3"
+   },
+   "thought": "One at a time. Don't look back. I'm already regretting this.",
+   "look": "l3"
+  },
+  {
+   "id": "poi.c3.mugs",
+   "kind": "poi",
+   "section": "c3",
+   "where": "Row of mugs on a ledge",
+   "lines": [
+    "FOUR MUGS.",
+    "P.A.  L.S.  R.A.  H.O.",
+    "A fifth hook, empty."
+   ],
+   "glow": {
+    "color": "amber",
+    "radius": 8,
+    "look": "c3"
+   },
+   "thought": "Four mugs and a fifth hook. They're waiting for someone to fill it.",
+   "look": "c3"
+  },
+  {
+   "id": "poi.l4.stone",
+   "kind": "poi",
+   "section": "l4",
+   "where": "Cornerstone",
+   "lines": [
+    "HALDEN BUILDING. 1994.",
+    "Nothing here is older than this stone.",
+    "Every Level hangs from it."
+   ],
+   "glow": {
+    "color": "amber",
+    "radius": 9,
+    "look": "l4"
+   },
+   "thought": "Everything hangs from the Halden. The whole Backrooms is built on top of it.",
+   "look": "l4"
+  },
+  {
+   "id": "poi.l4.ticket",
+   "kind": "poi",
+   "section": "l4",
+   "where": "Ticket machine at a boom gate",
+   "lines": [
+    "ENTERED: TUE 11:42 PM",
+    "EXIT: _____",
+    "(machine will not print an exit time)"
+   ],
+   "glow": {
+    "color": "amber",
+    "radius": 8,
+    "look": "l4"
+   },
+   "thought": "Eleven forty-two. That's when I walked in. It's been tracking me.",
+   "look": "l4"
+  },
+  {
+   "id": "poi.l4.chalk",
+   "kind": "poi",
+   "section": "l4",
+   "where": "Chalk arrows leading downward",
+   "lines": [
+    "Fresh chalk arrows.",
+    "I.C."
+   ],
+   "glow": {
+    "color": "amber",
+    "radius": 8,
+    "look": "l4"
+   },
+   "thought": "Fresh chalk. She walked this recently. She's close.",
+   "look": "l4"
+  },
+  {
+   "id": "poi.l4.pike",
+   "kind": "poi",
+   "section": "l4",
+   "where": "Folding table with a camcorder, unit 0007, and a tape",
+   "lines": [
+    "UNIT 0007. CORBEL & PIKE.",
+    "TAPE 9 OF 9. FOR WHOEVER BRINGS THE REAL FLOOR."
+   ],
+   "glow": {
+    "color": "amber",
+    "radius": 9,
+    "look": "l4"
+   },
+   "note": "Plays tape.pike on interact.",
+   "thought": "Unit zero zero zero seven. Mine is zero zero four one. He's the first. The last tape is for me.",
+   "look": "l4"
+  },
+  {
+   "id": "poi.l4.pit",
+   "kind": "poi",
+   "section": "l4",
+   "where": "Wall of a drop shaft",
+   "lines": [
+    "MARKED EDGE.",
+    "JOSS PAINTED THE EDGE SO YOU WOULD FEEL IT FIRST."
+   ],
+   "glow": {
+    "color": "amber",
+    "radius": 8,
+    "look": "l4"
+   },
+   "thought": "He painted the edge so you'd feel it first. He thought of that.",
+   "look": "l4"
+  },
+  {
+   "id": "poi.lamp.lamp",
+   "kind": "poi",
+   "section": "lamp",
+   "where": "The Lamp",
+   "lines": [
+    "THE LAMP.",
+    "Nobody built it. Pike lit it. Ines keeps it."
+   ],
+   "glow": {
+    "color": "amber",
+    "radius": 14,
+    "look": "lamp"
+   },
+   "thought": "That's the Lamp. All the Levels hang off that.",
+   "look": "lamp"
+  },
+  {
+   "id": "poi.lamp.board",
+   "kind": "poi",
+   "section": "lamp",
+   "where": "Chalkboard of the whole point cloud",
+   "lines": [
+    "EVERY SCAN OF EVERY SURVEYOR.",
+    "ALL OF THIS.",
+    "(a gap the shape of a corridor)"
+   ],
+   "glow": {
+    "color": "amber",
+    "radius": 8,
+    "look": "lamp"
+   },
+   "thought": "The whole Survey's work on one board. And one gap that's the exact shape of floor three.",
+   "look": "lamp"
+  },
+  {
+   "id": "poi.lamp.ladder",
+   "kind": "poi",
+   "section": "lamp",
+   "where": "Ladder shaft with a thread of daylight",
+   "lines": [
+    "UP.",
+    "NOBODY HAS CLIMBED IT.",
+    "NOBODY HAS HAD A TRUE SCAN."
+   ],
+   "glow": {
+    "color": "amber",
+    "radius": 9,
+    "look": "lamp"
+   },
+   "thought": "A thread of real daylight. First I've seen.",
+   "look": "lamp"
+  },
+  {
+   "id": "rec.l0.1",
+   "kind": "recorder",
+   "section": "l0",
+   "where": "Hidden in a desk drawer, Level 0",
+   "lines": [
+    "Ines Calder. Day one of the Survey.",
+    "The floor above is condemned. We walked into the wall and we are not coming out.",
+    "We call this the Backrooms. Every place somebody forgot ends up here."
+   ],
+   "speaker": "Ines Calder"
+  },
+  {
+   "id": "rec.l0.2",
+   "kind": "recorder",
+   "section": "l0",
+   "where": "Taped under a break-room table, Level 0",
+   "lines": [
+    "Joss. Lamp-bags work. A bulb, a cell, a canvas sack.",
+    "Hang one at every turn and scan it and it wakes up.",
+    "Mapped space holds still. That's the trick. The rest drifts."
+   ],
+   "speaker": "Joss Berrow"
+  },
+  {
+   "id": "rec.l0.3",
+   "kind": "recorder",
+   "section": "l0",
+   "where": "Answering machine on the front desk, Level 0",
+   "lines": [
+    "Hollis, nights. Round eleven thousand. All quiet.",
+    "Funny. I do not see the other guards any more.",
+    "Hello? Does anyone see me? Hello?"
+   ],
+   "speaker": "Mr. Hollis"
+  },
+  {
+   "id": "rec.l1.1",
+   "kind": "recorder",
+   "section": "l1",
+   "where": "Wedged in a pipe bracket, Level 1",
+   "lines": [
+    "Tobi Wren, sound. I can hear the building thinking.",
+    "If I stay quiet, nothing hears me.",
+    "I am going to try that for a while."
+   ],
+   "speaker": "Tobi Wren"
+  },
+  {
+   "id": "rec.l1.2",
+   "kind": "recorder",
+   "section": "l1",
+   "where": "On a catwalk rail, Level 1",
+   "lines": [
+    "I stopped talking. It is better.",
+    "I can hear everyone breathing, very far off.",
+    "I cannot tell if anyone can hear me. I do not mind."
+   ],
+   "speaker": "Tobi Wren",
+   "note": "Plays near a Hush lair."
+  },
+  {
+   "id": "rec.l1.3",
+   "kind": "recorder",
+   "section": "l1",
+   "where": "In the boiler room, Level 1",
+   "lines": [
+    "Hana. The water was not here yesterday.",
+    "It was here. We just were not looking.",
+    "That is the Backrooms for you. What nobody looks at, changes."
+   ],
+   "speaker": "Hana Osei"
+  },
+  {
+   "id": "rec.falls.1",
+   "kind": "recorder",
+   "section": "falls",
+   "where": "On a ledge by the hammocks, Falls",
+   "lines": [
+    "Ines. Day forty. I stopped counting.",
+    "We found a place the dark cannot rewrite.",
+    "Everyone remembers a waterfall. That is why it holds."
+   ],
+   "speaker": "Ines Calder"
+  },
+  {
+   "id": "rec.falls.2",
+   "kind": "recorder",
+   "section": "falls",
+   "where": "Under the camp stove, Falls",
+   "lines": [
+    "Lena. Hammocks up. Soup on.",
+    "First hot meal in a month.",
+    "Ravi plays the one song he knows. Badly. I love it."
+   ],
+   "speaker": "Lena Sorrel"
+  },
+  {
+   "id": "rec.l2.1",
+   "kind": "recorder",
+   "section": "l2",
+   "where": "Under a bench, Level 2",
+   "lines": [
+    "Ravi. Two taps, a breath, one tap.",
+    "It was just a greeting. Now something taps back.",
+    "It does the two. It does not do the breath."
+   ],
+   "speaker": "Ravi Anand"
+  },
+  {
+   "id": "rec.l2.2",
+   "kind": "recorder",
+   "section": "l2",
+   "where": "In a linen trolley, Level 2",
+   "lines": [
+    "It sounds like me. It learned me in an afternoon.",
+    "I said 'hello?' to see. It said 'hello?' first.",
+    "I keep the radio off now."
+   ],
+   "speaker": "Ravi Anand"
+  },
+  {
+   "id": "rec.l2.3",
+   "kind": "recorder",
+   "section": "l2",
+   "where": "Nurse station drawer, Level 2",
+   "lines": [
+    "Ines. Theory.",
+    "The Backrooms are what a world forgets.",
+    "We are not hunted. We are forgotten. There is a difference, and it matters."
+   ],
+   "speaker": "Ines Calder"
+  },
+  {
+   "id": "rec.l3.1",
+   "kind": "recorder",
+   "section": "l3",
+   "where": "In a root hollow, Level 3",
+   "lines": [
+    "Pim. I found a draft.",
+    "A draft means a door. Everyone laughed.",
+    "I will keep the lantern lit anyway."
+   ],
+   "speaker": "Pim Ashworth"
+  },
+  {
+   "id": "rec.l3.2",
+   "kind": "recorder",
+   "section": "l3",
+   "where": "Camera case, Level 3",
+   "lines": [
+    "Quill. The thing only moves when I am not looking.",
+    "So I look. Forty frames.",
+    "In frame thirty it is closer. Do not stare. It learns the stare."
+   ],
+   "speaker": "Marlow Quill"
+  },
+  {
+   "id": "rec.l3.3",
+   "kind": "recorder",
+   "section": "l3",
+   "where": "Chalk-marked shelf, Level 3",
+   "lines": [
+    "Watch it. Then step. Never stare.",
+    "If you hear a shutter, do not turn.",
+    "Wait for the second click."
+   ],
+   "speaker": "Marlow Quill"
+  },
+  {
+   "id": "rec.l4.1",
+   "kind": "recorder",
+   "section": "l4",
+   "where": "On a pillar, Level 4",
+   "lines": [
+    "Ines. Last descent. I know where the Lamp must go.",
+    "The Garage is the first Level that ever formed.",
+    "It is not cruel. It is empty. Empty gets hungry for company."
+   ],
+   "speaker": "Ines Calder"
+  },
+  {
+   "id": "radio.first",
+   "kind": "radio",
+   "section": "desk",
+   "where": "First call after picking up the handset",
+   "lines": [
+    "Base to Theo. Can you hear me?",
+    "I heard your scanner come online. I am Ines. Tell me what you see."
+   ],
+   "speaker": "Base",
+   "note": "Her first words. She uses Theo's name because she saw it on the scanner's status screen.",
+   "vo": "50s to 60s, calm, low, unhurried; teacher voice; never raises it; radio filter on Base lines"
+  },
+  {
+   "id": "radio.l0",
+   "kind": "radio",
+   "section": "l0",
+   "where": "Level 0 start (after Outpost Zero)",
+   "lines": [
+    "Base to Theo. Level 0. Keys are the Pacer. Wait for them to pass.",
+    "Find Joss at the supply closet. He has what you need."
+   ],
+   "speaker": "Base",
+   "vo": "50s to 60s, calm, low, unhurried; teacher voice; never raises it; radio filter on Base lines"
+  },
+  {
+   "id": "radio.l1",
+   "kind": "radio",
+   "section": "l1",
+   "where": "Level 1 start",
+   "lines": [
+    "Base to Theo. Level 1. The water is safe to wade. Do not stay in it.",
+    "Find Hana at the pump house. Follow the water upstream."
+   ],
+   "speaker": "Base",
+   "vo": "50s to 60s, calm, low, unhurried; teacher voice; never raises it; radio filter on Base lines"
+  },
+  {
+   "id": "radio.l2",
+   "kind": "radio",
+   "section": "l2",
+   "where": "Level 2 start",
+   "lines": [
+    "Base to Theo. Level 2. Something here wears our voices.",
+    "If I say come to me, do not come. Find Ravi."
+   ],
+   "speaker": "Base",
+   "vo": "50s to 60s, calm, low, unhurried; teacher voice; never raises it; radio filter on Base lines"
+  },
+  {
+   "id": "radio.l3",
+   "kind": "radio",
+   "section": "l3",
+   "where": "Level 3 start",
+   "lines": [
+    "Base to Theo. Level 3. Do not touch the glow.",
+    "Find Pim. Watch for the Still. Watch, then step."
+   ],
+   "speaker": "Base",
+   "vo": "50s to 60s, calm, low, unhurried; teacher voice; never raises it; radio filter on Base lines"
+  },
+  {
+   "id": "radio.l4",
+   "kind": "radio",
+   "section": "l4",
+   "where": "Level 4 start",
+   "lines": [
+    "Base to Theo. Level 4. Follow the chalk. I will be at the bottom.",
+    "I have been waiting a very long time to say that."
+   ],
+   "speaker": "Base",
+   "vo": "50s to 60s, calm, low, unhurried; teacher voice; never raises it; radio filter on Base lines"
+  },
+  {
+   "id": "radio.idle.1",
+   "kind": "radio",
+   "section": "any",
+   "where": "Random, dark, calm",
+   "lines": [
+    "Base to Theo. Tell me what you see."
+   ],
+   "speaker": "Base",
+   "vo": "50s to 60s, calm, low, unhurried; teacher voice; never raises it; radio filter on Base lines"
+  },
+  {
+   "id": "radio.idle.2",
+   "kind": "radio",
+   "section": "any",
+   "where": "Random, dark, calm",
+   "lines": [
+    "Base to Theo. I can see your dots from here. You are doing well."
+   ],
+   "speaker": "Base",
+   "vo": "50s to 60s, calm, low, unhurried; teacher voice; never raises it; radio filter on Base lines"
+  },
+  {
+   "id": "radio.idle.3",
+   "kind": "radio",
+   "section": "any",
+   "where": "Random, dark, calm",
+   "lines": [
+    "Base to Theo. Count with me. One. Two. Three. Still here."
+   ],
+   "speaker": "Base",
+   "vo": "50s to 60s, calm, low, unhurried; teacher voice; never raises it; radio filter on Base lines"
+  },
+  {
+   "id": "radio.clear",
+   "kind": "radio",
+   "section": "any",
+   "where": "After a level clear",
+   "lines": [
+    "Base to Theo. Logged. Rest if you find a lamp."
+   ],
+   "speaker": "Base",
+   "vo": "50s to 60s, calm, low, unhurried; teacher voice; never raises it; radio filter on Base lines"
+  },
+  {
+   "id": "radio.back.1",
+   "kind": "radio",
+   "section": "any",
+   "where": "Respawn at a lamp",
+   "lines": [
+    "Welcome back, Theo. Breathe. You are lit."
+   ],
+   "speaker": "Base",
+   "vo": "50s to 60s, calm, low, unhurried; teacher voice; never raises it; radio filter on Base lines"
+  },
+  {
+   "id": "radio.back.2",
+   "kind": "radio",
+   "section": "any",
+   "where": "Respawn at a lamp",
+   "lines": [
+    "I have you. I always do. Rest a moment."
+   ],
+   "speaker": "Base",
+   "vo": "50s to 60s, calm, low, unhurried; teacher voice; never raises it; radio filter on Base lines"
+  },
+  {
+   "id": "radio.back.3",
+   "kind": "radio",
+   "section": "any",
+   "where": "Respawn at a lamp",
+   "lines": [
+    "Easy. Count with me. One. Two. Three."
+   ],
+   "speaker": "Base",
+   "vo": "50s to 60s, calm, low, unhurried; teacher voice; never raises it; radio filter on Base lines"
+  },
+  {
+   "id": "radio.surveyor.near",
+   "kind": "radio",
+   "section": "any",
+   "where": "A surveyor is within ~30 studs, unseen",
+   "lines": [
+    "Base to Theo. Green dots ahead. Say hello. Two taps, a breath, one."
+   ],
+   "speaker": "Base",
+   "vo": "50s to 60s, calm, low, unhurried; teacher voice; never raises it; radio filter on Base lines"
+  },
+  {
+   "id": "radio.fake.1",
+   "kind": "radio",
+   "section": "l2",
+   "where": "Near the Echo ONLY",
+   "lines": [
+    "Theo. This way. Come to me."
+   ],
+   "speaker": "Base?",
+   "note": "Real Base never says 'come to me'. Plays slightly before the real radio click.",
+   "vo": "Ines's radio voice, but with no static artefacts and no questions: only commands"
+  },
+  {
+   "id": "radio.fake.2",
+   "kind": "radio",
+   "section": "l2",
+   "where": "Near the Echo ONLY",
+   "lines": [
+    "Put the scanner down. It is safe. Come to me."
+   ],
+   "speaker": "Base?",
+   "vo": "Ines's radio voice, but with no static artefacts and no questions: only commands"
+  },
+  {
+   "id": "radio.fake.3",
+   "kind": "radio",
+   "section": "l2",
+   "where": "Near the Echo ONLY",
+   "lines": [
+    "Turn left. Left. Now. Come to me."
+   ],
+   "speaker": "Base?",
+   "vo": "Ines's radio voice, but with no static artefacts and no questions: only commands"
+  },
+  {
+   "id": "radio.fake.4",
+   "kind": "radio",
+   "section": "l2",
+   "where": "Near the Echo ONLY",
+   "lines": [
+    "Tap tap. Theo?"
+   ],
+   "speaker": "Base?",
+   "note": "Skips the breath between the two taps and the one.",
+   "vo": "Ines's radio voice, but with no static artefacts and no questions: only commands"
+  },
+  {
+   "id": "ent.wanderer",
+   "kind": "entity",
+   "section": "l0",
+   "where": "Journal page on first sighting",
+   "lines": [
+    "THE PACER",
+    "Former night security (Mr. Hollis). Walks his rounds with his keys.",
+    "Lingers a moment where it hears or sees. Then moves on.",
+    "He does not know he is off shift."
+   ],
+   "thought": "The Pacer. A man doing his job long after the job ended."
+  },
+  {
+   "id": "ent.listener",
+   "kind": "entity",
+   "section": "l1",
+   "where": "Journal page on first sighting",
+   "lines": [
+    "THE HUSH",
+    "Former sound technician (Tobi Wren). Went quiet; the Backrooms made it true.",
+    "No eyes. It hears scans and footsteps. Walk, do not run, do not ping near it."
+   ],
+   "thought": "The Hush. He's still listening for someone to answer."
+  },
+  {
+   "id": "ent.mimic",
+   "kind": "entity",
+   "section": "l2",
+   "where": "Journal page on first sighting",
+   "lines": [
+    "THE ECHO",
+    "Copies voices and radios. Reads as a friend until you are near it.",
+    "It does the two taps but not the breath. Never answer it."
+   ],
+   "thought": "The Echo. It's got Ravi's voice. I'm not answering it."
+  },
+  {
+   "id": "ent.stalker",
+   "kind": "entity",
+   "section": "l3",
+   "where": "Journal page on first sighting",
+   "lines": [
+    "THE STILL",
+    "Former photographer (Marlow Quill). Moves only when unseen.",
+    "Watch it. Then step. Never stare."
+   ],
+   "thought": "The Still. He's closer every time I blink."
+  },
+  {
+   "id": "item.cell",
+   "kind": "item",
+   "section": "any",
+   "where": "Level 0 and everywhere",
+   "lines": [
+    "Battery Cell: Recharges the scanner."
+   ],
+   "title": "Battery Cell",
+   "note": "Name is before the colon; use text after it."
+  },
+  {
+   "id": "item.lampbag",
+   "kind": "item",
+   "section": "any",
+   "where": "Joss gives you these",
+   "lines": [
+    "Lamp-Bag: A bulb in a canvas sack. Scan it and it wakes."
+   ],
+   "title": "Lamp-Bag",
+   "note": "Name is before the colon; use text after it."
+  },
+  {
+   "id": "item.fuse",
+   "kind": "item",
+   "section": "any",
+   "where": "Level 0 (tier 2) and Level 2 (tier 6)",
+   "lines": [
+    "Fuse: Powers the breaker for the stairwell door."
+   ],
+   "title": "Fuse",
+   "note": "Name is before the colon; use text after it."
+  },
+  {
+   "id": "item.valve",
+   "kind": "item",
+   "section": "any",
+   "where": "Level 1 (tier 3)",
+   "lines": [
+    "Valve Wheel: Fits the main valve. Drains the channel on Level 1."
+   ],
+   "title": "Valve Wheel",
+   "note": "Name is before the colon; use text after it."
+  },
+  {
+   "id": "item.rope",
+   "kind": "item",
+   "section": "any",
+   "where": "Level 1 (tier 4), Level 3",
+   "lines": [
+    "Rope: Crosses a gap. Joss knots every one himself."
+   ],
+   "title": "Rope",
+   "note": "Name is before the colon; use text after it."
+  },
+  {
+   "id": "item.key",
+   "kind": "item",
+   "section": "any",
+   "where": "Falls gate",
+   "lines": [
+    "Brass Key: Stamped HALDEN B3. Opens the Ward doors."
+   ],
+   "title": "Brass Key",
+   "note": "Name is before the colon; use text after it."
+  },
+  {
+   "id": "item.crank",
+   "kind": "item",
+   "section": "any",
+   "where": "Level 2 (tier 6)",
+   "lines": [
+    "Skylight Crank: Opens the lift to the Hollow."
+   ],
+   "title": "Skylight Crank",
+   "note": "Name is before the colon; use text after it."
+  },
+  {
+   "id": "item.core",
+   "kind": "item",
+   "section": "any",
+   "where": "Level 4 (tier 7)",
+   "lines": [
+    "Lamp Core: A glass core that glows faintly. Ines needs it."
+   ],
+   "title": "Lamp Core",
+   "note": "Name is before the colon; use text after it."
+  },
+  {
+   "id": "item.tape",
+   "kind": "item",
+   "section": "any",
+   "where": "Collectible",
+   "lines": [
+    "Videotape: A tape from a surveyor. Watch it at the nearest screen."
+   ],
+   "title": "Videotape",
+   "note": "Name is before the colon; use text after it."
+  },
+  {
+   "id": "item.page",
+   "kind": "item",
+   "section": "any",
+   "where": "Collectible",
+   "lines": [
+    "Handbook Page: Torn from the Survey Handbook."
+   ],
+   "title": "Handbook Page",
+   "note": "Name is before the colon; use text after it."
+  },
+  {
+   "id": "item.chalk",
+   "kind": "item",
+   "section": "any",
+   "where": "Level 0, optional",
+   "lines": [
+    "Chalk: Marks stay. Mark your route."
+   ],
+   "title": "Chalk",
+   "note": "Name is before the colon; use text after it."
+  },
+  {
+   "id": "item.tea",
+   "kind": "item",
+   "section": "any",
+   "where": "Camps and side rooms",
+   "lines": [
+    "Cold Tea: Steadies your hands. Cools the scanner."
+   ],
+   "title": "Cold Tea",
+   "note": "Name is before the colon; use text after it."
+  },
+  {
+   "id": "item.flashbulb",
+   "kind": "item",
+   "section": "any",
+   "where": "Level 3, one",
+   "lines": [
+    "Flash Bulb: One bright flash. Stuns the Still for a moment."
+   ],
+   "title": "Flash Bulb",
+   "note": "Name is before the colon; use text after it."
+  },
+  {
+   "id": "item.glowstick",
+   "kind": "item",
+   "section": "any",
+   "where": "Any, consumable",
+   "lines": [
+    "Glow Stick: Snap it. Twenty seconds of light."
+   ],
+   "title": "Glow Stick",
+   "note": "Name is before the colon; use text after it."
+  },
+  {
+   "id": "item.mug",
+   "kind": "item",
+   "section": "any",
+   "where": "Level 3",
+   "lines": [
+    "Pim's Mug: Chipped. PIM in marker. Proof he made it this far."
+   ],
+   "title": "Pim's Mug",
+   "note": "Name is before the colon; use text after it."
+  },
+  {
+   "id": "item.scanner41",
+   "kind": "item",
+   "section": "any",
+   "where": "Starts with you",
+   "lines": [
+    "Scanner Unit 0041: Your scanner. The real floor is still on it."
+   ],
+   "title": "Scanner Unit 0041",
+   "note": "Name is before the colon; use text after it."
+  },
+  {
+   "id": "tip.01",
+   "kind": "tip",
+   "section": "any",
+   "where": "Loading screen or respawn screen",
+   "lines": [
+    "Scan every lamp. Light only reaches what you have mapped."
+   ]
+  },
+  {
+   "id": "tip.02",
+   "kind": "tip",
+   "section": "any",
+   "where": "Loading screen or respawn screen",
+   "lines": [
+    "Green means a person. Say hello. Two taps, a breath, one."
+   ]
+  },
+  {
+   "id": "tip.03",
+   "kind": "tip",
+   "section": "any",
+   "where": "Loading screen or respawn screen",
+   "lines": [
+    "Keys mean the Pacer. Wait for them to pass."
+   ]
+  },
+  {
+   "id": "tip.04",
+   "kind": "tip",
+   "section": "any",
+   "where": "Loading screen or respawn screen",
+   "lines": [
+    "If the radio says come to me, do not."
+   ]
+  },
+  {
+   "id": "tip.05",
+   "kind": "tip",
+   "section": "any",
+   "where": "Loading screen or respawn screen",
+   "lines": [
+    "Do not look away from the Still. Do not stare at it either."
+   ]
+  },
+  {
+   "id": "tip.06",
+   "kind": "tip",
+   "section": "any",
+   "where": "Loading screen or respawn screen",
+   "lines": [
+    "Walk near the Hush. Running is a shout."
+   ]
+  },
+  {
+   "id": "tip.07",
+   "kind": "tip",
+   "section": "any",
+   "where": "Loading screen or respawn screen",
+   "lines": [
+    "Surveyors know things. Find them."
+   ]
+  },
+  {
+   "id": "tip.08",
+   "kind": "tip",
+   "section": "any",
+   "where": "Loading screen or respawn screen",
+   "lines": [
+    "The water leads to the Falls."
+   ]
+  },
+  {
+   "id": "tip.09",
+   "kind": "tip",
+   "section": "any",
+   "where": "Loading screen or respawn screen",
+   "lines": [
+    "Videotapes explain what happened. Watch them."
+   ]
+  },
+  {
+   "id": "tip.10",
+   "kind": "tip",
+   "section": "any",
+   "where": "Loading screen or respawn screen",
+   "lines": [
+    "Stay in sight of someone. The unseen fade."
+   ]
+  },
+  {
+   "id": "ping.here",
+   "kind": "system",
+   "section": "any",
+   "where": "Ping wheel label",
+   "lines": [
+    "Here"
+   ]
+  },
+  {
+   "id": "ping.wait",
+   "kind": "system",
+   "section": "any",
+   "where": "Ping wheel label",
+   "lines": [
+    "Wait"
+   ]
+  },
+  {
+   "id": "ping.danger",
+   "kind": "system",
+   "section": "any",
+   "where": "Ping wheel label",
+   "lines": [
+    "Danger"
+   ]
+  },
+  {
+   "id": "ping.item",
+   "kind": "system",
+   "section": "any",
+   "where": "Ping wheel label",
+   "lines": [
+    "Found"
+   ]
+  },
+  {
+   "id": "ping.tap",
+   "kind": "system",
+   "section": "any",
+   "where": "Ping wheel label",
+   "lines": [
+    "Two taps"
+   ]
+  },
+  {
+   "id": "card.l0",
+   "kind": "card",
+   "section": "l0",
+   "where": "Level card",
+   "lines": [
+    "LEVEL 0",
+    "THE OFFICE FLOOR",
+    "a forgotten workplace"
+   ],
+   "title": "The Office Floor",
+   "look": "l0"
+  },
+  {
+   "id": "card.c0",
+   "kind": "card",
+   "section": "c0",
+   "where": "Camp card",
+   "lines": [
+    "SURVEY CAMP",
+    "THE SUPPLY CLOSET",
+    "Joss Berrow"
+   ],
+   "title": "The Supply Closet",
+   "look": "c0"
+  },
+  {
+   "id": "card.desk",
+   "kind": "card",
+   "section": "desk",
+   "where": "Lit room card",
+   "lines": [
+    "OUTPOST ZERO",
+    "THE NIGHT DESK",
+    "the radio works here"
+   ],
+   "title": "The Night Desk",
+   "look": "desk"
+  },
+  {
+   "id": "card.l1",
+   "kind": "card",
+   "section": "l1",
+   "where": "Level card",
+   "lines": [
+    "LEVEL 1",
+    "THE FLOODED WING",
+    "the water is blue"
+   ],
+   "title": "The Flooded Wing",
+   "look": "l1"
+  },
+  {
+   "id": "card.c1",
+   "kind": "card",
+   "section": "c1",
+   "where": "Camp card",
+   "lines": [
+    "SURVEY CAMP",
+    "THE PUMP HOUSE",
+    "Hana Osei"
+   ],
+   "title": "The Pump House",
+   "look": "c1"
+  },
+  {
+   "id": "card.falls",
+   "kind": "card",
+   "section": "falls",
+   "where": "Refuge card",
+   "lines": [
+    "REFUGE",
+    "THE FALLS",
+    "everyone remembers a place like this"
+   ],
+   "title": "The Falls",
+   "look": "falls"
+  },
+  {
+   "id": "card.l2",
+   "kind": "card",
+   "section": "l2",
+   "where": "Level card",
+   "lines": [
+    "LEVEL 2",
+    "THE WARDS",
+    "an abandoned hospital"
+   ],
+   "title": "The Wards",
+   "look": "l2"
+  },
+  {
+   "id": "card.c2",
+   "kind": "card",
+   "section": "c2",
+   "where": "Camp card",
+   "lines": [
+    "SURVEY CAMP",
+    "THE WARD STATION",
+    "Ravi Anand"
+   ],
+   "title": "The Ward Station",
+   "look": "c2"
+  },
+  {
+   "id": "card.dorm",
+   "kind": "card",
+   "section": "dorm",
+   "where": "Lit room card",
+   "lines": [
+    "THE DORMITORY",
+    "the Survey sleeps here"
+   ],
+   "title": "The Dormitory",
+   "look": "dorm"
+  },
+  {
+   "id": "card.l3",
+   "kind": "card",
+   "section": "l3",
+   "where": "Level card",
+   "lines": [
+    "LEVEL 3",
+    "THE HOLLOW",
+    "a cave that grows round what it holds"
+   ],
+   "title": "The Hollow",
+   "look": "l3"
+  },
+  {
+   "id": "card.c3",
+   "kind": "card",
+   "section": "c3",
+   "where": "Camp card",
+   "lines": [
+    "SURVEY CAMP",
+    "THE HOLLOW CAMP",
+    "Pim Ashworth"
+   ],
+   "title": "The Hollow Camp",
+   "look": "c3"
+  },
+  {
+   "id": "card.l4",
+   "kind": "card",
+   "section": "l4",
+   "where": "Level card",
+   "lines": [
+    "LEVEL 4",
+    "THE GARAGE",
+    "the way down"
+   ],
+   "title": "The Garage",
+   "look": "l4"
+  },
+  {
+   "id": "card.lamp",
+   "kind": "card",
+   "section": "lamp",
+   "where": "Lit room card",
+   "lines": [
+    "THE LAMP ROOM",
+    "someone kept it on"
+   ],
+   "title": "The Lamp Room",
+   "look": "lamp"
+  },
+  {
+   "id": "card.relay",
+   "kind": "card",
+   "section": "relay",
+   "where": "Endless floor card",
+   "lines": [
+    "THE RELAY",
+    "FLOOR {n}",
+    "someone lit this before you"
+   ],
+   "title": "The Relay"
+  },
+  {
+   "id": "card.relay.daily",
+   "kind": "card",
+   "section": "relay",
+   "where": "Daily seed card",
+   "lines": [
+    "TONIGHT'S FLOOR",
+    "the same for everyone"
+   ],
+   "title": "Daily"
+  },
+  {
+   "id": "sign.relay.1",
+   "kind": "sign",
+   "section": "relay",
+   "where": "Poster on a Relay floor",
+   "lines": [
+    "IF YOU CAN READ THIS,",
+    "SOMEONE LIT IT FIRST."
+   ]
+  },
+  {
+   "id": "sign.relay.2",
+   "kind": "sign",
+   "section": "relay",
+   "where": "Poster on a Relay floor",
+   "lines": [
+    "THANK YOU, TWO NIGHTS AGO."
+   ]
+  },
+  {
+   "id": "sign.relay.3",
+   "kind": "sign",
+   "section": "relay",
+   "where": "Poster on a Relay floor",
+   "lines": [
+    "CREW 8: THE KETTLE WORKS.",
+    "TEA IS IN THE TIN."
+   ]
+  },
+  {
+   "id": "choice.up",
+   "kind": "choice",
+   "section": "lamp",
+   "where": "Dialogue choice 1",
+   "lines": [
+    "Climb the ladder."
+   ]
+  },
+  {
+   "id": "choice.stay",
+   "kind": "choice",
+   "section": "lamp",
+   "where": "Dialogue choice 2",
+   "lines": [
+    "Take the lamp."
+   ]
+  },
+  {
+   "id": "note.dorm.board",
+   "kind": "note",
+   "section": "dorm",
+   "where": "Corkboard: WHO IS STILL OUT",
+   "lines": [
+    "WHO IS STILL OUT",
+    "HOLLIS  rounds  (the Pacer)",
+    "WREN  listening  (the Hush)",
+    "QUILL  watching  (the Still)",
+    "ANAND  alive, hiding",
+    "ASHWORTH  alive, keeping a lamp"
+   ],
+   "note": "First three are crossed out in pencil. The last two are circled in green."
+  },
+  {
+   "id": "note.dorm.letters",
+   "kind": "note",
+   "section": "dorm",
+   "where": "Letters pinned to a bunk",
+   "lines": [
+    "Dear Mum. We are fine. The pay is good.",
+    "I cannot say where. It is quiet here.",
+    "Dear Mum. We are fine."
+   ]
+  },
+  {
+   "id": "rev.dorm.model",
+   "kind": "reveal",
+   "section": "dorm",
+   "where": "Model of the Halden Building",
+   "lines": [
+    "The Halden Building, fifteen floors.",
+    "The plans in the lobby said fourteen.",
+    "The fifteenth is lit. A match sits beside it."
+   ],
+   "glow": {
+    "color": "amber",
+    "radius": 7,
+    "look": "dorm"
+   },
+   "thought": "Fifteen floors. The plans said fourteen. I walked floor three, and I counted wrong.",
+   "look": "dorm"
+  },
+  {
+   "id": "sign.intake.1",
+   "kind": "sign",
+   "section": "annex",
+   "where": "Poster, first room, beside the rig table",
+   "lines": [
+    "STAFF NOTICE",
+    "If lights are out: remain calm,",
+    "locate the rig, and look."
+   ],
+   "note": "Replaces any 'press X' prompt. A pictogram of the rig with a cone and dots accompanies it.",
+   "legacy": true
+  },
+  {
+   "id": "sign.intake.2",
+   "kind": "sign",
+   "section": "annex",
+   "where": "Poster, first room, colour key",
+   "lines": [
+    "WHITE  structure",
+    "GREEN  crew",
+    "RED    unaccounted for"
+   ],
+   "note": "Pictogram dots in the three colours. Reads like a fire-exit diagram.",
+   "legacy": true
+  },
+  {
+   "id": "sign.intake.3",
+   "kind": "sign",
+   "section": "annex",
+   "where": "Stencil above the first door",
+   "lines": [
+    "EXIT B3",
+    "(two flights down)"
+   ],
+   "note": "Gives the first goal without a prompt.",
+   "legacy": true
+  },
+  {
+   "id": "sign.intake.4",
+   "kind": "sign",
+   "section": "annex",
+   "where": "Sticker on the rig table",
+   "lines": [
+    "PROPERTY OF SURVEY 7.",
+    "RETURN TO LAMP ROOM."
+   ],
+   "legacy": true
+  },
+  {
+   "id": "sign.intake.5",
+   "kind": "sign",
+   "section": "annex",
+   "where": "Pictogram poster, hand with fingers and a trigger icon",
+   "lines": [
+    "HOLD TO RECORD."
+   ],
+   "note": "Mobile: icon of a thumb on the on-screen button.",
+   "legacy": true
+  },
+  {
+   "id": "sign.annex.1",
+   "kind": "sign",
+   "section": "annex",
+   "where": "Arrow sign in a cubicle hallway, pointing at a wall",
+   "lines": [
+    "EXIT ->",
+    "(the arrow points at a wall)"
+   ],
+   "note": "Second line is a pencilled note under the sign.",
+   "legacy": true
+  },
+  {
+   "id": "sign.annex.2",
+   "kind": "sign",
+   "section": "annex",
+   "where": "Whiteboard / meeting room bulletin",
+   "lines": [
+    "MEETING MOVED TO B3",
+    "ATTENDANCE: MANDATORY",
+    "ATTENDEES: 6 of 7"
+   ],
+   "legacy": true
+  },
+  {
+   "id": "sign.annex.3",
+   "kind": "sign",
+   "section": "annex",
+   "where": "Break room fridge note",
+   "lines": [
+    "WHOEVER KEEPS TAKING THE LAST TEA:",
+    "WE CAN HEAR YOU."
+   ],
+   "note": "Light humour before the dark turns.",
+   "legacy": true
+  },
+  {
+   "id": "sign.annex.4",
+   "kind": "sign",
+   "section": "annex",
+   "where": "Copier",
+   "lines": [
+    "OUT OF PAPER.",
+    "PLEASE STOP COPYING THE SAME PAGE."
+   ],
+   "legacy": true
+  },
+  {
+   "id": "rec.annex.1",
+   "kind": "recorder",
+   "section": "annex",
+   "where": "Hidden in a desk drawer in a cubicle, tier 1 to 2",
+   "lines": [
+    "Day one. Hollis was right.",
+    "There is a stair under B3.",
+    "It is not on any plan.",
+    "We brought lamps. Joss thinks they will do."
+   ],
+   "speaker": "Ines Calder, Crew 1",
+   "legacy": true
+  },
+  {
+   "id": "rec.annex.2",
+   "kind": "recorder",
+   "section": "annex",
+   "where": "Taped under a table in the break room",
+   "lines": [
+    "Lamp-bags work. Bulb, cell, sack.",
+    "Hang one at every turn, you find your way home.",
+    "Ines says the walls move when we are not looking.",
+    "I say prove it."
+   ],
+   "speaker": "Joss Berrow, Crew 1",
+   "legacy": true
+  },
+  {
+   "id": "rec.annex.3",
+   "kind": "recorder",
+   "section": "annex",
+   "where": "Answering-machine tape on a front-desk phone",
+   "lines": [
+    "Hollis, nights. Doing my rounds.",
+    "Fourth floor lights are out again.",
+    "Fifth too. I will just check the stairs.",
+    "Back in a minute."
+   ],
+   "speaker": "Mr. Hollis",
+   "legacy": true
+  },
+  {
+   "id": "rev.annex.lamp",
+   "kind": "reveal",
+   "section": "annex",
+   "where": "Desk lamp on an abandoned cubicle desk",
+   "lines": [
+    "A desk lamp.",
+    "Still warm."
+   ],
+   "glow": {
+    "color": "amber",
+    "radius": 8
+   },
+   "legacy": true
+  },
+  {
+   "id": "rev.annex.whiteboard",
+   "kind": "reveal",
+   "section": "annex",
+   "where": "Whiteboard in a meeting room",
+   "lines": [
+    "SURVEY RULES v1",
+    "1. Do not go alone.",
+    "(someone struck out ALONE)"
+   ],
+   "glow": {
+    "color": "amber",
+    "radius": 6
+   },
+   "legacy": true
+  },
+  {
+   "id": "rev.annex.kettle",
+   "kind": "reveal",
+   "section": "annex",
+   "where": "Kettle on its side, row of tea bags",
+   "lines": [
+    "Tea bags in a row on the shelf.",
+    "One for every night someone stayed."
+   ],
+   "glow": {
+    "color": "amber",
+    "radius": 5
+   },
+   "legacy": true
+  },
+  {
+   "id": "rev.annex.coat",
+   "kind": "reveal",
+   "section": "annex",
+   "where": "Coat on a hook, name tag HOLLIS",
+   "lines": [
+    "A custodian's coat.",
+    "The pocket is empty.",
+    "Whatever he carried, he took."
+   ],
+   "glow": {
+    "color": "amber",
+    "radius": 5
+   },
+   "legacy": true
+  },
+  {
+   "id": "sign.pit.1",
+   "kind": "sign",
+   "section": "annex",
+   "where": "Yellow paint at an open lift shaft",
+   "lines": [
+    "MIND THE EDGE.",
+    "(there is no floor)"
+   ],
+   "note": "Painted edge, felt before seen.",
+   "legacy": true
+  },
+  {
+   "id": "note.desk.signin",
+   "kind": "note",
+   "section": "desk",
+   "where": "Sign-in sheet clipped to the desk",
+   "lines": [
+    "SIGN-IN  B3",
+    "CREW 1  IN",
+    "CREW 2  IN",
+    "CREW 3  IN",
+    "CREW 4  IN",
+    "CREW 5  IN",
+    "CREW 6  HELD AT SURFACE",
+    "CREW 7  IN (again)"
+   ],
+   "note": "Crew 7's line is in a different pen, as if filled in many times.",
+   "legacy": true
+  },
+  {
+   "id": "note.desk.self",
+   "kind": "note",
+   "section": "desk",
+   "where": "Torn note under the lamp",
+   "lines": [
+    "The second door is wrong.",
+    "Take the third.",
+    "- 7"
+   ],
+   "note": "Same handwriting as the sign-in sheet. Do not comment on it.",
+   "legacy": true
+  },
+  {
+   "id": "rev.desk.mugs",
+   "kind": "reveal",
+   "section": "desk",
+   "where": "Mug rack with seven mugs",
+   "lines": [
+    "Seven mugs.",
+    "Six are stained.",
+    "The seventh is clean."
+   ],
+   "glow": {
+    "color": "amber",
+    "radius": 6
+   },
+   "legacy": true
+  },
+  {
+   "id": "sign.desk.waterline",
+   "kind": "sign",
+   "section": "desk",
+   "where": "Poster by the stair down",
+   "lines": [
+    "B4: MECHANICAL",
+    "WATERLINE MARKED IN RED",
+    "(it has been repainted)"
+   ],
+   "legacy": true
+  },
+  {
+   "id": "radio.desk.1",
+   "kind": "radio",
+   "section": "desk",
+   "where": "Radio on the desk, first time",
+   "lines": [
+    "Base to Seven. Lamp is holding.",
+    "Base to Seven. Floor B3 is quiet."
+   ],
+   "speaker": "Base",
+   "legacy": true
+  },
+  {
+   "id": "rev.desk.board",
+   "kind": "reveal",
+   "section": "desk",
+   "where": "Corkboard of crew photos",
+   "lines": [
+    "SIX CREWS",
+    "A seventh frame is empty.",
+    "Someone left a pin in it."
+   ],
+   "glow": {
+    "color": "amber",
+    "radius": 6
+   },
+   "legacy": true
+  },
+  {
+   "id": "sign.flood.1",
+   "kind": "sign",
+   "section": "flood",
+   "where": "Floor sign at the water's edge",
+   "lines": [
+    "WET FLOOR.",
+    "(it is now)"
+   ],
+   "legacy": true
+  },
+  {
+   "id": "sign.flood.2",
+   "kind": "sign",
+   "section": "flood",
+   "where": "Stencil above a pump room door",
+   "lines": [
+    "DO NOT LINGER IN THE WATER."
+   ],
+   "note": "Never say why.",
+   "legacy": true
+  },
+  {
+   "id": "sign.flood.grate",
+   "kind": "sign",
+   "section": "flood",
+   "where": "Chain hung across a rusted drain grating",
+   "lines": [
+    "DRAIN B4-7",
+    "LOAD LIMIT: A PERSON, ONCE"
+   ],
+   "note": "Warns of a grating that gives way.",
+   "legacy": true
+  },
+  {
+   "id": "sign.plate.1",
+   "kind": "sign",
+   "section": "flood",
+   "where": "Small bell by a floor plate",
+   "lines": [
+    "PLEASE DO NOT STEP ON THE PLATE.",
+    "- Crew 2"
+   ],
+   "note": "Alarm plate trap. The bell is crew 2's early warning, rings and draws enemies.",
+   "legacy": true
+  },
+  {
+   "id": "rec.flood.1",
+   "kind": "recorder",
+   "section": "flood",
+   "where": "Wedged in a pipe bracket",
+   "lines": [
+    "Tobi Wren, sound.",
+    "I can hear the building thinking.",
+    "Gain up. It is so quiet down here.",
+    "If I do not talk, nothing hears me."
+   ],
+   "speaker": "Tobi Wren, Crew 3",
+   "legacy": true
+  },
+  {
+   "id": "rec.flood.2",
+   "kind": "recorder",
+   "section": "flood",
+   "where": "On a catwalk rail",
+   "lines": [
+    "I stopped talking. It is better.",
+    "I can hear everyone breathing, far off.",
+    "If I just stay very still",
+    "they walk right past."
+   ],
+   "speaker": "Tobi Wren, Crew 3",
+   "note": "Plays near a Listener lair for atmosphere.",
+   "legacy": true
+  },
+  {
+   "id": "rec.flood.3",
+   "kind": "recorder",
+   "section": "flood",
+   "where": "Inside the boiler room",
+   "lines": [
+    "Joss, boiler room.",
+    "The water was not here yesterday.",
+    "Or it was here, and we were not looking.",
+    "Ines has a theory. It is not a nice one."
+   ],
+   "speaker": "Joss Berrow, Crew 1",
+   "legacy": true
+  },
+  {
+   "id": "rev.flood.boat",
+   "kind": "reveal",
+   "section": "flood",
+   "where": "Half-sunk rubber dinghy",
+   "lines": [
+    "A dinghy. Crew 2 paddled this far.",
+    "The oars are gone.",
+    "So is the third seat."
+   ],
+   "glow": {
+    "color": "amber",
+    "radius": 7
+   },
+   "legacy": true
+  },
+  {
+   "id": "rev.flood.lifering",
+   "kind": "reveal",
+   "section": "flood",
+   "where": "Life ring painted B3",
+   "lines": [
+    "LIFE RING  B3.",
+    "Hung before the water came.",
+    "Who knew?"
+   ],
+   "glow": {
+    "color": "amber",
+    "radius": 6
+   },
+   "legacy": true
+  },
+  {
+   "id": "rev.flood.headphones",
+   "kind": "reveal",
+   "section": "flood",
+   "where": "Headphones draped on a pipe",
+   "lines": [
+    "Headphones. Gain all the way up.",
+    "He would not leave them."
+   ],
+   "glow": {
+    "color": "amber",
+    "radius": 5
+   },
+   "legacy": true
+  },
+  {
+   "id": "rev.flood.valve",
+   "kind": "reveal",
+   "section": "flood",
+   "where": "Large valve wheel station",
+   "lines": [
+    "A valve wheel station.",
+    "The wheel is missing.",
+    "A wheel-shaped clean patch in the dust."
+   ],
+   "glow": {
+    "color": "amber",
+    "radius": 6
+   },
+   "legacy": true
+  },
+  {
+   "id": "note.falls.guestbook",
+   "kind": "note",
+   "section": "falls",
+   "where": "Guest Book on a stone",
+   "lines": [
+    "GUEST BOOK",
+    "{party}",
+    "Everyone signs. Nobody says what for."
+   ],
+   "note": "Optional: fill {party} with real player names who reached the Falls. Static fallback: 'Crew 7 signed here.'",
+   "legacy": true
+  },
+  {
+   "id": "rev.falls.behind",
+   "kind": "reveal",
+   "section": "falls",
+   "where": "Hidden alcove behind the waterfall",
+   "lines": [
+    "A chalk drawing of the whole building.",
+    "Stairs at the bottom. Falls near the top.",
+    "A circle, at the very bottom. LAMP."
+   ],
+   "glow": {
+    "color": "warm white",
+    "radius": 10
+   },
+   "legacy": true
+  },
+  {
+   "id": "rev.falls.hammock",
+   "kind": "reveal",
+   "section": "falls",
+   "where": "Hammock with a name stitched on",
+   "lines": [
+    "L. SORREL.",
+    "She slept better here than anywhere."
+   ],
+   "glow": {
+    "color": "amber",
+    "radius": 6
+   },
+   "legacy": true
+  },
+  {
+   "id": "sign.falls.1",
+   "kind": "sign",
+   "section": "falls",
+   "where": "Hand-painted wooden sign",
+   "lines": [
+    "THE FALLS",
+    "(probably not on any plan)"
+   ],
+   "legacy": true
+  },
+  {
+   "id": "sign.over.1",
+   "kind": "sign",
+   "section": "over",
+   "where": "Tag on a living plant",
+   "lines": [
+    "PLEASE WATER ME.",
+    "- P."
+   ],
+   "legacy": true
+  },
+  {
+   "id": "sign.over.2",
+   "kind": "sign",
+   "section": "over",
+   "where": "Greenhouse notice",
+   "lines": [
+    "STAFF MUST NOT FEED THE PLANTS.",
+    "THEY HAVE BEEN FED."
+   ],
+   "legacy": true
+  },
+  {
+   "id": "sign.plate.2",
+   "kind": "sign",
+   "section": "over",
+   "where": "Bell hung in the roots",
+   "lines": [
+    "TWO TAPS. WAIT. ONE.",
+    "(or step around)"
+   ],
+   "note": "Alarm plate in a root passage. Reinforces the greeting.",
+   "legacy": true
+  },
+  {
+   "id": "sign.pit.2",
+   "kind": "sign",
+   "section": "over",
+   "where": "Rope and yellow paint at a sinkhole",
+   "lines": [
+    "ROPE REQUIRED.",
+    "ROPE NOT PROVIDED."
+   ],
+   "note": "Rope item solves it.",
+   "legacy": true
+  },
+  {
+   "id": "rec.over.1",
+   "kind": "recorder",
+   "section": "over",
+   "where": "Under a greenhouse bench",
+   "lines": [
+    "Ravi, signals.",
+    "Two taps, a breath, one tap.",
+    "It was just a greeting.",
+    "Now I cannot stop hearing the first two."
+   ],
+   "speaker": "Ravi Anand, Crew 2",
+   "legacy": true
+  },
+  {
+   "id": "rec.over.2",
+   "kind": "recorder",
+   "section": "over",
+   "where": "In a planter",
+   "lines": [
+    "It taps back perfectly.",
+    "It does not get the pause.",
+    "It never waits for the pause.",
+    "That is how you know."
+   ],
+   "speaker": "Ravi Anand, Crew 2",
+   "legacy": true
+  },
+  {
+   "id": "rec.over.3",
+   "kind": "recorder",
+   "section": "over",
+   "where": "Camp stove, cold",
+   "lines": [
+    "Pim, intern. Crew 5.",
+    "Everyone says there is no way out.",
+    "I keep finding drafts. A draft means a door.",
+    "If I am not here tomorrow, I found it."
+   ],
+   "speaker": "Pim Ashworth, Crew 5",
+   "legacy": true
+  },
+  {
+   "id": "rev.over.greenhouse",
+   "kind": "reveal",
+   "section": "over",
+   "where": "Grow light and one live plant",
+   "lines": [
+    "One grow light, still humming.",
+    "One plant, still green.",
+    "Someone waters it."
+   ],
+   "glow": {
+    "color": "pale green-white",
+    "radius": 8
+   },
+   "note": "Pale light, not the green of friends.",
+   "legacy": true
+  },
+  {
+   "id": "rev.over.tapcode",
+   "kind": "reveal",
+   "section": "over",
+   "where": "Brass plate on a pillar",
+   "lines": [
+    "Two taps. Wait. One.",
+    "Cut into brass, so it would last.",
+    "A greeting."
+   ],
+   "glow": {
+    "color": "amber",
+    "radius": 5
+   },
+   "legacy": true
+  },
+  {
+   "id": "rev.over.camp",
+   "kind": "reveal",
+   "section": "over",
+   "where": "Cold camp stove with four mugs",
+   "lines": [
+    "Four mugs.",
+    "Three are chipped.",
+    "One says PIM."
+   ],
+   "glow": {
+    "color": "amber",
+    "radius": 6
+   },
+   "legacy": true
+  },
+  {
+   "id": "rec.bunk.1",
+   "kind": "recorder",
+   "section": "bunk",
+   "where": "On the stove shelf, plays on interaction",
+   "lines": [
+    "Theory.",
+    "The Understory is what a building forgets.",
+    "Rooms nobody enters. Halls nobody checks.",
+    "It fills with whatever is left.",
+    "We are not hunted. We are forgotten.",
+    "Green is not a colour. Green is someone looking back."
+   ],
+   "speaker": "Ines Calder, Crew 1",
+   "legacy": true
+  },
+  {
+   "id": "note.bunk.board",
+   "kind": "note",
+   "section": "bunk",
+   "where": "Corkboard: WHO'S STILL OUT",
+   "lines": [
+    "WHO'S STILL OUT",
+    "HOLLIS  rounds",
+    "WREN  listening",
+    "ANAND  tapping",
+    "QUILL  watching",
+    "ASHWORTH  (circled)"
+   ],
+   "note": "Lines are crossed out in varying pens, 'ASHWORTH' is circled in green.",
+   "legacy": true
+  },
+  {
+   "id": "note.bunk.letters",
+   "kind": "note",
+   "section": "bunk",
+   "where": "Letters pinned to a bunk",
+   "lines": [
+    "Dear Mum. We are fine. The pay is good.",
+    "I cannot tell you where. It is quiet here.",
+    "Dear Mum. We are fine."
+   ],
+   "note": "Repeated opening is intentional.",
+   "legacy": true
+  },
+  {
+   "id": "note.bunk.pim",
+   "kind": "note",
+   "section": "bunk",
+   "where": "Folded note under a bunk",
+   "lines": [
+    "Gone to find the ladder.",
+    "Left my mug for luck.",
+    "- P."
+   ],
+   "legacy": true
+  },
+  {
+   "id": "rev.bunk.model",
+   "kind": "reveal",
+   "section": "bunk",
+   "where": "Model of the Halden Building",
+   "lines": [
+    "A model of the building.",
+    "Each floor lit. One, at the bottom, is not.",
+    "A match sits beside it."
+   ],
+   "glow": {
+    "color": "amber",
+    "radius": 7
+   },
+   "legacy": true
+  },
+  {
+   "id": "rev.bunk.door",
+   "kind": "reveal",
+   "section": "bunk",
+   "where": "Stencilled CREW door in the dark",
+   "lines": [
+    "CREW QUARTERS.",
+    "Knock twice. Wait. Once."
+   ],
+   "glow": {
+    "color": "amber",
+    "radius": 5
+   },
+   "legacy": true
+  },
+  {
+   "id": "rev.bunk.calendar",
+   "kind": "reveal",
+   "section": "bunk",
+   "where": "Wall calendar",
+   "lines": [
+    "Every day circled.",
+    "Past the printed month.",
+    "Past the year."
+   ],
+   "glow": {
+    "color": "amber",
+    "radius": 5
+   },
+   "legacy": true
+  },
+  {
+   "id": "sign.found.1",
+   "kind": "sign",
+   "section": "found",
+   "where": "Entrance stencil",
+   "lines": [
+    "CLEARANCE: NONE.",
+    "NOBODY SAYS WHO SET THIS."
+   ],
+   "legacy": true
+  },
+  {
+   "id": "sign.found.2",
+   "kind": "sign",
+   "section": "found",
+   "where": "Graffiti on a pillar",
+   "lines": [
+    "KEEP LOOKING."
+   ],
+   "note": "Stalker-zone graffiti.",
+   "legacy": true
+  },
+  {
+   "id": "sign.found.3",
+   "kind": "sign",
+   "section": "found",
+   "where": "Tape on concrete",
+   "lines": [
+    "SHH"
+   ],
+   "note": "Listener-zone graffiti, anywhere.",
+   "legacy": true
+  },
+  {
+   "id": "sign.plate.3",
+   "kind": "sign",
+   "section": "found",
+   "where": "Chalk under a floor plate",
+   "lines": [
+    "NOT HERE.",
+    "- I.C."
+   ],
+   "legacy": true
+  },
+  {
+   "id": "sign.pit.3",
+   "kind": "sign",
+   "section": "found",
+   "where": "Wall of a drop shaft",
+   "lines": [
+    "MARKED EDGE.",
+    "JOSS PAINTED THE EDGE SO YOU WOULD FEEL IT FIRST."
+   ],
+   "legacy": true
+  },
+  {
+   "id": "rec.found.1",
+   "kind": "recorder",
+   "section": "found",
+   "where": "On a pillar in the Foundation hall",
+   "lines": [
+    "Last descent. I know where the Lamp goes.",
+    "The Foundation is the first floor they built.",
+    "Before the plan. Before the paper.",
+    "It is not cruel. It is empty. Empty gets hungry for company."
+   ],
+   "speaker": "Ines Calder, Crew 1",
+   "legacy": true
+  },
+  {
+   "id": "rec.found.2",
+   "kind": "recorder",
+   "section": "found",
+   "where": "Tucked into the camera case",
+   "lines": [
+    "Quill, photography.",
+    "Flash only works when it is not looking.",
+    "Forty frames of the corridor.",
+    "In frame thirty it is closer."
+   ],
+   "speaker": "Marlow Quill, Crew 4",
+   "legacy": true
+  },
+  {
+   "id": "rec.found.3",
+   "kind": "recorder",
+   "section": "found",
+   "where": "On a chalk-marked shelf",
+   "lines": [
+    "Keep watching. Then step.",
+    "Never stare. It learns the stare.",
+    "If you hear a shutter, do not turn.",
+    "Wait for the second click."
+   ],
+   "speaker": "Marlow Quill, Crew 4",
+   "legacy": true
+  },
+  {
+   "id": "rev.found.camera",
+   "kind": "reveal",
+   "section": "found",
+   "where": "Camera on a tripod facing the hall",
+   "lines": [
+    "A camera on a tripod, facing the corridor.",
+    "The shutter is half pressed.",
+    "Quill never finished the shot."
+   ],
+   "glow": {
+    "color": "cold white",
+    "radius": 7
+   },
+   "legacy": true
+  },
+  {
+   "id": "rev.found.stone",
+   "kind": "reveal",
+   "section": "found",
+   "where": "Cornerstone",
+   "lines": [
+    "FOUNDATION STONE.",
+    "The first thing built.",
+    "Nobody remembers who laid it."
+   ],
+   "glow": {
+    "color": "amber",
+    "radius": 8
+   },
+   "legacy": true
+  },
+  {
+   "id": "rev.found.chalk",
+   "kind": "reveal",
+   "section": "found",
+   "where": "Chalk arrow trail",
+   "lines": [
+    "Chalk arrows. Fresh.",
+    "I.C."
+   ],
+   "glow": {
+    "color": "amber",
+    "radius": 6
+   },
+   "legacy": true
+  },
+  {
+   "id": "rev.lamp.postcard",
+   "kind": "reveal",
+   "section": "lamp",
+   "where": "Postcard pinned above the ladder",
+   "lines": [
+    "POSTCARD",
+    "The surface is loud.",
+    "Bring the others.",
+    "- Pim"
+   ],
+   "glow": {
+    "color": "amber",
+    "radius": 8
+   },
+   "legacy": true
+  },
+  {
+   "id": "npc.ines.1",
+   "kind": "npc",
+   "section": "lamp",
+   "where": "Ines, on entering",
+   "lines": [
+    "Seven. Good.",
+    "The dots held."
+   ],
+   "speaker": "Ines",
+   "legacy": true
+  },
+  {
+   "id": "npc.ines.2",
+   "kind": "npc",
+   "section": "lamp",
+   "where": "Ines, second line",
+   "lines": [
+    "Every time the dark took you,",
+    "I pulled you back to the last light."
+   ],
+   "speaker": "Ines",
+   "legacy": true
+  },
+  {
+   "id": "npc.ines.3",
+   "kind": "npc",
+   "section": "lamp",
+   "where": "Ines, variant with deaths > 0",
+   "lines": [
+    "{deaths} times.",
+    "Each night a little further."
+   ],
+   "speaker": "Ines",
+   "legacy": true
+  },
+  {
+   "id": "npc.ines.3z",
+   "kind": "npc",
+   "section": "lamp",
+   "where": "Ines, variant with deaths == 0",
+   "lines": [
+    "You never fell.",
+    "That is not luck. That is care."
+   ],
+   "speaker": "Ines",
+   "legacy": true
+  },
+  {
+   "id": "npc.ines.4",
+   "kind": "npc",
+   "section": "lamp",
+   "where": "Ines, third line",
+   "lines": [
+    "The whole map held tonight.",
+    "Look. All of it."
+   ],
+   "speaker": "Ines",
+   "legacy": true
+  },
+  {
+   "id": "npc.ines.5",
+   "kind": "npc",
+   "section": "lamp",
+   "where": "Ines, pointing up",
+   "lines": [
+    "The ladder goes up.",
+    "Pim made it. So can you."
+   ],
+   "speaker": "Ines",
+   "legacy": true
+  },
+  {
+   "id": "npc.ines.6",
+   "kind": "npc",
+   "section": "lamp",
+   "where": "Ines, last line before the choice",
+   "lines": [
+    "Or sit with me a while.",
+    "Someone has to keep the lamp."
+   ],
+   "speaker": "Ines",
+   "legacy": true
+  },
+  {
+   "id": "npc.pim.recording",
+   "kind": "recorder",
+   "section": "lamp",
+   "where": "Pinned recorder by the ladder",
+   "lines": [
+    "It works. I'm out.",
+    "I can hear traffic.",
+    "Tell Ines the lamp worked. Tell her thank you."
+   ],
+   "speaker": "Pim Ashworth",
+   "legacy": true
+  },
+  {
+   "id": "radio.base.1",
+   "kind": "radio",
+   "section": "any",
+   "where": "Radio, idle in a lit room",
+   "lines": [
+    "Base to Seven. Lamp is holding."
+   ],
+   "speaker": "Base",
+   "legacy": true
+  },
+  {
+   "id": "radio.base.2",
+   "kind": "radio",
+   "section": "any",
+   "where": "Radio, new floor",
+   "lines": [
+    "Base to Seven. Floor {floor}. Counting."
+   ],
+   "speaker": "Base",
+   "legacy": true
+  },
+  {
+   "id": "radio.base.3",
+   "kind": "radio",
+   "section": "any",
+   "where": "Radio, randomly in the dark",
+   "lines": [
+    "Base to Seven. I can see you."
+   ],
+   "speaker": "Base",
+   "legacy": true
+  },
+  {
+   "id": "radio.base.4",
+   "kind": "radio",
+   "section": "any",
+   "where": "Radio, randomly in the dark",
+   "lines": [
+    "Base to Seven.",
+    "One. Two. Three. Still here."
+   ],
+   "speaker": "Base",
+   "legacy": true
+  },
+  {
+   "id": "radio.base.5",
+   "kind": "radio",
+   "section": "any",
+   "where": "Radio, after a level clear",
+   "lines": [
+    "Base to Seven. Logged."
+   ],
+   "speaker": "Base",
+   "legacy": true
+  },
+  {
+   "id": "card.annex",
+   "kind": "card",
+   "section": "annex",
+   "where": "Level card B3",
+   "lines": [
+    "B3",
+    "THE ANNEX",
+    "offices after hours"
+   ],
+   "title": "The Annex",
+   "legacy": true
+  },
+  {
+   "id": "card.flood",
+   "kind": "card",
+   "section": "flood",
+   "where": "Level card B4",
+   "lines": [
+    "B4",
+    "THE FLOODED WING",
+    "mind the waterline"
+   ],
+   "title": "The Flooded Wing",
+   "legacy": true
+  },
+  {
+   "id": "card.over",
+   "kind": "card",
+   "section": "over",
+   "where": "Level card B5",
+   "lines": [
+    "B5",
+    "THE OVERGROWTH",
+    "please water me"
+   ],
+   "title": "The Overgrowth",
+   "legacy": true
+  },
+  {
+   "id": "card.bunk",
+   "kind": "card",
+   "section": "bunk",
+   "where": "Lit room card",
+   "lines": [
+    "THE BUNK ROOM",
+    "knock twice"
+   ],
+   "title": "The Bunk Room",
+   "legacy": true
+  },
+  {
+   "id": "card.found",
+   "kind": "card",
+   "section": "found",
+   "where": "Level card B6",
+   "lines": [
+    "B6",
+    "THE FOUNDATION",
+    "before the plan"
+   ],
+   "title": "The Foundation",
+   "legacy": true
+  },
+  {
+   "id": "item.photo",
+   "kind": "item",
+   "section": "any",
+   "where": "Collectible",
+   "lines": [
+    "Photograph: Crew 1, smiling. Before."
+   ],
+   "title": "Photograph",
+   "note": "Name is lines[0] before the colon; description follows it.",
+   "legacy": true
+  },
+  {
+   "id": "item.headphones",
+   "kind": "item",
+   "section": "any",
+   "where": "Flooded Wing, one",
+   "lines": [
+    "Headphones: Warm. Gain all the way up."
+   ],
+   "title": "Headphones",
+   "note": "Name is lines[0] before the colon; description follows it.",
+   "legacy": true
+  },
+  {
+   "id": "item.map",
+   "kind": "item",
+   "section": "any",
+   "where": "Foundation",
+   "lines": [
+    "Pencil Map: Half a floor, in Ines's hand."
+   ],
+   "title": "Pencil Map",
+   "note": "Name is lines[0] before the colon; description follows it.",
+   "legacy": true
+  },
+  {
+   "id": "item.badge",
+   "kind": "item",
+   "section": "any",
+   "where": "Night Desk",
+   "lines": [
+    "Crew Badge: Crew 7. The photo is a smudge."
+   ],
+   "title": "Crew Badge",
+   "note": "Name is lines[0] before the colon; description follows it.",
+   "legacy": true
+  },
+  {
+   "id": "hint.fire",
+   "kind": "hint",
+   "section": "any",
+   "where": "Fallback only; prefer sign.intake.*",
+   "lines": [
+    "Hold to record."
+   ],
+   "note": "Optional fallback. Keep rare.",
+   "legacy": true
+  },
+  {
+   "id": "hint.mobile",
+   "kind": "hint",
+   "section": "any",
+   "where": "Mobile only",
+   "lines": [
+    "Thumb on the button."
+   ],
+   "note": "Optional fallback. Keep rare.",
+   "legacy": true
+  },
+  {
+   "id": "hint.door",
+   "kind": "hint",
+   "section": "any",
+   "where": "Fallback",
+   "lines": [
+    "Doors open to those who looked."
+   ],
+   "note": "Optional fallback. Keep rare.",
+   "legacy": true
+  },
+  {
+   "id": "hint.pickup",
+   "kind": "hint",
+   "section": "any",
+   "where": "Fallback",
+   "lines": [
+    "Take what is left for you."
+   ],
+   "note": "Optional fallback. Keep rare.",
+   "legacy": true
+  },
+  {
+   "id": "hint.tap",
+   "kind": "hint",
+   "section": "any",
+   "where": "Ping wheel greeting",
+   "lines": [
+    "Two taps. Wait. One."
+   ],
+   "note": "Optional fallback. Keep rare.",
+   "legacy": true
+  },
+  {
+   "id": "hint.heat",
+   "kind": "hint",
+   "section": "any",
+   "where": "Overheat",
+   "lines": [
+    "The rig runs warm."
+   ],
+   "note": "Optional fallback. Keep rare.",
+   "legacy": true
+  },
+  {
+   "id": "hint.water",
+   "kind": "hint",
+   "section": "any",
+   "where": "Entering water",
+   "lines": [
+    "Water carries sound."
+   ],
+   "note": "Optional fallback. Keep rare.",
+   "legacy": true
+  },
+  {
+   "id": "hint.pit",
+   "kind": "hint",
+   "section": "any",
+   "where": "Near a drop",
+   "lines": [
+    "Mind the edge."
+   ],
+   "note": "Optional fallback. Keep rare.",
+   "legacy": true
+  },
+  {
+   "id": "hint.plate",
+   "kind": "hint",
+   "section": "any",
+   "where": "Near a plate",
+   "lines": [
+    "Something is listening to the floor."
+   ],
+   "note": "Optional fallback. Keep rare.",
+   "legacy": true
+  },
+  {
+   "id": "hint.recorder",
+   "kind": "hint",
+   "section": "any",
+   "where": "Recorder activates",
+   "lines": [
+    "A click. A tape starts."
+   ],
+   "note": "Optional fallback. Keep rare.",
+   "legacy": true
+  },
+  {
+   "id": "hint.lamp",
+   "kind": "hint",
+   "section": "any",
+   "where": "Lamp-bag ignites",
+   "lines": [
+    "A bag begins to glow."
+   ],
+   "note": "Optional fallback. Keep rare.",
+   "legacy": true
+  },
+  {
+   "id": "hint.manual",
+   "kind": "hint",
+   "section": "any",
+   "where": "Manual page picked up",
+   "lines": [
+    "A page, torn from the booklet."
+   ],
+   "note": "Optional fallback. Keep rare.",
+   "legacy": true
+  },
+  {
+   "id": "card.haven.copy",
+   "kind": "card",
+   "section": "annex",
+   "where": "Haven card after tier 1",
+   "lines": [
+    "THE COPY ROOM",
+    "the machine is still warm"
+   ],
+   "title": "The Copy Room",
+   "legacy": true
+  },
+  {
+   "id": "note.haven.copy",
+   "kind": "note",
+   "section": "annex",
+   "where": "Page in the copier tray, Copy Room",
+   "lines": [
+    "A page, still warm from the machine.",
+    "A map of the corridor just left.",
+    "Drawn from the other side."
+   ],
+   "legacy": true
+  },
+  {
+   "id": "card.haven.booth",
+   "kind": "card",
+   "section": "flood",
+   "where": "Haven card after tier 3",
+   "lines": [
+    "THE DRY BOOTH",
+    "pump house, lamp on"
+   ],
+   "title": "The Dry Booth",
+   "legacy": true
+  },
+  {
+   "id": "note.haven.booth",
+   "kind": "note",
+   "section": "flood",
+   "where": "Shift log on the booth wall",
+   "lines": [
+    "SHIFT LOG  PUMP HOUSE",
+    "Water level: up.",
+    "Water level: up.",
+    "Water level: we stopped writing it down."
+   ],
+   "legacy": true
+  },
+  {
+   "id": "card.haven.shed",
+   "kind": "card",
+   "section": "over",
+   "where": "Haven card after tier 5",
+   "lines": [
+    "THE POTTING SHED",
+    "a lantern, a bench, a window"
+   ],
+   "title": "The Potting Shed",
+   "legacy": true
+  },
+  {
+   "id": "note.haven.shed",
+   "kind": "note",
+   "section": "over",
+   "where": "Seed packets on the bench",
+   "lines": [
+    "Seed packets, labelled in a careful hand.",
+    "TOMATO. BEAN. SOMETHING ELSE.",
+    "Someone planted all three."
+   ],
+   "legacy": true
+  },
+  {
+   "id": "card.haven.nook",
+   "kind": "card",
+   "section": "found",
+   "where": "Haven card after tier 7",
+   "lines": [
+    "THE ARCHIVE NOOK",
+    "one lamp between the shelves"
+   ],
+   "title": "The Archive Nook",
+   "legacy": true
+  },
+  {
+   "id": "note.haven.nook",
+   "kind": "note",
+   "section": "found",
+   "where": "Card index with one drawer open",
+   "lines": [
+    "Card index, one drawer open.",
+    "Every card says SEEN.",
+    "The last one says SEEN BY: ____."
+   ],
+   "legacy": true
+  },
+  {
+   "id": "radio.haven.1",
+   "kind": "radio",
+   "section": "any",
+   "where": "Radio in any small haven",
+   "lines": [
+    "Base to Seven. Rest.",
+    "I have you."
+   ],
+   "speaker": "Base",
+   "legacy": true
+  },
+  {
+   "id": "rev.nook.1",
+   "kind": "reveal",
+   "section": "any",
+   "where": "Lamp-bag on a hook, mug beneath it (mid-level lit spot)",
+   "lines": [
+    "A lamp-bag on a hook.",
+    "A mug beneath it. Still warm."
+   ],
+   "glow": {
+    "color": "amber",
+    "radius": 6
+   },
+   "legacy": true
+  },
+  {
+   "id": "rev.nook.2",
+   "kind": "reveal",
+   "section": "any",
+   "where": "Lamp-bag over a folding stool",
+   "lines": [
+    "A stool. A bag of light.",
+    "Somebody sat here and waited."
+   ],
+   "glow": {
+    "color": "amber",
+    "radius": 6
+   },
+   "legacy": true
+  },
+  {
+   "id": "rev.nook.3",
+   "kind": "reveal",
+   "section": "any",
+   "where": "Lamp-bag taped to a corner",
+   "lines": [
+    "J.B. 3/7.",
+    "He hung one at every turn."
+   ],
+   "glow": {
+    "color": "amber",
+    "radius": 7
+   },
+   "legacy": true
+  },
+  {
+   "id": "rev.nook.4",
+   "kind": "reveal",
+   "section": "any",
+   "where": "Lamp-bag with a tag, burnt out",
+   "lines": [
+    "The bulb is dead.",
+    "The tag reads: KEEP GOING."
+   ],
+   "glow": {
+    "color": "dim amber",
+    "radius": 4
+   },
+   "legacy": true
+  }
+ ],
+ "scenes": [
+  {
+   "id": "cs.open",
+   "kind": "cutscene",
+   "title": "The Halden Building",
+   "where": "New Game start",
+   "trigger": "Automatic, once per profile; skippable",
+   "beats": [
+    {
+     "shot": "Black. A single office-night sound: ventilation, a clock, a sprung chair."
+    },
+    {
+     "cap": "TUESDAY, 11:42 PM"
+    },
+    {
+     "cap": "HALDEN BUILDING, FLOOR 3"
+    },
+    {
+     "sp": "Theo",
+     "line": "Last scan. Forty-one of forty-one. Pack up, go home."
+    },
+    {
+     "shot": "Theo unplugs the tripod, steps back and leans a hand on the far wall. His hand sinks in. The wall is not there."
+    },
+    {
+     "sp": "Theo",
+     "line": "Wait. That's not--"
+    },
+    {
+     "shot": "The floor goes soft. Fluorescents flare and die. Black. A low electrical hum."
+    },
+    {
+     "cap": "LIDAR"
+    },
+    {
+     "shot": "Wake. Damp yellow wallpaper, wet carpet. The wall behind him has run like wax. His scanner is still in his hand."
+    },
+    {
+     "sp": "Theo",
+     "line": "This is not floor three. Scan the room. Find a door."
+    }
+   ],
+   "note": "~35 to 45 seconds. Ends on the first playable frame with the scanner raised; no black gap.",
+   "look": "l0"
+  },
+  {
+   "id": "tape.orientation",
+   "kind": "tape",
+   "title": "Survey Orientation (Tape 1 of 9)",
+   "where": "CRT/VCR in the first room (poi.l0.vcr); lit and playable on the first dot",
+   "trigger": "Interact; auto-offers at 20 seconds idle",
+   "beats": [
+    {
+     "shot": "CRT static. A woman at a desk with a banker's lamp. Camcorder angle, slightly too low. Wall maps behind her."
+    },
+    {
+     "sp": "Ines",
+     "line": "Hello. If you are watching this, you came through a wall. Everyone does."
+    },
+    {
+     "sp": "Ines",
+     "line": "My name is Ines Calder. I run the Survey. We map the Backrooms so that people like you can find their way."
+    },
+    {
+     "sp": "Ines",
+     "line": "The Backrooms are a set of places that were forgotten. An office nobody visits. A pool nobody swims in. A ward nobody staffs."
+    },
+    {
+     "sp": "Ines",
+     "line": "When a place is forgotten long enough, it stops belonging to the world. It ends up here."
+    },
+    {
+     "sp": "Ines",
+     "line": "Each place is a Level. They do not connect like a building does. You walk out of one, and you are in the next."
+    },
+    {
+     "sp": "Ines",
+     "line": "The dark is the first danger. Light does not carry here. So the Survey built the scanner you are holding."
+    },
+    {
+     "sp": "Ines",
+     "line": "It does not make light. It makes a record. Where you scan, the dots stay, and mapped space holds still."
+    },
+    {
+     "sp": "Ines",
+     "line": "White is structure. Green is people. Red is anything that used to be a person and is not now."
+    },
+    {
+     "sp": "Ines",
+     "line": "Some of them were surveyors. Be kind to them, and do not stand near them."
+    },
+    {
+     "sp": "Ines",
+     "line": "Find my people. They camp at every Level. Each of them knows something you need."
+    },
+    {
+     "sp": "Ines",
+     "line": "And find the way out. We have never found one. But the scanner says there is a shape in the dark that matches the real world."
+    },
+    {
+     "sp": "Ines",
+     "line": "To prove it, I would need a true measurement of a real place. We have never had one. If you have one, I would very much like to meet you."
+    },
+    {
+     "shot": "She reaches forward. The tape cuts to static."
+    },
+    {
+     "sp": "Theo",
+     "line": "A true measurement of a real place."
+    },
+    {
+     "sp": "Theo",
+     "line": "Forty-one scans of floor three. They are on this unit."
+    },
+    {
+     "sp": "Theo",
+     "line": "Okay. Find the surveyors. Find Ines."
+    }
+   ],
+   "note": "~60 to 75 seconds with beats; keep skippable. Journal entries 02 and 03 unlock.",
+   "look": "l0"
+  },
+  {
+   "id": "tape.halden",
+   "kind": "tape",
+   "title": "Halden Building: Where Tomorrow Works",
+   "where": "VCR in the Level 0 break room",
+   "trigger": "Interact",
+   "beats": [
+    {
+     "shot": "A promo VHS from 1994, saturated colour. Fast pans of a glass lobby, escalators, an atrium with a fountain."
+    },
+    {
+     "sp": "Announcer",
+     "line": "Halden Building. Fifteen floors of tomorrow."
+    },
+    {
+     "shot": "Ribbon cutting. A young man in a Corbel and Pike survey jacket holds a scanner and waves."
+    },
+    {
+     "sp": "Announcer",
+     "line": "Surveyed to the millimetre by Corbel and Pike."
+    },
+    {
+     "shot": "Camera drifts down a corridor, floor three. At the very end is a door that is not on any plan. It is slightly open. Light is coming out of it."
+    },
+    {
+     "sp": "Announcer",
+     "line": "From the lobby to floor... three..."
+    },
+    {
+     "shot": "Tape glitches. Static. End."
+    },
+    {
+     "sp": "Theo",
+     "line": "Fifteen floors. The plan I was given had fourteen."
+    },
+    {
+     "sp": "Theo",
+     "line": "That door is on floor three. That is my floor."
+    }
+   ],
+   "look": "l0"
+  },
+  {
+   "id": "tape.hollis",
+   "kind": "tape",
+   "title": "Security Camera 4 (night)",
+   "where": "Monitor in the Level 0 security booth",
+   "trigger": "Interact",
+   "beats": [
+    {
+     "shot": "Grey security footage. A man in a security jacket, keys on his belt, walks the corridor with a flashlight."
+    },
+    {
+     "sp": "Hollis",
+     "line": "Round one. All quiet."
+    },
+    {
+     "shot": "Time jumps. Same corridor. The carpet is wetter."
+    },
+    {
+     "sp": "Hollis",
+     "line": "Round four hundred. Lights out on three. All quiet."
+    },
+    {
+     "shot": "Time jumps. The man is a little translucent. The footage loses detail where he stands."
+    },
+    {
+     "sp": "Hollis",
+     "line": "Round eleven thousand. Funny. I do not see the other guards any more."
+    },
+    {
+     "sp": "Hollis",
+     "line": "Is anyone there? Can anyone see me?"
+    },
+    {
+     "shot": "The man stops. Looks straight into the camera. The footage keeps going, but he is gone from the frame. Keys, faint, continue."
+    },
+    {
+     "sp": "Theo",
+     "line": "Nobody saw him, so he started to disappear."
+    },
+    {
+     "sp": "Theo",
+     "line": "That is what fading is. Keep somebody in sight."
+    }
+   ],
+   "look": "l0"
+  },
+  {
+   "id": "tape.tobi",
+   "kind": "tape",
+   "title": "Walkman Diary: T. Wren",
+   "where": "Cassette player in the Level 1 pump room",
+   "trigger": "Interact",
+   "beats": [
+    {
+     "shot": "A cassette player on a shelf, red record light. Water dripping in the background, very close to the mic."
+    },
+    {
+     "sp": "Tobi",
+     "line": "Tobi Wren. I can hear the building thinking."
+    },
+    {
+     "sp": "Tobi",
+     "line": "I have worked out that it hears us. Every scan. Every step."
+    },
+    {
+     "sp": "Tobi",
+     "line": "So I stopped. If I stay silent, maybe nothing hears me."
+    },
+    {
+     "shot": "Longer silence. Dripping. A faint, patient breath."
+    },
+    {
+     "sp": "Tobi",
+     "line": "It worked. I could not hear anyone, and nobody could hear me."
+    },
+    {
+     "sp": "Tobi",
+     "line": "That's the problem."
+    },
+    {
+     "sp": "Theo",
+     "line": "He went quiet so nothing would find him. Then nothing could."
+    },
+    {
+     "sp": "Theo",
+     "line": "Walk. Do not run. Do not ping near the Hush."
+    }
+   ],
+   "look": "l1"
+  },
+  {
+   "id": "tape.ravi",
+   "kind": "tape",
+   "title": "Ravi's Demonstration",
+   "where": "TV in the Level 2 day room",
+   "trigger": "Interact",
+   "beats": [
+    {
+     "shot": "A ward day room. Ravi, nervous, sits close to the camera. A radio on the table."
+    },
+    {
+     "sp": "Ravi",
+     "line": "Okay. This is the Echo. It copies voices."
+    },
+    {
+     "sp": "Ravi",
+     "line": "Watch. Two taps. A breath. One."
+    },
+    {
+     "shot": "He taps the table. Silence. Then, from the dark behind the camera, two taps. No breath. One tap."
+    },
+    {
+     "sp": "Echo",
+     "line": "Ravi? Ravi? Ravi?"
+    },
+    {
+     "sp": "Ravi",
+     "line": "That is my voice. It learned me in an afternoon."
+    },
+    {
+     "sp": "Ravi",
+     "line": "It can copy the words. It can copy the taps. It cannot wait."
+    },
+    {
+     "sp": "Ravi",
+     "line": "So if you hear me and I do not wait, it is not me."
+    },
+    {
+     "sp": "Theo",
+     "line": "It doesn't breathe. That is the tell."
+    }
+   ],
+   "look": "l2"
+  },
+  {
+   "id": "tape.quill",
+   "kind": "tape",
+   "title": "Contact Sheet: M. Quill",
+   "where": "Projector in the Level 3 cave",
+   "trigger": "Interact",
+   "beats": [
+    {
+     "shot": "A slide projector throws images on the cave wall: a corridor, frame by frame."
+    },
+    {
+     "sp": "Quill",
+     "line": "Frame one. Empty corridor."
+    },
+    {
+     "sp": "Quill",
+     "line": "Frame ten. Empty."
+    },
+    {
+     "sp": "Quill",
+     "line": "Frame thirty. A shape at the far end."
+    },
+    {
+     "shot": "A shape at the end of the corridor, drawn closer in each frame."
+    },
+    {
+     "sp": "Quill",
+     "line": "It moves when I do not look. So I look."
+    },
+    {
+     "sp": "Quill",
+     "line": "But if I stare, it learns the stare."
+    },
+    {
+     "sp": "Quill",
+     "line": "Watch it. Then step. Never stare. Remember."
+    },
+    {
+     "sp": "Theo",
+     "line": "Watch it, then step. Do not stare. Got it."
+    }
+   ],
+   "look": "l3"
+  },
+  {
+   "id": "tape.pike",
+   "kind": "tape",
+   "title": "Tape 9 of 9: A. Pike",
+   "where": "Camcorder on the folding table in the Garage",
+   "trigger": "Interact",
+   "beats": [
+    {
+     "shot": "A young man in a Corbel and Pike jacket. Same face as the ribbon-cutting. Sodium light. A small lamp beside him."
+    },
+    {
+     "sp": "Pike",
+     "line": "Day one. I am Anselm Pike. I was scanning the Halden before it opened."
+    },
+    {
+     "sp": "Pike",
+     "line": "I scanned the wall at the end of floor three, and the wall opened."
+    },
+    {
+     "sp": "Pike",
+     "line": "I have walked down for what feels like a week. I found a light in the dark. I called it the Lamp."
+    },
+    {
+     "sp": "Pike",
+     "line": "I do not know who built this place. I know it hangs from the Halden. Everything does."
+    },
+    {
+     "sp": "Pike",
+     "line": "Here is what I think. The Backrooms is a point cloud of forgotten places, and it has a shape."
+    },
+    {
+     "sp": "Pike",
+     "line": "If anybody ever brings a true scan of the real floor three, the shape will match, and a door will open."
+    },
+    {
+     "sp": "Pike",
+     "line": "That is the exit. That is all I know."
+    },
+    {
+     "sp": "Pike",
+     "line": "If you are watching this: the Lamp is at the bottom. Bring me the real floor."
+    },
+    {
+     "sp": "Theo",
+     "line": "He was the first. Unit zero zero zero seven. And I have the real floor."
+    },
+    {
+     "sp": "Theo",
+     "line": "Down to the Lamp."
+    }
+   ],
+   "look": "l4"
+  },
+  {
+   "id": "npc.joss",
+   "kind": "dialogue",
+   "title": "Joss Berrow",
+   "where": "Supply Closet (c0), after tier 1",
+   "trigger": "Walk up to the green dot; scene plays; he hands over lamp-bags",
+   "beats": [
+    {
+     "sp": "Joss",
+     "line": "Whoa. Easy. Easy. You are real. Green dots, good. Sit."
+    },
+    {
+     "sp": "Theo",
+     "line": "Where am I?"
+    },
+    {
+     "sp": "Joss",
+     "line": "The Backrooms. First of us named it. Do not ask why the name stuck."
+    },
+    {
+     "sp": "Joss",
+     "line": "Every Level is a place somebody forgot. This one is an office floor. The rest get stranger."
+    },
+    {
+     "sp": "Theo",
+     "line": "How do I get out?"
+    },
+    {
+     "sp": "Joss",
+     "line": "Exits are where a Level touches the real world. Thirty years, no exit. Ines says she is close."
+    },
+    {
+     "sp": "Theo",
+     "line": "Thirty years? I have been gone minutes."
+    },
+    {
+     "sp": "Joss",
+     "line": "Time does not line up down here. Do not trust your watch."
+    },
+    {
+     "sp": "Joss",
+     "line": "Take these. Lamp-bags. Hang one at every turn. Scan it, it wakes up. Light only reaches what is mapped."
+    },
+    {
+     "sp": "Joss",
+     "line": "Listen for keys. That is Hollis. Old night guard. Still on his round. Wait for him to pass."
+    },
+    {
+     "sp": "Joss",
+     "line": "The way down needs a fuse. Breaker room, past the vending machines. Then find Hana at the pump house."
+    },
+    {
+     "sp": "Theo",
+     "line": "Thanks, Joss."
+    },
+    {
+     "sp": "Joss",
+     "line": "Do not thank me. Hang the bags."
+    }
+   ],
+   "note": "Gives: lamp-bags, the radio frequency. Journal 04. Unlocks goal.l0b.",
+   "look": "c0"
+  },
+  {
+   "id": "npc.hana",
+   "kind": "dialogue",
+   "title": "Hana Osei",
+   "where": "Pump House (c1), after tier 3",
+   "trigger": "Walk up",
+   "beats": [
+    {
+     "sp": "Hana",
+     "line": "You are the new one."
+    },
+    {
+     "sp": "Theo",
+     "line": "Theo."
+    },
+    {
+     "sp": "Hana",
+     "line": "Hana. Sit. Do not talk much. Water carries."
+    },
+    {
+     "sp": "Hana",
+     "line": "Level 1 was the Halden's basement. Flooded in ninety-six. Forgotten, then drowned, then dropped here."
+    },
+    {
+     "sp": "Theo",
+     "line": "Where does the water go?"
+    },
+    {
+     "sp": "Hana",
+     "line": "Upstream, a shaft. At the top, the Falls. Follow it. Always follow it."
+    },
+    {
+     "sp": "Hana",
+     "line": "You heard the thing in the pipes. That is Tobi. He went quiet. Now he is the Hush."
+    },
+    {
+     "sp": "Theo",
+     "line": "He is the monster?"
+    },
+    {
+     "sp": "Hana",
+     "line": "He was a person who stopped being heard. The scanner reads that as red. It is not wrong."
+    },
+    {
+     "sp": "Hana",
+     "line": "Walk past him. Do not run. Do not ping. He will not forget you if you do."
+    },
+    {
+     "sp": "Hana",
+     "line": "The valve wheel is in the boiler room. Take it, drain the channel, take the rope for the gap."
+    },
+    {
+     "sp": "Hana",
+     "line": "Then Lena. At the Falls. She will tell you the rest."
+    }
+   ],
+   "note": "Gives: pencil map, rope hint. Journal 07.",
+   "look": "c1"
+  },
+  {
+   "id": "npc.lena",
+   "kind": "dialogue",
+   "title": "Lena Sorrel",
+   "where": "The Falls, after tier 4",
+   "trigger": "Walk up to the camp",
+   "beats": [
+    {
+     "sp": "Lena",
+     "line": "Theo. We heard you coming a day ago. Come in. Eat."
+    },
+    {
+     "sp": "Theo",
+     "line": "This place is..."
+    },
+    {
+     "sp": "Lena",
+     "line": "Real. Yes. The Falls is a Refuge. Everyone remembers a place like it, so the dark cannot rewrite it."
+    },
+    {
+     "sp": "Lena",
+     "line": "That's what holds us together. A memory everyone shares."
+    },
+    {
+     "sp": "Theo",
+     "line": "Joss said thirty years."
+    },
+    {
+     "sp": "Lena",
+     "line": "Joss is generous. Time here is a rumour."
+    },
+    {
+     "sp": "Lena",
+     "line": "Five Crews went down before you. Six, if you count Crew 6, who never reached the Falls."
+    },
+    {
+     "sp": "Lena",
+     "line": "Some of them walk the Levels now. Not themselves. You have met Hollis. You will meet more."
+    },
+    {
+     "sp": "Theo",
+     "line": "Ines said the scanner has a shape to match. What does that mean?"
+    },
+    {
+     "sp": "Lena",
+     "line": "Ask her. She has been keeping something from the rest of us, and I think it is hope."
+    },
+    {
+     "sp": "Lena",
+     "line": "Take the Brass Key. It opens the doors on Level 2. Ravi's camp is behind them. Do not answer the voices."
+    },
+    {
+     "sp": "Lena",
+     "line": "And Theo. When the dark takes you, you wake at the last lamp. That is her."
+    },
+    {
+     "sp": "Theo",
+     "line": "Ines?"
+    },
+    {
+     "sp": "Lena",
+     "line": "She keeps a Lamp at the bottom. When you fall, she pulls you back to the nearest light. It costs her. Fall less."
+    }
+   ],
+   "note": "Gives: Brass Key, the respawn explanation. Journal 08. Unlocks thought.respawn.ines.",
+   "look": "falls"
+  },
+  {
+   "id": "npc.ravi",
+   "kind": "dialogue",
+   "title": "Ravi Anand",
+   "where": "Ward Station (c2), after tier 5",
+   "trigger": "Tap twice at the curtain, wait, tap once; scene plays",
+   "beats": [
+    {
+     "sp": "Ravi",
+     "line": "(whisper) Two taps. A breath. One. Good. You waited. Come in."
+    },
+    {
+     "sp": "Ravi",
+     "line": "You are Theo. Lena's radio said. I keep mine unplugged."
+    },
+    {
+     "sp": "Theo",
+     "line": "Because of the Echo?"
+    },
+    {
+     "sp": "Ravi",
+     "line": "It has my voice. If it speaks on a radio, you will think it is me. Or Ines."
+    },
+    {
+     "sp": "Ravi",
+     "line": "Rule seven. Base asks what you see. Base never says come to me."
+    },
+    {
+     "sp": "Theo",
+     "line": "What is it?"
+    },
+    {
+     "sp": "Ravi",
+     "line": "The Wards is where voices end up. People who answered the wrong call. Someone who was nobody's patient."
+    },
+    {
+     "sp": "Ravi",
+     "line": "I do not know what it was. I know it learns."
+    },
+    {
+     "sp": "Theo",
+     "line": "Joss said the Survey's scanner came from somewhere."
+    },
+    {
+     "sp": "Ravi",
+     "line": "From Corbel and Pike. The head of a survey unit, serial zero zero zero seven. Ines found it in the Garage."
+    },
+    {
+     "sp": "Theo",
+     "line": "Zero zero zero seven. Mine is zero zero four one."
+    },
+    {
+     "sp": "Ravi",
+     "line": "Then you know what you are carrying."
+    },
+    {
+     "sp": "Ravi",
+     "line": "The crank for the lift is in the Dormitory. Take it. The Hollow is up. Pim keeps a light there."
+    }
+   ],
+   "note": "Gives: crank location, scanner serial hook. Journal 09.",
+   "look": "c2"
+  },
+  {
+   "id": "npc.pim",
+   "kind": "dialogue",
+   "title": "Pim Ashworth",
+   "where": "Hollow Camp (c3), after tier 7",
+   "trigger": "Walk up",
+   "beats": [
+    {
+     "sp": "Pim",
+     "line": "Theo! You made it. Nobody makes it. Come sit."
+    },
+    {
+     "sp": "Pim",
+     "line": "I keep the lanterns lit so people can find the camp. It's not much of a job. I love it."
+    },
+    {
+     "sp": "Theo",
+     "line": "You are the youngest in the Survey."
+    },
+    {
+     "sp": "Pim",
+     "line": "I came in nineteen. I don't know how old I am. Does it matter?"
+    },
+    {
+     "sp": "Pim",
+     "line": "I found a draft once. It's why I stayed. A draft means air from somewhere else."
+    },
+    {
+     "sp": "Theo",
+     "line": "The Still. Quill."
+    },
+    {
+     "sp": "Pim",
+     "line": "Yes. Marlow. He moves when nobody looks. Watch, then step. Never stare."
+    },
+    {
+     "sp": "Pim",
+     "line": "He used to photograph the Hollow. He thought if he looked at it enough, it would hold still."
+    },
+    {
+     "sp": "Theo",
+     "line": "Did it?"
+    },
+    {
+     "sp": "Pim",
+     "line": "It held still around him. That's why he can't leave."
+    },
+    {
+     "sp": "Pim",
+     "line": "Ines is at the bottom. Garage. Follow the chalk. Take the Lamp Core from the shelf at the last bay."
+    },
+    {
+     "sp": "Pim",
+     "line": "See you up there, Theo. I mean it."
+    }
+   ],
+   "note": "Gives: the Lamp Core clue, flash bulb. Journal 10.",
+   "look": "c3"
+  },
+  {
+   "id": "npc.ines",
+   "kind": "dialogue",
+   "title": "Ines Calder",
+   "where": "The Lamp Room, after tier 8",
+   "trigger": "Walk up to the green dot",
+   "beats": [
+    {
+     "shot": "A tall dome. A great brass Lamp. A woman at a desk looks up. Green dot, steady. Her eyes find Theo's scanner first."
+    },
+    {
+     "sp": "Ines",
+     "line": "Theo. Good. The dots held."
+    },
+    {
+     "sp": "Theo",
+     "line": "Ines. You pulled me back."
+    },
+    {
+     "sp": "Ines",
+     "line": "{deaths} times. Each night, a little further."
+    },
+    {
+     "sp": "Ines",
+     "line": "You never fell. That is not luck. That is care."
+    },
+    {
+     "sp": "Theo",
+     "line": "I have forty-one scans of the real floor three."
+    },
+    {
+     "sp": "Ines",
+     "line": "I know. I watched you collect them on the status screen. Come, put the unit to the board."
+    },
+    {
+     "shot": "Theo places his scanner on the chalkboard rig. The board fills with white dots: every scan the Survey ever made. A gap, the shape of a corridor, glows."
+    },
+    {
+     "sp": "Ines",
+     "line": "The Backrooms is made of forgotten places. A place nobody looks at stops belonging to the world."
+    },
+    {
+     "sp": "Ines",
+     "line": "The Halden was empty ten years. You were the last to look at it, and you looked forty-one times."
+    },
+    {
+     "sp": "Ines",
+     "line": "That is why the wall let you in. And why you can leave."
+    },
+    {
+     "shot": "The unit's scan slides into the gap. A line of light runs up the ladder shaft. A real door, edges of daylight."
+    },
+    {
+     "sp": "Ines",
+     "line": "The ladder goes up. Pike was right."
+    },
+    {
+     "sp": "Ines",
+     "line": "Or sit with me. Someone has to keep the lamp. Someone has to keep looking."
+    },
+    {
+     "shot": "Two choices. Climb, or take the lamp."
+    }
+   ],
+   "note": "Ends with choice.up / choice.stay. Journal 12.",
+   "look": "lamp"
+  },
+  {
+   "id": "end.up",
+   "kind": "cutscene",
+   "title": "Up",
+   "where": "After choice.up",
+   "trigger": "Cutscene, then credits card",
+   "beats": [
+    {
+     "shot": "Theo climbs. The air changes first: cold, clean, damp with rain."
+    },
+    {
+     "shot": "A door. He steps through. Halden Building, floor three, early light. The wall is a wall."
+    },
+    {
+     "sp": "Theo",
+     "line": "It's morning."
+    },
+    {
+     "shot": "He checks his phone. Time: 11:43 PM. One minute after he leaned on the wall."
+    },
+    {
+     "sp": "Theo",
+     "line": "One minute."
+    },
+    {
+     "shot": "He looks at the plaque in the stairwell: HALDEN BUILDING. FIFTEEN FLOORS."
+    },
+    {
+     "sp": "Theo",
+     "line": "Fifteen."
+    },
+    {
+     "shot": "Behind him, the scanner chimes. SCAN 42 OF 42 BEGINNING. Nobody pressed anything."
+    },
+    {
+     "shot": "Card: THE BACKROOMS: MAPPED. Credits. Next run: Night Shift +."
+    }
+   ],
+   "note": "The stinger: fifteen floors, and a scan starting by itself. Keeps the mystery open.",
+   "look": "lamp"
+  },
+  {
+   "id": "end.stay",
+   "kind": "cutscene",
+   "title": "The Lamp",
+   "where": "After choice.stay",
+   "trigger": "Cutscene, then The Relay begins",
+   "beats": [
+    {
+     "shot": "Theo takes the Lamp's handle. It is heavier than it looks. Ines lets go."
+    },
+    {
+     "sp": "Ines",
+     "line": "It listens to whoever is looking at it. That is the whole trick."
+    },
+    {
+     "sp": "Theo",
+     "line": "Somebody will wake up scared in an office tomorrow. I would want a light."
+    },
+    {
+     "shot": "The ladder is still there. He does not climb it."
+    },
+    {
+     "shot": "Card: THE RELAY. Floor 1. Each floor is lit by the last person to pass it."
+    }
+   ],
+   "note": "Starts endless mode. The daily seed is tonight's floor.",
+   "look": "lamp"
+  }
+ ],
+ "looks": {
+  "l0": {
+   "name": "Level 0: The Office Floor",
+   "walls": {
+    "material": "Fabric",
+    "color": [
+     214,
+     188,
+     92
+    ],
+    "note": "damp yellow wallpaper, vertical stripe, peeling at the seams"
+   },
+   "floor": {
+    "material": "Carpet",
+    "color": [
+     112,
+     96,
+     58
+    ],
+    "note": "stained brown-olive carpet tile, water ring marks"
+   },
+   "ceiling": "drop-ceiling tiles, one missing every few cells",
+   "light": {
+    "color": [
+     255,
+     226,
+     150
+    ],
+    "kind": "fluorescent buzz, warm, flicker"
+   },
+   "sound": "dead fluorescent buzz, ceiling fan, far copier warming up, keys",
+   "props": "cubicles, water cooler, vending machine, CRT and VCR"
+  },
+  "l1": {
+   "name": "Level 1: The Flooded Wing",
+   "walls": {
+    "material": "Ceramic",
+    "color": [
+     200,
+     226,
+     232
+    ],
+    "note": "white-blue pool tile, grout lines, rust streaks"
+   },
+   "floor": {
+    "material": "Ceramic",
+    "color": [
+     150,
+     190,
+     205
+    ],
+    "note": "wet tile; water is blue (45,120,200) ankle to knee"
+   },
+   "ceiling": "low pipes and conduit, condensation drips",
+   "light": {
+    "color": [
+     150,
+     230,
+     255
+    ],
+    "kind": "cold cyan, rippling reflections on the ceiling"
+   },
+   "sound": "echoing drips, slow pump thud, rusted gate, splashes that are not yours",
+   "props": "valve stations, life rings, boilers, catwalks, dinghy"
+  },
+  "falls": {
+   "name": "The Falls (Refuge)",
+   "walls": {
+    "material": "Rock",
+    "color": [
+     96,
+     120,
+     84
+    ],
+    "note": "mossy cavern stone, ferns, hanging vines"
+   },
+   "floor": {
+    "material": "LeafyGrass",
+    "color": [
+     96,
+     150,
+     70
+    ],
+    "note": "grass and flat stones round a shallow basin"
+   },
+   "ceiling": "open shaft, golden light pours down with the water",
+   "light": {
+    "color": [
+     255,
+     236,
+     170
+    ],
+    "kind": "warm sun from nowhere plus green bounce; the most colourful place in the game"
+   },
+   "sound": "waterfall, wind chimes, birds that cannot exist, guitar with one string missing",
+   "props": "hammocks, string lights, camp stove, mural wall behind the falls"
+  },
+  "l2": {
+   "name": "Level 2: The Wards",
+   "walls": {
+    "material": "SmoothPlastic",
+    "color": [
+     170,
+     200,
+     184
+    ],
+    "note": "institutional pale green, white tile dado, scuffs from gurney rails"
+   },
+   "floor": {
+    "material": "Plastic",
+    "color": [
+     122,
+     150,
+     136
+    ],
+    "note": "grey-green hospital linoleum, long wax streaks"
+   },
+   "ceiling": "acoustic tile, a flickering strip light, a PA speaker",
+   "light": {
+    "color": [
+     214,
+     255,
+     240
+    ],
+    "kind": "clinical teal-white, hard flicker"
+   },
+   "sound": "PA with no one speaking, squeaking wheels, a call bell, wet tap-tap",
+   "props": "gurneys, curtains on rails, nurse station, charts, wheelchairs"
+  },
+  "c2": {
+   "name": "Ward Station (Ravi's camp)",
+   "walls": {
+    "material": "SmoothPlastic",
+    "color": [
+     200,
+     214,
+     200
+    ],
+    "note": "same ward green but washed warm by a table lamp and curtains drawn"
+   },
+   "floor": {
+    "material": "Plastic",
+    "color": [
+     150,
+     150,
+     132
+    ],
+    "note": "rugs thrown over the linoleum"
+   },
+   "ceiling": "curtain rail turned into a hanging line of lamp-bags",
+   "light": {
+    "color": [
+     255,
+     214,
+     150
+    ],
+    "kind": "warm amber table lamp, soft"
+   },
+   "sound": "kettle, a cassette player turned very low",
+   "props": "nurse station fort, mattress pile, radio unplugged on purpose"
+  },
+  "l3": {
+   "name": "Level 3: The Hollow",
+   "walls": {
+    "material": "Rock",
+    "color": [
+     62,
+     52,
+     84
+    ],
+    "note": "dark violet cave rock, mineral veins, roots through a Halden door frame"
+   },
+   "floor": {
+    "material": "Ground",
+    "color": [
+     86,
+     66,
+     52
+    ],
+    "note": "packed earth, root ridges, shallow pools of glowing spores"
+   },
+   "ceiling": "stalactites, hanging root curtains",
+   "light": {
+    "color": [
+     130,
+     150,
+     255
+    ],
+    "kind": "blue-violet bioluminescence; glowcaps pulse slowly"
+   },
+   "sound": "dripping stone, soft pulsing hum, breath that is the cave, glass-bell chimes",
+   "props": "glowcap clusters, crystal veins, rope bridges, Pim's lantern line"
+  },
+  "l4": {
+   "name": "Level 4: The Garage",
+   "walls": {
+    "material": "Concrete",
+    "color": [
+     128,
+     128,
+     134
+    ],
+    "note": "raw poured concrete, yellow stripes, level numbers stencilled"
+   },
+   "floor": {
+    "material": "Asphalt",
+    "color": [
+     76,
+     76,
+     82
+    ],
+    "note": "painted bays and arrows, oil stains, ramps down"
+   },
+   "ceiling": "exposed beams, sodium lamps, pipes",
+   "light": {
+    "color": [
+     255,
+     170,
+     70
+    ],
+    "kind": "orange sodium, flat, buzzing"
+   },
+   "sound": "wind down the ramps, tyre squeal in the distance, a shutter click, the Lamp's hum far below",
+   "props": "parked shapes under tarps, ticket machine, boom gate, drop shafts"
+  },
+  "lamp": {
+   "name": "The Lamp Room",
+   "walls": {
+    "material": "Wood",
+    "color": [
+     140,
+     104,
+     66
+    ],
+    "note": "brass and timber, shelves of lamp-bags, Pike's old survey table"
+   },
+   "floor": {
+    "material": "WoodPlanks",
+    "color": [
+     160,
+     120,
+     78
+    ],
+    "note": "worn boards, a rug, chalk circle round the Lamp"
+   },
+   "ceiling": "domed, open to a ladder shaft with a thread of daylight",
+   "light": {
+    "color": [
+     255,
+     240,
+     200
+    ],
+    "kind": "warm white gold from the Lamp, steady, no flicker"
+   },
+   "sound": "the Lamp's low hum, wind in the shaft, a kettle",
+   "props": "the Lamp, desk, chalkboard of the whole point cloud, ladder"
+  },
+  "desk": {
+   "name": "Outpost Zero (the Night Desk)",
+   "walls": {
+    "material": "Fabric",
+    "color": [
+     190,
+     168,
+     100
+    ],
+    "note": "the same L0 wallpaper, but clean and hung with maps and photos"
+   },
+   "floor": {
+    "material": "Carpet",
+    "color": [
+     140,
+     112,
+     74
+    ],
+    "note": "a rug laid over the carpet"
+   },
+   "ceiling": "plain, one banker's lamp",
+   "light": {
+    "color": [
+     255,
+     214,
+     140
+    ],
+    "kind": "banker's lamp, warm"
+   },
+   "sound": "kettle, ticking clock, the radio hiss",
+   "props": "desk, radio, corkboard of crews, cot, kettle"
+  },
+  "c0": {
+   "name": "Supply Closet (Joss's camp)",
+   "walls": {
+    "material": "Plaster",
+    "color": [
+     200,
+     190,
+     150
+    ],
+    "note": "cramped, shelves of canvas and bulbs, wallpaper scraps patched over holes"
+   },
+   "floor": {
+    "material": "WoodPlanks",
+    "color": [
+     130,
+     100,
+     66
+    ],
+    "note": "pallets used as flooring"
+   },
+   "ceiling": "bare bulbs on cords",
+   "light": {
+    "color": [
+     255,
+     224,
+     150
+    ],
+    "kind": "many bare bulbs, workshop yellow"
+   },
+   "sound": "snip of scissors, a radio playing music at a whisper",
+   "props": "lamp-bag workbench, rack of bulbs, a cot"
+  },
+  "c1": {
+   "name": "The Pump House (Hana's camp)",
+   "walls": {
+    "material": "CorrodedMetal",
+    "color": [
+     110,
+     130,
+     128
+    ],
+    "note": "pump house steel, wheels, gauges"
+   },
+   "floor": {
+    "material": "DiamondPlate",
+    "color": [
+     96,
+     106,
+     108
+    ],
+    "note": "dry steel grating above the water"
+   },
+   "ceiling": "pipes sweating, one hanging lamp",
+   "light": {
+    "color": [
+     255,
+     230,
+     190
+    ],
+    "kind": "yellow work lamp against cold steel"
+   },
+   "sound": "pump thud, hiss of a boiler, a radio kettle",
+   "props": "water gauges, tally marks in chalk, a chart of the water's route"
+  },
+  "c3": {
+   "name": "The Hollow Camp (Pim's)",
+   "walls": {
+    "material": "Rock",
+    "color": [
+     78,
+     70,
+     96
+    ],
+    "note": "cave alcove wallpapered with Survey maps"
+   },
+   "floor": {
+    "material": "Ground",
+    "color": [
+     102,
+     84,
+     64
+    ],
+    "note": "soft earth, planks laid in a path"
+   },
+   "ceiling": "strings of lamp-bags like fireflies",
+   "light": {
+    "color": [
+     255,
+     200,
+     130
+    ],
+    "kind": "warm lanterns that contrast the blue cave"
+   },
+   "sound": "a hand-cranked radio, mugs clinking",
+   "props": "bedrolls, a seed tray, ladder stubs"
+  },
+  "dorm": {
+   "name": "The Dormitory (lit room after tier 6)",
+   "walls": {
+    "material": "SmoothPlastic",
+    "color": [
+     210,
+     200,
+     188
+    ],
+    "note": "ward green painted over with cream, string lights"
+   },
+   "floor": {
+    "material": "WoodPlanks",
+    "color": [
+     150,
+     118,
+     82
+    ],
+    "note": "beds pushed together, rugs"
+   },
+   "ceiling": "string lights",
+   "light": {
+    "color": [
+     255,
+     210,
+     150
+    ],
+    "kind": "low warm, many small lights"
+   },
+   "sound": "stove, quiet breathing, a clock",
+   "props": "bunks, corkboard WHO IS STILL OUT, calendar, model of the Halden"
+  }
+ },
+ "voices": {
+  "Theo": "late 20s to early 30s, tired, dry humour that cracks under pressure; speaks to himself, never to camera",
+  "Ines": "50s to 60s, calm, low, unhurried; teacher voice; never raises it; radio filter on Base lines",
+  "Joss": "40s, warm, fast, jokes to cover nerves; workshop clatter behind him",
+  "Hana": "30s, flat, practical, short sentences; hates speeches",
+  "Lena": "30s, generous, loud-quiet; sounds like she just laughed",
+  "Ravi": "20s, whispery, jumpy; keeps glancing at the radio",
+  "Pim": "late teens or 20, bright, too hopeful; tries not to sound scared",
+  "Hollis": "60s, gentle night-guard patter; professional; fades to a murmur",
+  "Tobi": "30s, soft, careful; each tape quieter than the last",
+  "Quill": "40s, deliberate, precise; sentences end like shutter clicks",
+  "Pike": "late 20s, 1994, cheerful engineer's voice that stays cheerful through the worst thing",
+  "Announcer": "1994 corporate promo voice, smooth, bright, slightly too slow",
+  "Echo": "a copy of Ravi's voice but missing the pauses; speaks half a beat early",
+  "Base?": "Ines's radio voice, but with no static artefacts and no questions: only commands"
+ }
+}

@@ -20,9 +20,10 @@ local EASE_OUT_SECONDS = 0.9 -- lit to dark
 local DARK_FOG_START = 70
 local DARK_FOG_END = 380
 local LIT_FOG = 100000
-local LIT_AMBIENT_SCALE = 0.55
+local LIT_AMBIENT_SCALE = 0.3 -- was 0.55: the lit rooms read as a white-out after the dark
 local DARK_BLOOM = { intensity = 0.55, size = 14, threshold = 1 }
 local LIT_BLOOM = { intensity = 0.15, size = 18, threshold = 1.6 }
+local CALM_EASE_SECONDS = 1.2 -- a found dark haven calms the bloom over this long
 local LIT_ZOOM = 14
 local TINT_EASE_PER_SECOND = 0.7
 local FIRST_PERSON_ZOOM = 0.5
@@ -40,6 +41,7 @@ local litColor = Color3.fromRGB(255, 220, 180)
 local forcedDark = false
 local tint = Color3.new(1, 1, 1) -- the floor's colour grade, eased toward `tintTarget`
 local tintTarget = Color3.new(1, 1, 1)
+local calm = 0 -- 0..1: inside a dark haven whose lamp has been found, the bloom eases off
 
 -- The floor the player is on tints the whole picture a little (eased over a few seconds).
 function Atmosphere.setTint(color: Color3)
@@ -101,9 +103,11 @@ local function apply(t: number)
 	Lighting.OutdoorAmbient = ambient
 	Lighting.FogStart = lerp(DARK_FOG_START, LIT_FOG, eased)
 	Lighting.FogEnd = lerp(DARK_FOG_END, LIT_FOG, eased)
-	bloom.Intensity = lerp(DARK_BLOOM.intensity, LIT_BLOOM.intensity, eased)
-	bloom.Size = lerp(DARK_BLOOM.size, LIT_BLOOM.size, eased)
-	bloom.Threshold = lerp(DARK_BLOOM.threshold, LIT_BLOOM.threshold, eased)
+	-- The dark bloom makes dots glow; next to a found haven's lamp it would blow the room out.
+	local soft = math.max(eased, calm)
+	bloom.Intensity = lerp(DARK_BLOOM.intensity, LIT_BLOOM.intensity, soft)
+	bloom.Size = lerp(DARK_BLOOM.size, LIT_BLOOM.size, soft)
+	bloom.Threshold = lerp(DARK_BLOOM.threshold, LIT_BLOOM.threshold, soft)
 	correction.Saturation = lerp(-0.05, -0.1, eased)
 	correction.Contrast = lerp(0.08, 0.02, eased)
 	correction.Brightness = lerp(0, 0.04, eased)
@@ -154,6 +158,17 @@ function Atmosphere.start()
 		local target = if (zone and not isDark(zone)) or devLit then 1 else 0
 		if tint ~= tintTarget then
 			tint = tint:Lerp(tintTarget, math.min(1, dt * TINT_EASE_PER_SECOND))
+			apply(Atmosphere.lit)
+		end
+		local calmTarget = if isDark(zone)
+				and (zone :: BasePart):GetAttribute("Revealed") == true
+			then 1
+			else 0
+		if calm ~= calmTarget then
+			local step = dt / CALM_EASE_SECONDS
+			calm = if calmTarget > calm
+				then math.min(calmTarget, calm + step)
+				else math.max(calmTarget, calm - step)
 			apply(Atmosphere.lit)
 		end
 		if Atmosphere.lit ~= target then

@@ -1,12 +1,14 @@
 --!strict
 -- The first thing a new player stands in: one small dark room with a baffle wall and a door
 -- at the far end. The client's tutorial prompts do the teaching; this only builds the space.
--- Like the maze, it is invisible: it can only be scanned.
+-- Like the maze, it is invisible: it can only be scanned. A television on a cart holds the
+-- Survey's orientation tape; the client plays it once enough dots have landed on the screen.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Build = require(script.Parent.Build)
 local Config = require(ReplicatedStorage.Shared.Config)
+local Props = require(script.Parent.Props)
 
 export type Tutorial = {
 	model: Model,
@@ -24,6 +26,7 @@ local BAFFLE_Z = -3 -- a wall across the room with a gap at one side
 local BAFFLE_GAP = 6
 local DOOR_SIZE = Vector3.new(5, 8.4, 0.5)
 local COLOR = Color3.fromRGB(86, 88, 80)
+local TV_Z = 9 -- along the east wall, in view from the first steps
 
 local TutorialRoom = {}
 
@@ -53,6 +56,15 @@ function TutorialRoom.build(origin: Vector3): Tutorial
 	)
 	slab("Pillar", Vector3.new(2.2, HEIGHT, 2.2), Vector3.new(-3, HEIGHT / 2, 8))
 	slab("Pillar", Vector3.new(2.2, HEIGHT, 2.2), Vector3.new(4, HEIGHT / 2, -11))
+
+	local cart = Vector3.new(HALF_X - 1.8, 0, TV_Z)
+	slab("TVCart", Vector3.new(2.4, 1.6, 3.2), cart + Vector3.new(0, 0.8, 0))
+	slab("TVBody", Vector3.new(2, 1.7, 2.6), cart + Vector3.new(0, 2.45, 0))
+	slab("TVScreen", Vector3.new(0.1, 1.3, 2), cart + Vector3.new(-1.05, 2.45, 0))
+
+	-- Behind the spawn point: the wall Theo fell through, run like wax.
+	local meltPoint = origin + Vector3.new(0, 0, HALF_Z)
+	Props.meltedWall(CFrame.lookAt(meltPoint, meltPoint - Vector3.new(0, 0, 1)), model)
 
 	local doorBase = CFrame.new(origin + Vector3.new(0, 0, -HALF_Z + DOOR_SIZE.Z / 2))
 	local door = Build.part({

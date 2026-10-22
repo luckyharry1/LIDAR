@@ -67,7 +67,7 @@ These come from the Input contract in `docs/PROGRESS.md`.
 | Action | Mouse and keyboard | Gamepad | Touch |
 | --- | --- | --- | --- |
 | Scatter dots (hold) | Left mouse button | RT | SCAN button (a toggle) |
-| Sweep (one shot, then it recharges) | Right mouse button or F | LT | SWEEP button |
+| Sweep (costs a battery charge in a level) | Right mouse button or F | LT | SWEEP button |
 | Narrow the spread | Scroll wheel up or Z | LB | SPREAD button cycles through the widths |
 | Widen the spread | Scroll wheel down or X | RB | SPREAD button cycles through the widths |
 | Crouch | Left Ctrl (hold) or C (toggle) | B (toggle) | CROUCH button (toggle) |
@@ -99,6 +99,7 @@ workspace:SetAttribute("DevCommand", "tier 6")
 | `echo` | Reveals the next hidden recorder on the level, as if the first player in the level had scanned it. That player is moved to it. |
 | `clear` | Finishes the current level. |
 | `static 500` | Gives everyone that much Static. |
+| `charges 3` | Sets everyone's sweep charges. |
 | `lights on` | Lights the maze so you can inspect it. `lights off` puts it back. |
 
 ## Repo layout

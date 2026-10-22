@@ -56,6 +56,12 @@ local BEACON_ID = 60 -- the echo id of a dark room's beacon, clear of any level'
 local LAMP_REACH = 22 -- how far from its lamp a dark room shows itself once the lamp is revealed
 local FALLS_REACH = 48 -- the waterfall lights the whole cavern
 local HAVEN_PANELS = { -4.5, 4.5 } -- light panels in a haven (a big room uses PANEL_OFFSETS)
+-- Ceiling tubes. A lit room (the Lamp Room, the Relay landing) has them on but soft. In a dark
+-- haven they stay dead when its lamp is found: dim plastic and a faint glow, so the lamp is the
+-- light and the corners stay dark. Neon panels there bloomed into a white-out.
+local PANEL_BRIGHTNESS, PANEL_RANGE = 0.9, 30
+local DEAD_TUBE_BRIGHTNESS, DEAD_TUBE_RANGE = 0.25, 16
+local DEAD_TUBE_COLOR = Color3.fromRGB(96, 92, 84)
 local WALL = 1
 local DOOR_WIDTH = 5
 local DOOR_HEIGHT = 8.4
@@ -648,6 +654,7 @@ local function darken(
 	end
 	model:SetAttribute("Dark", true)
 	target:SetAttribute("EchoId", BEACON_ID)
+	target:SetAttribute("Light", true) -- a dark room's lamp wakes to a glance
 	CollectionService:AddTag(target, Config.Tags.echo)
 	CollectionService:AddTag(target, Config.Tags.objective)
 	local beacon: Beacon
@@ -664,6 +671,10 @@ local function darken(
 			for _, record in parts do
 				if distanceTo(record.part, position) <= reach then
 					record.part.Transparency = record.transparency
+					if record.part:GetAttribute("Tube") == true then
+						record.part.Material = Enum.Material.SmoothPlastic
+						record.part.Color = DEAD_TUBE_COLOR
+					end
 				end
 			end
 			for _, switch in switches do
@@ -673,8 +684,17 @@ local function darken(
 					and holder:IsA("BasePart")
 					and distanceTo(holder, position) <= reach
 				then
+					if holder:GetAttribute("Tube") == true and switch:IsA("PointLight") then
+						switch.Brightness = DEAD_TUBE_BRIGHTNESS
+						switch.Range = DEAD_TUBE_RANGE
+					end
 					(switch :: any).Enabled = true
 				end
+			end
+			-- Tells clients the haven is found, so they calm the bloom inside it.
+			local zone = model:FindFirstChild("LitZone")
+			if zone then
+				zone:SetAttribute("Revealed", true)
 			end
 		end,
 	}
@@ -1059,7 +1079,8 @@ local function buildLights(room: Lore.Room, layout: Layout, origin: Vector3, par
 			collide = false,
 			parent = parent,
 		})
-		local light = Build.pointLight(panel, color, 1.5, 34)
+		panel:SetAttribute("Tube", true)
+		local light = Build.pointLight(panel, color, PANEL_BRIGHTNESS, PANEL_RANGE)
 		if layout.flicker and x == panels[1] then
 			-- One tired tube that never quite settles.
 			task.spawn(function()
@@ -1186,6 +1207,19 @@ function LoreRooms.build(roomId: string, origin: Vector3): LoreRoom
 	end
 	buildDoor(origin, hz, 0, "EntranceDoor", model, entranceHeight)
 	local exitDoor = buildDoor(origin, -hz, 180, "ExitDoor", model, 0)
+	-- The way on is an open doorway: the panel is a flat black gap you walk through.
+	exitDoor.Color = Color3.new(0, 0, 0)
+	exitDoor.Material = Enum.Material.SmoothPlastic
+	exitDoor.CanCollide = false
+	for _, child in model:GetChildren() do
+		if
+			child.Name == "Handle"
+			and child:IsA("BasePart")
+			and (child.Position - exitDoor.Position).Magnitude < DOOR_WIDTH
+		then
+			child:Destroy()
+		end
+	end
 	local exitPrompt = Build.prompt(exitDoor, "Continue", "Into the dark", 0.6)
 
 	local benchPrompt: ProximityPrompt? = nil

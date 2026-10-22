@@ -13,6 +13,49 @@ into `main` yet.
 objects, posters, gate items and the secret alcove are written. See "Story places" below. None of
 it has been run in Studio. `scripts/check.sh` could not run in full in the cloud (see there).
 
+**Backrooms story pivot and light sensitivity (cloud thread, 22 Oct 2026, branch
+`claude/haven-lights`, based on `claude/stairwell`):** Vasco asked for a clearer story, then (after
+a first look) for the lore to be felt from the first minute of the game. The story (a Backrooms
+setting stated from the start, Theo as a learning protagonist, videotape cutscenes, voiced radio,
+surveyors as the goal, a distinct look per area) is in `docs/story/` (v1 in `docs/story/v1/`) and
+is now what the game reads.
+
+- `src/shared/data/LoreText.luau` is the v2 file. v1 entries without a v2 replacement stay in it
+  marked `legacy` (lamp-bag tags `rev.nook.*`, a few signs, `item.*` extras); delete them once
+  nothing asks for them.
+- `Lore.luau` and `Places.luau` point at v2 ids: Level cards (L0 to L4; tiers 7 and 8 are now
+  separate Levels), recorders `rec.l0.*` to `rec.l3.*`, the 11 manual rules, Base's radio
+  (`Lore.radioFor(tier)`; the haven call is gone, surveyors speak instead), camp notes (found
+  objects with Theo's thought underneath), the Dormitory and Lamp Room notes, the finale (built
+  from the `npc.ines` scene, with the fall count) and the end cards (`end.up`, `end.stay`). Hidden
+  objects are now the `poi.*` entries (same props, new words); they send Theo's `thought` after the
+  words (`Echo` remote has a 5th argument).
+- `client/Cutscene.luau` plays any scene (cutscene, tape, surveyor talk): captions on black,
+  subtitled speech that types out, click, tap, Space, Enter or E to continue, SKIP always shown.
+  Controls are held still while it plays. No voice audio yet.
+- `client/Tutorial.luau`: a new player (profile `tutorialDone` false) sees `cs.open` first, then
+  the intake: scan, a television in the intake room (`TutorialRoom` `TVScreen`) whose tape
+  `tape.orientation` plays after 10 dots land on it (or after 50 s), the sweep, the colour key,
+  the door. Theo's `thought.*` lines are subtitled at each first (first dot, water, pit, plate,
+  each monster, a green dot, respawn, the Falls). Arriving at a camp (Supply Closet, Pump House,
+  Falls, Ward Station, Hollow Camp) plays the surveyor's scene once per session (`Room.scene`).
+  The HUD shows the current goal under the objectives (`Lore.goalFor`, `Lore.roomGoal`).
+- Lights: `Config.Lidar.lightRevealHits` is 10. A dot within `lightReach` of a lamp or beacon
+  counts only if the scanner has a clear line to the lamp (`Lidar.canSee`), so a lamp behind a
+  wall does not wake. Hidden lamp-bag patches count dots (direct hits, and nearby dots that the
+  camera can see) and come back at 10 (`Immersion.countHit`).
+- Round 2 (Vasco's test): the opening cutscene is shorter (3 spoken lines) and hides the mouse
+  cursor; the intake no longer forces the tape (the television still plays it if scanned); Theo's
+  thoughts and Base's calls stay silent until the first hidden object speaks (`State.storyLive`),
+  and Theo thinks aloud at most every 40 s; posters shrink their text to fit the paper
+  (`Props.sign`, 60 px per stud, `TextScaled`); tier 2 has one hidden object and one poster fewer;
+  a melted wall (`Props.meltedWall`) stands behind the spawn point in the intake room and on
+  tier 1.
+- Not done: spoken audio and per-area sound cues; the Bunk Room still has no surveyor scene; unused
+  POIs (copier, vending extras, ticket machine, Pike's table, rope bridge, doorframe) have no
+  prop yet; journal UI; the tapes after the first are not placed in the world; the Night Shift
+  difficulty mentioned at the end of `end.up`. Not run in Studio.
+
 ## Where things stand
 
 v1 (commits up to `41db249` on `main`) is a complete, playable loop that was verified in
@@ -269,7 +312,10 @@ Lidar.ignore(instance: Instance)                       -- never hit this with ra
 Lidar.onBatch(listener: (count: number, meanDistance: number, enemy: boolean, friend: boolean, objective: boolean) -> ())
 Lidar.onSweep(listener: () -> ())                      -- the local player's sweep fired
 Lidar.onRadar(listener: () -> ())                      -- the Pulse Radar fired
-Lidar.recharge()                                       -- a battery cell: sweep is ready now
+Lidar.charges: number       -- sweep charges in the gun (predicted; State.server.charges is the truth)
+Lidar.freeSweeps: boolean   -- outside a level sweeps cost nothing
+Lidar.trickle: number       -- 0..1 Trickle Charger progress
+Lidar.onDenied(listener: () -> ())                     -- a sweep was asked for with no charge
 Lidar.cast(look: CFrame, count: number, halfAngleDeg: number, params: RaycastParams)
     -- Rays from anywhere, no sound, no reporting: the title screen's backdrop.
 Lidar.start()
@@ -356,6 +402,37 @@ Footprints for monsters (red) and players (green), breath mist near monsters, th
 Same entry points as v1 (`X.start()`, `Menus.open/close/isOpen/applyCosmetics`,
 `Atmosphere.onZone/zone/forceDark/lit`, the `Ui` helpers).
 
+## Upgrade room light, home screen, Play Together (22 Oct, cloud thread; nothing seen in Studio)
+Vasco: the room with the upgrades (the havens with the workbench) was extremely bright after an
+exit; on the home screen text overlapped; there was no way to play with others from it.
+- Bright haven, likely cause: when a dark haven's lamp is found, its Neon ceiling panels and their
+  1.5/34 lights came back while the client still used the maze's strong dark bloom (tuned to make
+  dots glow), so the panels bloomed into a white-out. Now the ceiling tubes (`Tube` attribute in
+  `LoreRooms.buildLights`) come back dead: grey plastic and a 0.25/16 glow, so the lamp is the
+  light. The reveal also sets `Revealed` on the room's `LitZone`, and `Atmosphere` eases the bloom
+  to the lit-room values inside a found haven. Lit rooms (Lamp Room, Relay landing): panel lights
+  0.9/30 (was 1.5/34) and ambient 0.3 (was 0.55). Check in Studio: Copy Room after T1 once the
+  lamp is scanned; the Night Desk; the landing after a daily.
+- Overlap, likely cause: join toasts (visit streak, "Saving is unavailable" in Studio) are drawn
+  at the top of the screen, right over the big L I D A R letters. On the title, `Hud.toast` now
+  stays quiet and `Menus` shows them as small notices under the buttons. The title is now one
+  auto-sized column (letters, subtitle, buttons, status, notices), so nothing can land on anything
+  else.
+- Play Together: a PLAY TOGETHER button on the home screen (shows how many others are here) opens a
+  party screen listing everyone on the server, with friend tags and where each one is (title,
+  intake, in the dark, safe room). INVITE FRIENDS opens Roblox's invite (`Menus.invite`); I'M READY
+  marks you ready (`PartyReady` remote); GO IN (`PartyStart`) starts the run and takes everyone
+  who is ready with you (each goes through `onStart`, so a player who never did the intake does it
+  first and then joins). While a run is going the button says JOIN THEM. The server is still the
+  party: anyone on it plays the same run. State carries `lobby` (userId, name, stage, ready).
+- Intake together (Vasco: friends should work out the mechanics together): there is one shared
+  intake room per server. Anyone who starts the intake while someone is inside joins that room,
+  and GO IN puts the whole crew in it when anyone is new. Opening its door takes everyone inside
+  through together (the first builds the level, the rest wait for it and drop in). Settings has a
+  FRIENDS / INVITE row, and the rows scroll.
+- Not built: a private/solo server (reserving a server needs a published place; `Party.luau` has
+  the lobby/teleport path for that), a party leader, kicking.
+
 ## Verification
 
 Only what has actually been run is listed as verified.
@@ -418,3 +495,95 @@ the crosshair still go missing, and a lamp is lit when a level starts for the fi
 - Check in Studio: no lamp or patch shows on a first start until scanned; holding scan for a
   minute or more (MicroProfiler: no spike every 4 s); the far end of a long corridor fills in;
   frame rate with the denser far grid; light flicker near monsters still works.
+
+## Stairwell between places (22 Oct, cloud thread; nothing seen in Studio)
+- `server/Passage.luau` builds a 7-wide flight of 28 steps (0.9 drop, 2.6 run) with landings, side
+  and end walls and a sloped ceiling at (0, 0, -1500), all invisible like the maze, with one dim
+  warm lamp (objective-tagged, so a scan shows it gold) on the end wall at the bottom.
+- `Director.walkPassage(next)`: after a level's exit (and after a haven's "Continue") the party
+  gets stage `passage`, is placed at the top, and walks down. Someone reaching the bottom (5 studs
+  of `endPosition`) sends the "exit" objective (client fades to black, sound dulls), then after
+  `transitionSeconds` `next()` builds the haven or the next level and everyone is carried on.
+  A 150 s cap carries on a party that never reaches the bottom; `endRunIfEmpty` frees the model.
+  Late joiners wait (phase stays `transition`).
+- New stage `passage`: Lidar, Viewmodel, Presence and Immersion accept it; Immersion gives it a
+  cave reverb. No enemies or hazards run there.
+- Check in Studio: stairs climbable at 0.9 rise (the Humanoid should step them), nobody stuck on
+  the top landing, the lamp visible from the stairs, the bottom trigger firing, leaving mid-walk,
+  two players with one far behind, the 3 s black at the end of the walk.
+- Doorways (22 Oct, Vasco: "there's still the exit door"): the level exit and the haven's way on
+  are open doorways now. `Director.watchDoorway` polls who stands within 2.5 studs in front of the
+  door panel; walking in starts the leave (no prompt). A locked level exit toasts at most every
+  4 s. The level door lost its handle and no longer collides; the haven's exit panel is a black
+  gap that does not collide. The step through takes 1 s (`DOORWAY_LEAVE_SECONDS`, also the wait
+  at the bottom of the stairwell) and the client fade-out is 0.8 s.
+- Red aura with no monster near (Vasco): the aura, heartbeat, sting, FOV narrowing and light
+  flicker used the straight line, so a monster in the next corridor through a wall counted as
+  close. `client/Reach.distance` now uses the walk through the maze (BFS over open sides from the
+  player's cell, cached per cell); same or next cell keeps the straight line.
+- Lamp patches (Vasco): a lamp lit the floor and every closed wall of its cell with hard edges.
+  `World.buildPatch` now paints the floor and only the wall nearest the light, each as an
+  invisible part with a lit SurfaceGui (CanvasGroup + two UIGradients) that fades to nothing at
+  the edges and up the wall. Client concealment also switches these SurfaceGuis. Check the
+  look in Studio (PixelsPerStud 6, fade stops in `PATCH_EDGE_FADE`/`PATCH_WALL_FADE`).
+- Light stutter (Vasco: pulses did not sync with sound): the continuous sine flicker is gone.
+  Near a monster, one nearby light at a time stutters (off/on pattern, 0.8-4 s apart by threat)
+  and every cut and catch plays `Audio.spark` from that bulb. Also fixed: the light refresh
+  could record a dimmed brightness as the light's base.
+- Surveyors and the Mimic (Vasco: confusing green figures): a helped-up surveyor now stands (a
+  short green dot figure for ~1.7 s), says one line (`SURVEYOR_LINES` in `client/Effects`, one
+  teaches the two-taps-then-one tell) and walks the route to the exit at walking pace leaving
+  footprints (40 s). The Mimic is left out of a level (`Enemies.spawn` skip list) until someone
+  in the party has `stats.rescues > 0`, so a real surveyor is always met first.
+- Doorway confirm (Vasco: walking in by accident in the dark was confusing): the doorways keep no
+  panel to bump into, but leaving needs a 0.6 s hold on a "Go down / Stairwell" prompt again
+  (`watchDoorway` now wraps the exit prompt instead of polling positions).
+- Descend pop-up (Vasco: the hold prompt "only adds a step"): the doorway prompt (press E, no
+  hold, "Look down") now asks over the net (`AskDescend`); the client shows a small panel low on
+  the screen (`Menus` window "descend", backdrop 90% clear) with GO DOWN / NOT YET and answers with
+  `Descend(yes)`. The server keeps one pending ask per player (`doorwayAsk`) and re-checks
+  that the doorway is still live and the player still near before leaving. The stairwell is
+  drawn now (dark concrete, a dim emergency lamp every four steps, a brighter one at the bottom)
+  so it stays in view behind the pop-up and the walk is one place, not a cut.
+- Posters no longer flash near monsters: `Immersion.refreshLights` skips lights on hidden
+  `Marker` parts (poster and recorder glows).
+
+## Scanner power and battery cells (22 Oct, cloud thread, branch `claude/scanner-progression`; nothing seen in Studio)
+Vasco asked for a weaker base scanner, sweeps earned through battery cells (1 or 2 each), more
+progression between runs and room for monetization; then a faint pull towards unscanned finds.
+- Base scanner is weaker and grows with the bench (`Progression.effects`): scatter 380 dots/s
+  (Emitter +100 x5), reach 85 studs (Range Coil +16 x4, cap `maxRange` 150), sweep grid 56x70
+  (Sweep Grid up to 90x114), dot budget 18k/55k/110k (Phosphor +25% x4). Teammates' relayed
+  scans are drawn at the local player's reach and the base rate and grid.
+- Sweeps cost a charge in a level (free in the tutorial and havens). The timed recharge is gone.
+  `Config.Battery`: capacity 3 (+1 per Capacitor level; the id stays `battery`), 1 at the start of
+  a run (+1 per Spare Cell), 30% of cells give 2, a charge that does not fit pays 6 Static,
+  Trickle Charger 150/110/80 s per charge (times the tier's `sweepScale`). The server owns the
+  count (`Member.charges`, sent as `State.server.charges`); it spends one on the rising edge of
+  `scanSweeping` and ignores a sweep it has no charge for. The client predicts and shows
+  `SWEEP n/cap` (or `SWEEP 0 - FIND A CELL`, flashing when denied); the first denied sweep shows
+  the `item.cell` hint.
+- Cells: `Tiers.batteries` (4,4,4,3,3,3,3,3; endless one fewer every 6 floors, min 2) placed by
+  `LevelPlan` as `cell` objectives with `charges`; the first near the start, the rest prefer
+  dead ends. Optional objectives are now surveyors only (from tier 2). A double cell is two
+  cylinders. A cell goes to whoever picks it up.
+- New upgrades: `emitter`, `range`, `grid`, `spare`, `trickle`; bench order is scanner, battery,
+  tools. Scanner plus battery rows cost about 3,100 Static. `cellBonus` 12 -> 5.
+- `client/Lure` (new): unscanned cells and story things (`EchoKind` recorder, reveal, sign; set
+  in `World.newEcho`) give off faint warm motes (ParticleEmitter, about one every 3 s, 0.035
+  studs, 90% transparent at best) within 18 studs and in line of sight; the first ray that lands
+  on one stops it for good. Distinct from the gold found-item pulse in `Immersion`. Toned down
+  after Vasco's first look (cells too easy to spot).
+- `Immersion` found-item pulse: stops for good once the item is picked up (`Objective` event) or
+  the hidden thing has revealed itself (`Echo` event); it used to keep pulsing where a battery
+  cell had been taken.
+- `docs/MONETIZATION.md` (new): what could be sold and what never should be. No purchases added.
+- Dev: `charges N`.
+- Check in Studio: motes visible but subtle at 1080p and on a phone (raise `Brightness` or the
+  0.78 transparency if they vanish), the meter text fits, sweep denied at 0 without a sound glitch,
+  a double cell's dots, the server and client counts staying in step, and how often players run
+  dry (cells per tier is the knob).
+- Weaker again (22 Oct, Vasco: "the scanner can start being a little less powerful, so there's
+  some real progression"; keep the batteries standing out): scatter 260 dots/s (Emitter +120 x5 to
+  860), reach 65 studs (Range Coil +21 x4 to 149), sweep 44x56 (Sweep Grid 60x76, 76x96, 90x114),
+  widest cone 34 degrees without Wide Lens (was 40), dot budget 14k/42k/85k. Lure unchanged.

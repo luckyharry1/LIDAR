@@ -1,101 +1,102 @@
-# LIDAR story bible: "The Understory"
+# LIDAR story bible v2: "The Backrooms" (pivot 2026-10-22)
 
-Status: v1, 2026-10-13. Written for Vasco's Roblox LIDAR build. Companion files: `02-sections.md` (levels, feel, sound, items, gates) and `03-ingame-text.md` / `lore-text.json` / `LoreText.luau` (every line the game shows).
+Replaces v1 (kept in `v1/`). Vasco's feedback: the lore was too vague, the radio and posters too indirect, and the areas shared one vibe. The game now says where we are from the first minute, follows a man who learns as the player does, and makes finding **surveyors** the goal, because they explain. The mystery stays, but it is the right mystery: a few large unanswered questions, not a fog of tiny ones.
 
-## Writing rule (Vasco, 2026-10-13): be indirect
+## What changed (and what stayed)
 
-The game never lectures the player. No "Welcome, press X to scan". Everything is learned from things that exist in the world:
+| Was (v1) | Now (v2) |
+|---|---|
+| Unnamed "Understory", nobody explains | **The Backrooms**, named on screen, in the opening, on tape 1 and on every level plaque |
+| "Seven" (nameless player), indirect hints only | **Theo Marsh**, a laser-scan technician, thinks out loud, learns with the player |
+| Radio: vague text | **Voiced radio**; Base (Ines) asks what you see and gives plain guidance. The fake one only commands |
+| Posters: riddles | **Survey Bulletins**: what the Level is, hazards, how much is mapped; POIs each explain one fact |
+| Copy machine with no purpose | The copier holds the Survey's failed exit guesses; every POI now teaches something |
+| Safe rooms: one lit room per section | **Surveyor Camps**: each is a person to find, who gives information and the next goal |
+| One shared look | **Each area has its own wall, floor, light and sound** (see `02-sections.md`) |
+| Lore through hidden recorders | Recorders stay, and **videotapes** play real cutscenes on in-world screens |
 
-- **Posters, notices, stencils, graffiti, sign-in sheets, labels.** Institutional text that was written for staff, not for the player, and says more than it means to.
-- **Overheard dialogue.** Radio chatter, answering-machine tapes, recorders that start mid-sentence.
-- **Half-finished notes, margin scribbles, crossed-out lines.** What is crossed out is the clue.
-- **Objects that say it for themselves.** A mug with a name on it. Four mugs, one chipped.
+Still true: scanning is the reason you see anything. Dots stay. Being seen keeps you real. The respawn is Ines. Respawn, lamp-bags, the four monsters, the Falls, the Lamp Room and the choice at the end all remain.
 
-Nobody explains the mystery. Each piece is a fragment from someone who thought the reader already knew. The player assembles it. Where a fact must be stated (a puzzle gate), it is stated as a procedure someone else wrote down.
+## The pitch in one paragraph
 
-Consequence for the build: tutorial prompts are **diegetic** (a stencilled poster in the first room, a pictogram on a door). If a plain UI hint is still needed for mobile, use the fallback `hint.*` lines, and keep them rare and short.
+Theo Marsh scans buildings for a living. Alone on a condemned office floor, he leans on a wall that is not there and falls into **the Backrooms**: a set of places the world forgot, an office, a flooded basement, a ward, a cave, a garage. Light does not carry. His scanner does something better: it remembers, and mapped space holds still. A group called **the Survey** has been mapping the Backrooms for thirty years, looking for an exit. They have never had a true measurement of the real world to compare against. Theo has forty-one.
 
-## The one-paragraph story
+## The setting, plainly
 
-Under the Halden Building there is a stair that is not on the plans. Below it is the **Understory**: the place a building forgets. Corridors nobody checks, rooms nobody enters. It fills in the dark, and it rearranges where nobody is looking. Six survey crews went down to map it. They brought lamps. The lamps were not enough. Crew 1's chief, **Ines Calder**, built the **rig** (the LIDAR gun) on a new idea: you cannot light the Understory, but you can **remember** it. A dot stays where you looked. A mapped corridor holds still. You are **Crew 7**. Each time the dark takes you, you wake at the last lit room. The reason is the mystery, and Ines keeps it.
+The Backrooms are **the places the world forgot**. A place nobody looks at stops belonging to the world and ends up here. Each one is a **Level**, a whole location with its own look, sound and rules. Levels do not connect the way a building does: you leave one and are in the next. They hang from the **Halden Building**: pieces of it turn up everywhere (a badge, a door frame, a life ring), because it was the first thin place.
 
-## The truth (for the writers; the player assembles it)
+The player is told this in under a minute: the opening cutscene (Theo's job, the wall), then the first screen in the world (a TV with the Orientation tape, lit up when the first dot lands on it), then the Level 0 bulletin on the wall.
 
-1. **The dark does not hunt. It forgets.** Anything unseen long enough stops being a person. The Understory fills the gap with whatever is left.
-2. **The red things are surveyors who ran out of light.** The rig reads them red because red is what's left of someone nobody is looking at.
-3. **Green is not a colour. Green is someone looking back.** Being scanned by a friend keeps you yourself. This is the co-op heart: you keep each other human by looking.
-4. **Respawn is Ines.** She keeps the Lamp lit at the bottom. Every time the dark takes Crew 7, she pulls them back to the last lit room. The more lit rooms and mapped floor, the easier it is.
-5. **Crew 7 has done this before.** The sign-in sheet says "IN (again)". A note in the player's own handwriting warns about the second door. The player is not the first attempt; they are the attempt that finally holds.
-6. **The ending is a choice.** The ladder goes up (Pim made it out). Or you take the Lamp, so Crew 8 has somewhere to wake. The second option opens endless mode as **The Relay**: floors lit by other surveyors (the daily seed).
+Backrooms are chosen over a single invented place on purpose (Vasco): it lets the game combine worlds, so future Levels can be a school, a mall, a pool, a train station, a forest. Each new Level is a new `look`, a new surveyor camp and a new bulletin.
+
+## Cast (original)
+
+| Who | Role | Status |
+|---|---|---|
+| **Theo Marsh** | Laser-scan technician, Corbel & Pike Surveying. The player. Unit 0041, 41 scans of Halden floor 3 | Alive. Speaks his thoughts aloud (subtitled and voiced) |
+| **Ines Calder** | Survey Chief. Built the rig. Keeps the Lamp. Voice of Base on the radio | Alive. The Lamp Room |
+| **Joss Berrow** | Rigger. Lamp-bags | Alive. Supply Closet (Level 0 camp) |
+| **Hana Osei** | Hydrologist. Maps the water | Alive. Pump House (Level 1 camp) |
+| **Lena Sorrel** | Climber. Runs the Falls camp | Alive. The Falls |
+| **Ravi Anand** | Signals tech. Invented the tap greeting. Hides because the Echo copies his voice | Alive. Ward Station (Level 2 camp) |
+| **Pim Ashworth** | Youngest. Keeps lanterns lit | Alive. Hollow Camp (Level 3 camp) |
+| **Mr. Hollis** | Night security of the Halden | **The Pacer** (Level 0) |
+| **Tobi Wren** | Sound tech. Went silent | **The Hush** (Level 1) |
+| **Marlow Quill** | Photographer | **The Still** (Level 3) |
+| **The Echo** | Wears Ravi's voice. Unknown origin | Level 2 |
+| **Anselm Pike** | Corbel & Pike, 1994. First one through. Unit 0007 | Gone. His tapes. The Lamp is his |
+
+Surveyors are alive. Monsters are surveyors who went unseen too long. The game never says "dead".
+
+## The truth (what the writers know, and the player assembles)
+
+1. **The Backrooms are forgotten places.** The Halden was empty for ten years. Theo was the last to look at it, and he looked at it forty-one times.
+2. **Unseen people fade.** Hollis, Tobi and Quill were not killed. They stopped being seen, and the Backrooms made it true. The scanner reads that as red.
+3. **Green is someone looking back.** Co-op is the core theme: scanning a friend keeps them real.
+4. **Mapped space holds still.** This is why the scanner works. The unmapped drifts, which is why exits were never found.
+5. **The respawn is Ines.** When the dark takes someone, she pulls them to the nearest lamp. It costs her.
+6. **Pike was first.** In 1994 he scanned the Halden's floor 3, the wall opened, and he found the Lamp. He recorded nine tapes. The last is for whoever brings a **true scan of the real floor**.
+7. **The exit** is where the Backrooms' point cloud matches the real place. Theo's forty-one scans are the first true measurement. Put them to the Survey's board at the Lamp and a door of daylight opens.
+8. **Open questions (kept on purpose):** Why does the Halden have fifteen floors when the plans say fourteen? Who or what is the Echo? Why did the first scan start by itself at the end? Who "asked" the Backrooms to take forgotten places in?
+
+## The player's journey (a story with a goal at every step)
+
+| Beat | Goal on screen | What the player learns |
+|---|---|---|
+| **Opening cutscene** | (none) | Theo scans a condemned floor, falls through a wall |
+| **Level 0** | "Find the surveyors. Start with Joss." | Backrooms, Levels, dots, the Pacer; Orientation tape |
+| **Joss's Closet** | "Find the fuse. Go down." | Lamp-bags, Hollis/fading, "thirty years, no exit" |
+| **Night Desk** | radio works | Ines speaks. The Survey has a plan |
+| **Level 1** | "Find Hana at the pump house." | Water, the Hush, Tobi's tape |
+| **Pump House** | "Follow the water to the Falls." | What fading means; the route |
+| **The Falls** | "Talk to Lena. Rest." | A Refuge; respawn is Ines; Survey roster; the exit is a dotted line on the mural |
+| **Level 2** | "Find Ravi. Do not answer the voices." | The Echo; the tap greeting; the scanner serial 0007 |
+| **Ward Station** | goes to the Dormitory for the crank | Ravi's secret: the unit came from Pike |
+| **Dormitory** | rest | Ines's theory; the model of fifteen floors |
+| **Level 3** | "Find Pim in the Hollow." | The Still; light is food; Halden pieces in the cave |
+| **Hollow Camp** | "Follow the chalk arrows down." | Why Pim stays; the Lamp Core |
+| **Level 4** | follow the chalk | Pike's tape; the cornerstone; Theo's ticket (11:42 PM) |
+| **Lamp Room** | "Speak to Ines." | Everything. The choice |
 
 ## Tone
 
-Quiet. Tired. Wry. Staff-memo dry, then suddenly human. No gore, no named real-world references. People are lost, not dead; the book never says "dead". Fear comes from the gap between the tidy notice and what it implies.
+Tense, human, dry. Theo's humour is nerves: he says what the player is thinking, then does the brave thing. The surveyors are tired and kind. Nothing is gory. Fear is the gap between a tidy plaque and what it means. The mystery is the shape of things not explained: the fifteenth floor, the Echo's origin, the scan that starts by itself.
 
-Example of the register:
+Examples of voice:
 
-> WET FLOOR. (It is now.)
+> THEO: Wade, don't linger. Fine. I'll be quick.
 
-> Tea bags in a row on the shelf. One for every night someone stayed.
+> LENA: Joss is generous. Time here is a rumour.
 
-## Cast (all original)
+## Delivery rules (Vasco's asks, met)
 
-| Who | Role | In the game |
-|---|---|---|
-| **Ines Calder** | Crew 1 chief surveyor, built the rig, keeps the Lamp | Voice on the radio ("Base"), margin notes signed `I.C.`, the NPC in the Lamp Room |
-| **Joss Berrow** | Crew 1 rigger, invented the lamp-bags | Lamp-bag item, recorder in the Annex, cheerful skeptic |
-| **Mr. Hollis** | Night custodian, first to report the stair | Becomes the **Wanderer** ("the Pacer"). Keys jangle. He is still doing his rounds |
-| **Tobi Wren** | Crew 3 sound tech | Becomes the **Listener** ("the Hush"). Headphones, gain all the way up |
-| **Ravi Anand** | Crew 2 signals | Invented the tap greeting. His voice is what the **Mimic** ("the Echo") wears |
-| **Lena Sorrel** | Crew 2 climber | Cheer, hammocks, the Falls camp, rope |
-| **Marlow Quill** | Crew 4 photographer | Becomes the **Stalker** ("the Still"). Camera on a tripod |
-| **Pim Ashworth** | Crew 5 intern | **Made it out.** Mug, postcard. Proof the ladder works |
-| **Seven** | Crew 7 callsign (the player or the party) | Never named. The radio only ever says "Seven" |
+- **Cutscenes and tapes** carry the big explanations: opening cutscene, nine tapes (seven written so far), and the two endings. Each tape plays on a screen in the world; the screen lights the instant the first dot lands.
+- **POIs** each explain one fact. Every POI has a line of object text and a Theo thought that interprets it. The thoughts make the story direct without lecturing.
+- **Surveyors** are the goal: each camp is a person who gives information, an item and the next goal. They are reached by following green dots.
+- **Radio** is voiced. Base asks what you see and gives plain next steps. A fake Base only commands.
+- **Posters** are bulletins: what is this Level, hazards, how much is mapped.
+- **Journal**: Theo keeps a notebook that fills in as facts are learned, so the player can re-read the story so far (`journal.01` to `journal.12`).
 
-Never name the player. Use "Seven" on the radio and on forms.
+## For co-op (1 to 4)
 
-## The Field Manual (the Backrooms-style instruction device)
-
-The classic found-guide feel: a thin stapled booklet, *Survey of the Understory, Rev. 7*. Numbered rules, printed in a bureaucratic voice, with **handwritten margin notes** from crew correcting, contradicting or warning. The printed text teaches the mechanic obliquely; the margin note adds the fear or the heart.
-
-Delivery: five pages are on the wall posters and the first desk (so the player learns by seeing). Later pages are found items (`item.page`). Collecting pages is a side objective and the lore collectible. Rule 12 is the last page, in Ines's hand, and is found in the Lamp Room.
-
-The rules (full text in `03-ingame-text.md`) teach, in order: you wake in the dark; the rig makes memory not light; white/green/red; every pulse is a sound; do not run toward sounds; the radio only reports; tap greeting (two taps, wait, one); lamp-bags are breadcrumbs; follow the water; some things move only unwatched; if the dark takes you, you wake at the last lit room; someone has to keep the lamp.
-
-## Structure: acts and lit rooms
-
-| Act | Floors / tiers | Section | Lit room after |
-|---|---|---|---|
-| I | B3, tiers 1 to 2 | **The Annex** (office floor after hours) | **The Night Desk** |
-| II | B4, tiers 3 to 4 | **The Flooded Wing** (pipes, blue water) | **The Falls** (the vibrant waterfall safe area) |
-| III | B5, tiers 5 to 6 | **The Overgrowth** (greenhouse atrium gone wild) | **The Bunk Room** (crew quarters) |
-| IV | B6, tiers 7 to 8 | **The Foundation** (the first floor ever built) | **The Lamp Room** (finale) |
-| After | endless | **The Relay** | The Lamp (daily seed lit rooms) |
-
-Pacing rule from Vasco's notes: mostly breath, rarely terror. Sections build tension through the dark and ambience; a **close encounter happens only sometimes** and is the scare. Lit rooms are the exhale. The Falls is the biggest exhale and sits at the end of Act II.
-
-## Mystery threads (what the player pieces together)
-
-1. **The stair that isn't on the plans.** Hollis's tape; the sign-in sheet; the missing floor count on a lift panel.
-2. **Six crews, seven attempts.** Crew 6 "held at surface". Crew 7 "(again)". Who is "again"?
-3. **What the entities were.** Each has a name, a voice, an object. The player learns it from their things before ever reading the Manual. The Manual entry comes later and is sadder.
-4. **Why the radio never gives directions.** Because the Echo does. Real Base counts and reports. The player hears both and learns which to trust (also a Mimic tell).
-5. **Who keeps the lamp?** Ines, on the radio all along. Revealed in the Lamp Room, but foreshadowed by the margin notes and the pulled-back respawns.
-6. **Pim.** The only proof of an exit. Mug early, postcard late.
-
-## Payoff (Lamp Room)
-
-Ines is alive, tired, lit, green. She does not explain much. She says the dots held, that the map is whole, that you fell {deaths} times and she pulled you back each time, and that the ladder goes up. Pim's postcard is pinned above it. Then the choice. The last page of the Manual, Rule 12, is in her hand: *Someone has to keep the lamp.*
-
-Endings, see `03-ingame-text.md`:
-
-- **End: Up.** Daylight and sound. Credits-style card: "The Understory: mapped." The next run is "Night Shift +", harder, same story.
-- **End: Stay.** You take the Lamp. Endless mode, The Relay.
-
-## For the co-op version
-
-Everything above works for 1 to 4. The ethos of the tone: **being seen is what keeps you real.** Suggested light touches (build's call):
-
-- A friend scanning you leaves green dots on you; the Manual margin says so: "Green is someone looking back."
-- The tap greeting (ping wheel: two taps, a beat, one tap) is a real friendly signal. The Mimic does the two but skips the beat.
-- Lit-room signage and the Guest Book at the Falls acknowledge crews: "Crew 7: 3 in party."
+The party are Crew 7; Theo is the first player and the others are crewmates with the same line set. Dialogue can address "Theo" for the host and "Seven" for others in the radio; or all use "Theo". Easiest for the build: everyone hears the story as Theo. Mechanical touches: being scanned by a friend gives a visible "seen" glow that holds off fading; the tap greeting is a real ping-wheel emote.

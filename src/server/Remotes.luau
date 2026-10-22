@@ -128,6 +128,15 @@ local VALIDATORS: { [string]: Validator } = {
 	Choose = function(choice)
 		return choice == "up" or choice == "stay"
 	end,
+	Descend = function(yes)
+		return type(yes) == "boolean"
+	end,
+	PartyReady = function(on)
+		return type(on) == "boolean"
+	end,
+	PartyStart = function(mode)
+		return mode == "continue" or mode == "new" or mode == "daily"
+	end,
 }
 
 -- Fail at startup, not at the first call, if a remote is missing its validator or limit.
