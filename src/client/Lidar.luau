@@ -478,7 +478,7 @@ local function canFire(): boolean
 	local stage = State.server.stage
 	return Lidar.enabled
 		and not State.menuOpen
-		and (stage == "tutorial" or stage == "level" or stage == "lore")
+		and (stage == "tutorial" or stage == "level" or stage == "lore" or stage == "passage")
 end
 
 local function report(camera: Camera)

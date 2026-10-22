@@ -1206,6 +1206,19 @@ function LoreRooms.build(roomId: string, origin: Vector3): LoreRoom
 	end
 	buildDoor(origin, hz, 0, "EntranceDoor", model, entranceHeight)
 	local exitDoor = buildDoor(origin, -hz, 180, "ExitDoor", model, 0)
+	-- The way on is an open doorway: the panel is a flat black gap you walk through.
+	exitDoor.Color = Color3.new(0, 0, 0)
+	exitDoor.Material = Enum.Material.SmoothPlastic
+	exitDoor.CanCollide = false
+	for _, child in model:GetChildren() do
+		if
+			child.Name == "Handle"
+			and child:IsA("BasePart")
+			and (child.Position - exitDoor.Position).Magnitude < DOOR_WIDTH
+		then
+			child:Destroy()
+		end
+	end
 	local exitPrompt = Build.prompt(exitDoor, "Continue", "Into the dark", 0.6)
 
 	local benchPrompt: ProximityPrompt? = nil

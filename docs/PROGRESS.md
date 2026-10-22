@@ -425,6 +425,58 @@ Only what has actually been run is listed as verified.
   everything within 16 studs of a part the local gun lands on, with its lights. Client only;
   a teammate's scan reveals them for you too (relayed rays go through `Lidar.onSeen`). Revealed recorders still light up as before.
 
+## Stairwell between places (22 Oct, cloud thread; nothing seen in Studio)
+- `server/Passage.luau` builds a 7-wide flight of 28 steps (0.9 drop, 2.6 run) with landings, side
+  and end walls and a sloped ceiling at (0, 0, -1500), all invisible like the maze, with one dim
+  warm lamp (objective-tagged, so a scan shows it gold) on the end wall at the bottom.
+- `Director.walkPassage(next)`: after a level's exit (and after a haven's "Continue") the party
+  gets stage `passage`, is placed at the top, and walks down. Someone reaching the bottom (5 studs
+  of `endPosition`) sends the "exit" objective (client fades to black, sound dulls), then after
+  `transitionSeconds` `next()` builds the haven or the next level and everyone is carried on.
+  A 150 s cap carries on a party that never reaches the bottom; `endRunIfEmpty` frees the model.
+  Late joiners wait (phase stays `transition`).
+- New stage `passage`: Lidar, Viewmodel, Presence and Immersion accept it; Immersion gives it a
+  cave reverb. No enemies or hazards run there.
+- Check in Studio: stairs climbable at 0.9 rise (the Humanoid should step them), nobody stuck on
+  the top landing, the lamp visible from the stairs, the bottom trigger firing, leaving mid-walk,
+  two players with one far behind, the 3 s black at the end of the walk.
+- Doorways (22 Oct, Vasco: "there's still the exit door"): the level exit and the haven's way on
+  are open doorways now. `Director.watchDoorway` polls who stands within 2.5 studs in front of the
+  door panel; walking in starts the leave (no prompt). A locked level exit toasts at most every
+  4 s. The level door lost its handle and no longer collides; the haven's exit panel is a black
+  gap that does not collide. The step through takes 1 s (`DOORWAY_LEAVE_SECONDS`, also the wait
+  at the bottom of the stairwell) and the client fade-out is 0.8 s.
+- Red aura with no monster near (Vasco): the aura, heartbeat, sting, FOV narrowing and light
+  flicker used the straight line, so a monster in the next corridor through a wall counted as
+  close. `client/Reach.distance` now uses the walk through the maze (BFS over open sides from the
+  player's cell, cached per cell); same or next cell keeps the straight line.
+- Lamp patches (Vasco): a lamp lit the floor and every closed wall of its cell with hard edges.
+  `World.buildPatch` now paints the floor and only the wall nearest the light, each as an
+  invisible part with a lit SurfaceGui (CanvasGroup + two UIGradients) that fades to nothing at
+  the edges and up the wall. Client concealment also switches these SurfaceGuis. Check the
+  look in Studio (PixelsPerStud 6, fade stops in `PATCH_EDGE_FADE`/`PATCH_WALL_FADE`).
+- Light stutter (Vasco: pulses did not sync with sound): the continuous sine flicker is gone.
+  Near a monster, one nearby light at a time stutters (off/on pattern, 0.8-4 s apart by threat)
+  and every cut and catch plays `Audio.spark` from that bulb. Also fixed: the light refresh
+  could record a dimmed brightness as the light's base.
+- Surveyors and the Mimic (Vasco: confusing green figures): a helped-up surveyor now stands (a
+  short green dot figure for ~1.7 s), says one line (`SURVEYOR_LINES` in `client/Effects`, one
+  teaches the two-taps-then-one tell) and walks the route to the exit at walking pace leaving
+  footprints (40 s). The Mimic is left out of a level (`Enemies.spawn` skip list) until someone
+  in the party has `stats.rescues > 0`, so a real surveyor is always met first.
+- Doorway confirm (Vasco: walking in by accident in the dark was confusing): the doorways keep no
+  panel to bump into, but leaving needs a 0.6 s hold on a "Go down / Stairwell" prompt again
+  (`watchDoorway` now wraps the exit prompt instead of polling positions).
+- Descend pop-up (Vasco: the hold prompt "only adds a step"): the doorway prompt (press E, no
+  hold, "Look down") now asks over the net (`AskDescend`); the client shows a small panel low on
+  the screen (`Menus` window "descend", backdrop 90% clear) with GO DOWN / NOT YET and answers with
+  `Descend(yes)`. The server keeps one pending ask per player (`doorwayAsk`) and re-checks
+  that the doorway is still live and the player still near before leaving. The stairwell is
+  drawn now (dark concrete, a dim emergency lamp every four steps, a brighter one at the bottom)
+  so it stays in view behind the pop-up and the walk is one place, not a cut.
+- Posters no longer flash near monsters: `Immersion.refreshLights` skips lights on hidden
+  `Marker` parts (poster and recorder glows).
+
 ## Scanner power and battery cells (22 Oct, cloud thread, branch `claude/scanner-progression`; nothing seen in Studio)
 Vasco asked for a weaker base scanner, sweeps earned through battery cells (1 or 2 each), more
 progression between runs and room for monetization; then a faint pull towards unscanned finds.
