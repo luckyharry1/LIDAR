@@ -425,3 +425,8 @@ Only what has actually been run is listed as verified.
   Near a monster, one nearby light at a time stutters (off/on pattern, 0.8-4 s apart by threat)
   and every cut and catch plays `Audio.spark` from that bulb. Also fixed: the light refresh
   could record a dimmed brightness as the light's base.
+- Surveyors and the Mimic (Vasco: confusing green figures): a helped-up surveyor now stands (a
+  short green dot figure for ~1.7 s), says one line (`SURVEYOR_LINES` in `client/Effects`, one
+  teaches the two-taps-then-one tell) and walks the route to the exit at walking pace leaving
+  footprints (40 s). The Mimic is left out of a level (`Enemies.spawn` skip list) until someone
+  in the party has `stats.rescues > 0`, so a real surveyor is always met first.

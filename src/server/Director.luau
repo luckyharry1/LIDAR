@@ -625,7 +625,7 @@ local function wirePickup(level: World.Level, pickup: World.Pickup)
 			run.collected.rescues += 1
 			profileOf(member).stats.rescues += 1
 			Data.touch(player)
-			toastStage("Surveyor found. They point the way out.", "good", "level", "downed")
+			toastStage("Surveyor found. They lead the way out.", "good", "level", "downed")
 		else
 			run.collected.plate = true
 			run.plateFound = true
@@ -773,7 +773,15 @@ local function beginLevel(tier: number)
 		beacon.Parent = level.model
 	end
 
-	Enemies.spawn(level, buildSources, onCaught)
+	-- The Mimic poses as a stranded surveyor; it only makes sense once someone in the party has
+	-- helped up a real one and knows what they look like.
+	local anyRescued = false
+	for _, member in members do
+		if member.stage ~= "title" and profileOf(member).stats.rescues > 0 then
+			anyRescued = true
+		end
+	end
+	Enemies.spawn(level, buildSources, onCaught, if anyRescued then nil else { mimic = true })
 
 	local now = os.clock()
 	for player, member in members do

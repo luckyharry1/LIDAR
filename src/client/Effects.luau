@@ -32,10 +32,23 @@ local PING_COLUMN = 8
 local PING_FADE_SECONDS = 2
 local EMOTE_SECONDS = 3.5
 local TRAIL_DOTS_PER_CELL = 5
-local TRAIL_STEP_SECONDS = 0.05
+local TRAIL_STEP_SECONDS = 0.28 -- five steps a cell: about walking pace
+local FOOT_SPREAD = 0.35
+local WALKER_HEIGHTS = { 0.6, 1.6, 2.6, 3.4, 4.1, 4.8 } -- legs to head
+local WALKER_DOT_SIZE = 0.1
+local WALKER_HEAD_SIZE = 0.22
+local WALKER_WIDTH = 0.7
+local WALKER_LIFETIME = 0.7
+local STAND_PULSES = 6
+-- What a surveyor says once helped up. The tapping line is how you tell them from the Mimic.
+local SURVEYOR_LINES = {
+	"Two taps, then one. That's us. Anything that sits still and doesn't tap isn't.",
+	"Thought the lamp had given up on me. Stairs are this way.",
+	"Don't help up the quiet ones. Come on, I know the way.",
+}
 local TRAIL_HEIGHT = 0.3
 local TRAIL_SIZE = 0.14
-local TRAIL_LIFETIME = 25 -- seconds: long enough to follow it to the door
+local TRAIL_LIFETIME = 40 -- seconds: long enough to follow it to the door
 local SHAKE_SECONDS = 0.35
 local SHAKE_STRENGTH = 0.5
 local MIRROR_HEIGHT = 5
@@ -213,7 +226,16 @@ end
 --------------------------------------------------------------------------------------------
 -- Objectives
 
--- A rescued surveyor "points the way": green dots walk the shortest route to the exit.
+-- A rescued surveyor stands up and walks the shortest route to the exit: a short-lived green
+-- figure of dots moves at walking pace and leaves footprints that stay long enough to follow.
+local function drawWalker(position: Vector3)
+	for index, height in WALKER_HEIGHTS do
+		local size = if index == #WALKER_HEIGHTS then WALKER_HEAD_SIZE else WALKER_DOT_SIZE
+		local jitter = Vector3.new(math.random() - 0.5, 0, math.random() - 0.5) * WALKER_WIDTH
+		Dots.mark(position + jitter + Vector3.new(0, height, 0), "friend", size, WALKER_LIFETIME)
+	end
+end
+
 local function drawTrail(from: Vector3)
 	local plan = State.plan
 	if plan == nil then
@@ -226,6 +248,12 @@ local function drawTrail(from: Vector3)
 	local previous = Vector3.new(relative.X, 0, relative.Z)
 	local seed = plan.seed
 	task.spawn(function()
+		-- Getting up: the figure stands where it sat for a moment before it sets off.
+		for _ = 1, STAND_PULSES do
+			drawWalker(Vector3.new(from.X, origin.Y, from.Z))
+			task.wait(TRAIL_STEP_SECONDS)
+		end
+		Hud.dialogue("Surveyor", SURVEYOR_LINES[math.random(#SURVEYOR_LINES)])
 		for _, cell in route do
 			local target = Vector3.new(cell.x - 0.5, 0, cell.y - 0.5)
 			for step = 1, TRAIL_DOTS_PER_CELL do
@@ -233,12 +261,15 @@ local function drawTrail(from: Vector3)
 					return -- the level changed under us
 				end
 				local point = previous:Lerp(target, step / TRAIL_DOTS_PER_CELL) * CELL
+				local foot = origin + Vector3.new(point.X, 0, point.Z)
+				local side = if step % 2 == 0 then FOOT_SPREAD else -FOOT_SPREAD
 				Dots.mark(
-					origin + Vector3.new(point.X, TRAIL_HEIGHT, point.Z),
+					foot + Vector3.new(side, TRAIL_HEIGHT, 0),
 					"friend",
 					TRAIL_SIZE,
 					TRAIL_LIFETIME
 				)
+				drawWalker(foot)
 				task.wait(TRAIL_STEP_SECONDS)
 			end
 			previous = target
