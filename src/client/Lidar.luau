@@ -100,6 +100,7 @@ local radarYaw = 0
 local teammates: { [number]: Teammate } = {}
 local batchListeners: { BatchListener } = {}
 local poiListeners: { (position: Vector3) -> () } = {}
+local seenListeners: { (instance: BasePart) -> () } = {}
 local sweepListeners: { () -> () } = {}
 local radarListeners: { () -> () } = {}
 local cellHits: { [number]: number } = {}
@@ -138,6 +139,11 @@ end
 -- dot on.
 function Lidar.onPoi(listener: (position: Vector3) -> ())
 	table.insert(poiListeners, listener)
+end
+
+-- Called with every part the local gun's rays land on.
+function Lidar.onSeen(listener: (instance: BasePart) -> ())
+	table.insert(seenListeners, listener)
 end
 
 -- Called when the local player's sweep fires.
@@ -327,6 +333,10 @@ local function castRay(
 				listener(position)
 			end
 		end
+	end
+	-- Teammates' relayed rays count too, so a lamp one player finds shows for the whole party.
+	for _, listener in seenListeners do
+		listener(result.Instance)
 	end
 	if beams ~= nil and muzzle ~= nil then
 		showBeam(beams, muzzle, position, Dots.color(kind), now)
