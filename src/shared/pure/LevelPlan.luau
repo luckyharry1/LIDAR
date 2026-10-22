@@ -11,7 +11,8 @@ local Places = require("../data/Places")
 local Rng = require("./Rng")
 
 export type Cell = Maze.Cell
-export type Objective = { id: number, kind: string, cell: Cell }
+-- `charges` is set on battery cells only: the sweep charges the cell gives (1 or 2).
+export type Objective = { id: number, kind: string, cell: Cell, charges: number? }
 export type EnemySpawn = { id: number, kind: string, cell: Cell }
 export type Anomaly = { kind: string, room: Maze.Room }
 export type Reveal = { id: string, cell: Cell } -- a hidden object (Places.reveal) in its own cell
@@ -45,9 +46,19 @@ export type BuildOptions = {
 local SEED_TIER_MIX = 104729
 local LAST_FORGIVING_TIER = 2 -- up to here every lamp-bag burns
 local FEATURE_CHANCE = 0.2
-local OPTIONAL_KINDS = { "cell", "rescue", "cell" }
+local OPTIONAL_KINDS: { string } = { "rescue" } -- battery cells are placed on their own (def.batteries)
+local FIRST_RESCUE_TIER = 2
 local OBJECTIVE_RULE = {
 	minDistance = 2,
+	preferDeadEnd = true,
+	spacing = 0,
+	clearOfStart = false,
+	bypassable = false,
+}
+-- The first battery cell is found early, so the sweep can be learned on every floor. The
+-- rest prefer dead ends: a reward for looking round the corner instead of running past.
+local FIRST_CELL_RULE = {
+	minDistance = 1,
 	preferDeadEnd = true,
 	spacing = 0,
 	clearOfStart = false,
@@ -187,10 +198,10 @@ function LevelPlan.build(tier: number, seed: number, options: BuildOptions): Lev
 	if def.exitLocked then
 		table.insert(kinds, "key")
 	end
-	local optional = table.clone(OPTIONAL_KINDS)
-	if tier > 1 then
-		rng:shuffle(optional)
-	end
+	local optional: { string } = if tier >= FIRST_RESCUE_TIER
+		then table.clone(OPTIONAL_KINDS)
+		else {}
+	rng:shuffle(optional)
 	for _, kind in optional do
 		if #kinds < count then
 			table.insert(kinds, kind)
@@ -205,6 +216,16 @@ function LevelPlan.build(tier: number, seed: number, options: BuildOptions): Lev
 	end
 	for i, kind in kinds do
 		table.insert(objectives, { id = i, kind = kind, cell = take(OBJECTIVE_RULE) })
+	end
+	-- Battery cells: the only thing that charges the sweep in a level.
+	for i = 1, def.batteries do
+		local charges = if rng:next() < Config.Battery.doubleChance then 2 else 1
+		table.insert(objectives, {
+			id = #objectives + 1,
+			kind = "cell",
+			cell = take(if i == 1 then FIRST_CELL_RULE else OBJECTIVE_RULE),
+			charges = charges,
+		})
 	end
 
 	-- Enemies. Iterate kinds in a fixed order so the plan is deterministic.

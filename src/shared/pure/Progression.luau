@@ -7,7 +7,13 @@ local SaveData = require("./SaveData")
 local Upgrades = require("../data/Upgrades")
 
 export type Effects = {
-	sweepRechargeMul: number, -- multiplies the sweep's recharge time
+	dotsPerSecond: number, -- scatter rate (Emitter)
+	range: number, -- studs the gun reaches (Range Coil)
+	sweepRows: number, -- lines in one sweep (Sweep Grid)
+	sweepColumns: number, -- rays per line
+	chargeCapacity: number, -- most sweep charges the gun holds (Capacitor)
+	startCharges: number, -- sweep charges at the start of a run (Spare Cell)
+	trickleSeconds: number, -- seconds to win back one charge in a level; 0 when not owned
 	shutterLevel: number, -- Quiet Shutter levels (each makes the sweep quieter)
 	phosphorLevel: number, -- each level raises the dot budget
 	wideLens: boolean,
@@ -34,7 +40,6 @@ export type Reward = {
 	clean: number,
 }
 
-local CAPACITOR_FACTOR = 0.85 -- sweep recharge time multiplier per Capacitor level
 local MARKER_SECONDS = 8 -- extra ping lifetime per Echo Beacon level
 
 local Progression = {}
@@ -111,8 +116,21 @@ function Progression.effects(profile: SaveData.Profile): Effects
 	local function level(id: string): number
 		return profile.upgrades[id] or 0
 	end
+	local lidar = Config.Lidar
+	local battery = Config.Battery
+	local grid = math.min(level("grid"), #lidar.sweepRowsByLevel - 1) + 1
+	local capacity = battery.baseCapacity + level("battery")
+	local trickle = level("trickle")
 	return {
-		sweepRechargeMul = CAPACITOR_FACTOR ^ level("battery"),
+		dotsPerSecond = lidar.dotsPerSecond + lidar.emitterDotsPerLevel * level("emitter"),
+		range = math.min(lidar.baseRange + lidar.rangePerLevel * level("range"), lidar.maxRange),
+		sweepRows = lidar.sweepRowsByLevel[grid],
+		sweepColumns = lidar.sweepColumnsByLevel[grid],
+		chargeCapacity = capacity,
+		startCharges = math.min(battery.startCharges + level("spare"), capacity),
+		trickleSeconds = if trickle > 0
+			then battery.trickleSeconds[math.min(trickle, #battery.trickleSeconds)]
+			else 0,
 		shutterLevel = level("cooling"),
 		phosphorLevel = level("persistence"),
 		wideLens = level("lens") > 0,
@@ -122,6 +140,14 @@ function Progression.effects(profile: SaveData.Profile): Effects
 		wayfinder = level("wayfinder"),
 		solesLevel = level("soles"),
 	}
+end
+
+-- Adds a battery cell's charges to a gun holding `charges`, up to `capacity`. Returns the new
+-- count and how many charges did not fit (paid out as Static by the caller).
+function Progression.addCharges(charges: number, gained: number, capacity: number): (number, number)
+	local total = charges + gained
+	local kept = math.min(total, math.max(capacity, charges))
+	return kept, total - kept
 end
 
 function Progression.levelReward(baseReward: number, result: LevelResult): Reward
