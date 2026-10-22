@@ -57,7 +57,7 @@ local DEFAULT_MOOD: Mood = {
 	tint = Color3.new(1, 1, 1),
 	speed = 1,
 	drips = 1,
-	reverb = Enum.ReverbType.GenericRoom,
+	reverb = Enum.ReverbType.GenericReverb,
 }
 
 -- Found points of interest keep calling: a ring of gold dots rises from each every few
@@ -150,6 +150,29 @@ local function poiKey(position: Vector3): string
 	)}`
 end
 
+-- Found things that are done with (picked up, or revealed): never pulse near them again,
+-- even though their old gold dots are still there and new ones may land.
+local FORGET_RADIUS = 5 -- studs; covers an item's stand, its model and its dots
+local forgotten: { Vector3 } = {}
+
+local function isForgotten(position: Vector3): boolean
+	for _, spot in forgotten do
+		if (spot - position).Magnitude <= FORGET_RADIUS then
+			return true
+		end
+	end
+	return false
+end
+
+local function forgetPoi(position: Vector3)
+	table.insert(forgotten, position)
+	for key, spot in pois do
+		if (spot - position).Magnitude <= FORGET_RADIUS then
+			pois[key] = nil
+		end
+	end
+end
+
 local function pulsePois(camera: Camera)
 	local here = camera.CFrame.Position
 	local near: { { position: Vector3, distance: number } } = {}
@@ -191,7 +214,10 @@ local function refreshLights()
 		if descendant:IsA("PointLight") or descendant:IsA("SpotLight") then
 			local light = descendant :: Light
 			-- A light mid-stutter keeps the brightness it had before, not its dimmed one.
-			if descendant.Enabled and baseBrightness[light] == nil then
+			-- Poster and recorder glows (on hidden markers) keep a steady light.
+			local holder = descendant.Parent
+			local steady = holder ~= nil and holder:GetAttribute("Marker") == true
+			if descendant.Enabled and not steady and baseBrightness[light] == nil then
 				baseBrightness[light] = light.Brightness
 			end
 		end
@@ -391,16 +417,26 @@ function Immersion.start()
 		fov = baseFov
 	end
 
-	(Net.get("Objective") :: RemoteEvent).OnClientEvent:Connect(function(kind: string)
-		if kind == "exit" then
-			goBlack()
+	(Net.get("Objective") :: RemoteEvent).OnClientEvent:Connect(
+		function(kind: string, detail: { position: Vector3 }?)
+			if kind == "exit" then
+				goBlack()
+			elseif detail ~= nil then
+				forgetPoi(detail.position) -- picked up: it has nothing left to call you to
+			end
 		end
+	);
+	-- A hidden thing that revealed itself is lit now; its pulse would only be noise.
+	(Net.get("Echo") :: RemoteEvent).OnClientEvent:Connect(function(_id: number, position: Vector3)
+		forgetPoi(position)
 	end)
 
 	Lidar.onSeen(showNear)
 	Lidar.onHit(showNearDot)
 	Lidar.onPoi(function(position: Vector3)
-		pois[poiKey(position)] = position
+		if not isForgotten(position) then
+			pois[poiKey(position)] = position
+		end
 	end)
 
 	State.onState(function(server, previous)
@@ -435,6 +471,7 @@ function Immersion.start()
 
 	State.onLevel(function()
 		table.clear(pois)
+		table.clear(forgotten)
 		wrongTimer = WRONG_CALM[1]
 		lightTimer = 0
 	end)

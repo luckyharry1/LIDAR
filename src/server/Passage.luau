@@ -1,7 +1,8 @@
 --!strict
 -- The stairwell between a level and the next place: a narrow flight of stairs the party walks
--- down together. Like the maze it is never drawn; the scanner is the only way to see it. The one
--- thing that shines is a dim lamp on the landing at the bottom, so there is somewhere to go.
+-- down together. Unlike the maze it is drawn: dark concrete picked out by a string of dim
+-- emergency lamps down the flight, so it stays in view behind the "go down?" pop-up and the walk
+-- is a continuous place rather than a cut. A brighter lamp on the end wall marks the bottom.
 
 local CollectionService = game:GetService("CollectionService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -15,6 +16,8 @@ export type Passage = {
 	endPosition: Vector3, -- the middle of the bottom landing; arriving here ends the walk
 }
 
+local CONCRETE = Color3.fromRGB(88, 86, 82)
+local LAMP_EVERY = 4 -- steps between emergency lamps
 local STEPS = 28
 local RUN = 2.6 -- studs of floor per step
 local RISE = 0.9 -- studs each step drops
@@ -34,8 +37,8 @@ function Passage.build(origin: Vector3): Passage
 			name = name,
 			size = size,
 			cframe = cframe,
+			color = CONCRETE,
 			material = Enum.Material.Concrete,
-			transparency = 1,
 			parent = model,
 		})
 	end
@@ -89,23 +92,38 @@ function Passage.build(origin: Vector3): Passage
 		CFrame.lookAt((from + to) / 2, to)
 	)
 
+	-- Emergency lamps down the right wall, each a small warm bulb with a short-reach light.
+	local function lamp(name: string, position: Vector3, brightness: number, range: number)
+		local bulb = Build.part({
+			name = name,
+			size = Vector3.new(0.5, 0.5, 0.5),
+			cframe = CFrame.new(origin + position),
+			color = Color3.fromRGB(255, 190, 110),
+			material = Enum.Material.Neon,
+			collide = false,
+			parent = model,
+		})
+		local light = Instance.new("PointLight")
+		light.Color = Color3.fromRGB(255, 170, 90)
+		light.Brightness = brightness
+		light.Range = range
+		light.Parent = bulb
+		return bulb
+	end
+	lamp("TopLamp", Vector3.new(WIDTH / 2 - 0.4, 5.5, LANDING - 2), 0.7, 12)
+	for step = LAMP_EVERY, STEPS, LAMP_EVERY do
+		lamp(
+			"StairLamp",
+			Vector3.new(WIDTH / 2 - 0.4, -step * RISE + 4.5, -(step - 0.5) * RUN),
+			0.7,
+			12
+		)
+	end
+
 	-- The lamp at the bottom: a dim warm bulb on the end wall.
 	local lampY = -drop + 4
 	local lampZ = -length - LANDING + 1
-	local bulb = Build.part({
-		name = "Lamp",
-		size = Vector3.new(1, 1, 1),
-		cframe = at(0, lampY, lampZ),
-		color = Color3.fromRGB(255, 190, 110),
-		material = Enum.Material.Neon,
-		collide = false,
-		parent = model,
-	})
-	local light = Instance.new("PointLight")
-	light.Color = Color3.fromRGB(255, 170, 90)
-	light.Brightness = 0.8
-	light.Range = 14
-	light.Parent = bulb
+	local bulb = lamp("Lamp", Vector3.new(0, lampY, lampZ), 1.4, 18)
 	CollectionService:AddTag(bulb, Config.Tags.objective)
 
 	local spawn = origin + Vector3.new(0, 3, LANDING - 2)

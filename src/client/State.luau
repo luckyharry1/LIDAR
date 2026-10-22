@@ -16,6 +16,7 @@ export type Session = {
 	lore: number,
 	distance: number,
 }
+export type LobbyEntry = { userId: number, name: string, stage: string, ready: boolean }
 export type ServerState = {
 	stage: string,
 	phase: string,
@@ -25,7 +26,10 @@ export type ServerState = {
 	seed: number,
 	epoch: number,
 	origin: Vector3,
-	sweepScale: number, -- above 1 the sweep recharges more slowly on this level
+	sweepScale: number, -- above 1 the Trickle Charger is slower on this level
+	charges: number, -- sweep charges in the gun (the server's count)
+	sweepsFree: boolean, -- true outside a level (tutorial, havens): sweeps cost nothing
+	trickle: number, -- 0..1 Trickle Charger progress when this state was sent
 	forcedAnomaly: string,
 	allowPlate: boolean,
 	locked: boolean,
@@ -43,6 +47,7 @@ export type ServerState = {
 	dailyDay: number,
 	dailyDone: boolean,
 	runActive: boolean,
+	lobby: { LobbyEntry }, -- everyone on this server (the Play Together screen)
 	session: Session,
 }
 export type Meta = {
@@ -64,6 +69,9 @@ State.server = {
 	epoch = 0,
 	origin = Vector3.zero,
 	sweepScale = 1,
+	charges = 0,
+	sweepsFree = true,
+	trickle = 0,
 	forcedAnomaly = "",
 	allowPlate = false,
 	locked = false,
@@ -81,6 +89,7 @@ State.server = {
 	dailyDay = 0,
 	dailyDone = false,
 	runActive = false,
+	lobby = {},
 	session = { static = 0, levels = 0, catches = 0, lore = 0, distance = 0 },
 } :: ServerState
 

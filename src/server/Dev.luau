@@ -12,6 +12,7 @@
 --                                                        story object, poster or lamp-bag tag)
 --   workspace:SetAttribute("DevCommand", "clear")        finish the current level
 --   workspace:SetAttribute("DevCommand", "static 500")   give everyone Static
+--   workspace:SetAttribute("DevCommand", "charges 3")    set everyone's sweep charges
 --   workspace:SetAttribute("DevCommand", "lights on")    light the maze to inspect it ("lights off")
 
 local RunService = game:GetService("RunService")
@@ -36,6 +37,8 @@ local function run(text: string)
 		Director.dev.clearLevel()
 	elseif command == "static" and tonumber(argument) then
 		Director.dev.grant(math.floor(tonumber(argument) :: number))
+	elseif command == "charges" and tonumber(argument) then
+		Director.dev.charges(math.floor(tonumber(argument) :: number))
 	elseif command == "lights" then
 		workspace:SetAttribute(LIGHTS_ATTRIBUTE, argument == "on")
 	else

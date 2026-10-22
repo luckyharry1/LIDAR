@@ -23,6 +23,7 @@ local Ui = require(script.Parent.Ui)
 local Upgrades = require(ReplicatedStorage.Shared.data.Upgrades)
 
 type Window = { frame: Frame, first: GuiObject?, onClose: (() -> ())? }
+type LobbyEntry = State.LobbyEntry
 
 local CARD_SECONDS = 8
 local DOT_QUALITY_NEXT = { auto = "low", low = "medium", medium = "high", high = "auto" }
@@ -37,6 +38,13 @@ local windows: { [string]: Window } = {}
 local current: string? = nil
 local titleStatus: TextLabel
 local titleButtons: Frame
+local titleNotices: Frame
+local noticeOrder = 0
+local partyList: ScrollingFrame
+local partyStatus: TextLabel
+local partyReady: TextButton
+local partyStart: TextButton
+local refreshParty: () -> () -- defined with the Play Together screen below
 local benchList: Frame
 local benchBalance: TextLabel
 local benchCosmetics: Frame
@@ -48,7 +56,7 @@ local clearCard: Frame
 local clearCardBody: TextLabel
 local reportBody: TextLabel
 local boardBody: TextLabel
-local settingsRows: Frame
+local settingsRows: ScrollingFrame
 local guideBody: TextLabel
 local startRequested = false
 local noteQueue: { { title: string, body: string } } = {}
@@ -92,7 +100,10 @@ function Menus.open(name: string)
 	window.frame.Visible = true
 	current = name
 	backdrop.Visible = true
-	backdrop.BackgroundTransparency = if name == "title" then 1 else 0.45
+	backdrop.BackgroundTransparency = if name == "title"
+		then 1
+		elseif name == "descend" then 0.9
+		else 0.45
 	State.menuOpen = true
 	Input.menuChanged()
 	if Input.device == "gamepad" then
@@ -182,14 +193,79 @@ end
 --------------------------------------------------------------------------------------------
 -- Title
 
-local function requestStart(mode: string)
+local STAGE_WORDS = {
+	title = "ON THE TITLE",
+	tutorial = "IN THE INTAKE",
+	level = "IN THE DARK",
+	downed = "IN THE DARK",
+	lore = "IN A SAFE ROOM",
+	passage = "ON THE STAIRS",
+}
+local NOTICE_SECONDS = 10
+local NOTICE_LIMIT = 2
+
+-- The mode the main button would start: carry on from the checkpoint, or a new survey.
+local function defaultMode(): string
+	return if State.profile.checkpointTier > 1 then "continue" else "new"
+end
+
+local function requestStart(mode: string, together: boolean?)
 	if startRequested or not State.profileLoaded then
 		return
 	end
 	startRequested = true
-	titleStatus.Text = "Stepping inside..."
+	titleStatus.Text = if together then "Taking everyone in..." else "Stepping inside..."
 	titleButtons.Visible = false
-	send("Start", mode)
+	if current == "party" then
+		Menus.open("title") -- shows the status line while the server builds the level
+	end
+	send(if together then "PartyStart" else "Start", mode)
+end
+
+-- Messages that arrive while the title is up (the visit streak, a saving problem) are shown
+-- under the buttons instead of as toasts, which landed on top of the big title letters.
+local function titleNotice(text: string, kind: string?)
+	if titleNotices == nil then
+		return
+	end
+	local labels = {}
+	for _, child in titleNotices:GetChildren() do
+		if child:IsA("TextLabel") then
+			table.insert(labels, child)
+		end
+	end
+	if #labels >= NOTICE_LIMIT then
+		labels[1]:Destroy()
+	end
+	noticeOrder += 1
+	local label = Ui.label({
+		Text = text,
+		TextSize = Ui.text.small,
+		TextColor3 = if kind == "warn"
+			then Ui.colors.warn
+			elseif kind == "good" then Ui.colors.good
+			else Ui.colors.dim,
+		TextXAlignment = Enum.TextXAlignment.Center,
+		Size = UDim2.new(1, 0, 0, 0),
+		AutomaticSize = Enum.AutomaticSize.Y,
+		LayoutOrder = noticeOrder,
+		Parent = titleNotices,
+	})
+	task.delay(NOTICE_SECONDS, function()
+		if label.Parent then
+			label:Destroy()
+		end
+	end)
+end
+
+local function othersHere(): number
+	local count = 0
+	for _, entry in State.server.lobby do
+		if entry.userId ~= player.UserId then
+			count += 1
+		end
+	end
+	return count
 end
 
 local function refreshTitle()
@@ -209,32 +285,46 @@ local function refreshTitle()
 	local server = State.server
 	local order = 0
 	local first: GuiObject? = nil
-	local function add(text: string, mode: string, accent: Color3?)
+	local function add(text: string, height: number, onPress: () -> (), accent: Color3?)
 		order += 1
 		local button = Ui.button({
 			Text = text,
-			Size = UDim2.fromOffset(320, 40),
+			Size = UDim2.fromOffset(320, height),
 			LayoutOrder = order,
 			Parent = titleButtons,
-		}, function()
-			requestStart(mode)
-		end, accent)
+		}, onPress, accent)
 		first = first or button
 	end
+	local function start(text: string, mode: string, accent: Color3?)
+		add(text, if order == 0 then 40 else 36, function()
+			requestStart(mode)
+		end, accent)
+	end
+	local others = othersHere()
+	local together = if others > 0 then `PLAY TOGETHER  /  {others} HERE` else "PLAY TOGETHER"
+	local function party()
+		add(together, 36, function()
+			refreshParty()
+			Menus.open("party")
+		end)
+	end
 	if server.runActive then
-		add("JOIN THE SURVEY", "continue", Ui.colors.good)
+		start("JOIN THE SURVEY", "continue", Ui.colors.good)
+		party()
 		titleStatus.Text = "A survey is under way on this server. You will join it."
 	elseif not profile.tutorialDone then
-		add("BEGIN", "new", Ui.colors.good)
+		start("BEGIN", "new", Ui.colors.good)
+		party()
 		titleStatus.Text = "Everything is dark. You have a scanner."
 	else
 		if profile.checkpointTier > 1 then
-			add("CONTINUE  /  TIER " .. profile.checkpointTier, "continue", Ui.colors.good)
-			add("NEW SURVEY", "new")
+			start("CONTINUE  /  TIER " .. profile.checkpointTier, "continue", Ui.colors.good)
+			start("NEW SURVEY", "new")
 		else
-			add("BEGIN SURVEY", "new", Ui.colors.good)
+			start("BEGIN SURVEY", "new", Ui.colors.good)
 		end
-		add(
+		party()
+		start(
 			if server.dailyDone then "DAILY SURVEY  /  RUN AGAIN" else "DAILY SURVEY",
 			"daily",
 			Ui.colors.gold
@@ -242,13 +332,7 @@ local function refreshTitle()
 		titleStatus.Text =
 			`Visit {profile.streak.count}.  Best tier {profile.bestTier}.  {profile.static} Static.`
 	end
-	order += 1
-	Ui.button({
-		Text = "SETTINGS",
-		Size = UDim2.fromOffset(320, 34),
-		LayoutOrder = order,
-		Parent = titleButtons,
-	}, function()
+	add("SETTINGS", 32, function()
 		Menus.open("settings")
 	end, Ui.colors.dim)
 	windows.title.first = first
@@ -257,16 +341,24 @@ local function refreshTitle()
 	end
 end
 
+-- Everything stacks in one column, so no line can land on another whatever the screen size.
 local function buildTitle()
 	local frame = window("title", 760, 380)
-	frame.BackgroundTransparency = 1;
+	frame.BackgroundTransparency = 1
+	frame.Size = UDim2.fromOffset(760, 0)
+	frame.AutomaticSize = Enum.AutomaticSize.Y;
 	(frame:FindFirstChildOfClass("UIStroke") :: UIStroke).Enabled = false
+	local column = Ui.list(Enum.FillDirection.Vertical, 6)
+	column.HorizontalAlignment = Enum.HorizontalAlignment.Center
+	column.Parent = frame
 	Ui.label({
 		Text = TITLE_LETTERS,
 		FontFace = Ui.fontBold,
 		TextSize = Ui.text.hero,
+		TextWrapped = false,
 		TextXAlignment = Enum.TextXAlignment.Center,
 		Size = UDim2.new(1, 0, 0, 90),
+		LayoutOrder = 1,
 		Parent = frame,
 	})
 	Ui.label({
@@ -275,25 +367,212 @@ local function buildTitle()
 		TextColor3 = Ui.colors.dim,
 		TextXAlignment = Enum.TextXAlignment.Center,
 		Size = UDim2.new(1, 0, 0, 22),
-		Position = UDim2.fromOffset(0, 90),
+		LayoutOrder = 2,
 		Parent = frame,
 	})
 	titleButtons = Ui.new("Frame", {
-		AnchorPoint = Vector2.new(0.5, 0),
-		Position = UDim2.new(0.5, 0, 0, 124),
-		Size = UDim2.fromOffset(320, 190),
+		Size = UDim2.fromOffset(320, 0),
+		AutomaticSize = Enum.AutomaticSize.Y,
 		BackgroundTransparency = 1,
+		LayoutOrder = 3,
 		Parent = frame,
-	}, { Ui.list(Enum.FillDirection.Vertical, 8) })
+	}, { Ui.list(Enum.FillDirection.Vertical, 6) })
 	titleStatus = Ui.label({
 		TextSize = Ui.text.small,
 		TextColor3 = Ui.colors.dim,
 		TextXAlignment = Enum.TextXAlignment.Center,
-		AnchorPoint = Vector2.new(0.5, 1),
-		Position = UDim2.fromScale(0.5, 1),
-		Size = UDim2.new(1, 0, 0, 20),
+		Size = UDim2.new(1, 0, 0, 0),
+		AutomaticSize = Enum.AutomaticSize.Y,
+		LayoutOrder = 4,
 		Parent = frame,
 	})
+	titleNotices = Ui.new("Frame", {
+		Size = UDim2.new(1, 0, 0, 0),
+		AutomaticSize = Enum.AutomaticSize.Y,
+		BackgroundTransparency = 1,
+		LayoutOrder = 5,
+		Parent = frame,
+	}, { Ui.list(Enum.FillDirection.Vertical, 2) })
+	local toastRemote = Net.get("Toast") :: RemoteEvent
+	toastRemote.OnClientEvent:Connect(function(text: string, kind: string?)
+		if State.server.stage == "title" then
+			titleNotice(text, kind)
+		end
+	end)
+end
+
+--------------------------------------------------------------------------------------------
+-- Play Together: everyone on this server, a Roblox invite for friends, and a way to go in
+-- as one crew. The server is the party: whoever is on it plays the same run.
+
+local friendCache: { [number]: boolean } = {}
+local friendAsked: { [number]: boolean } = {}
+
+local function isFriend(userId: number): boolean
+	if userId == player.UserId then
+		return false
+	end
+	if not friendAsked[userId] then
+		friendAsked[userId] = true
+		task.spawn(function()
+			local ok, result = pcall(function()
+				return player:IsFriendsWith(userId)
+			end)
+			friendCache[userId] = ok and result == true
+			if friendCache[userId] and current == "party" then
+				refreshParty()
+			end
+		end)
+	end
+	return friendCache[userId] == true
+end
+
+local function myEntry(): LobbyEntry?
+	for _, entry in State.server.lobby do
+		if entry.userId == player.UserId then
+			return entry
+		end
+	end
+	return nil
+end
+
+refreshParty = function()
+	if partyList == nil then
+		return
+	end
+	for _, child in partyList:GetChildren() do
+		if child:IsA("Frame") then
+			child:Destroy()
+		end
+	end
+	local lobby = State.server.lobby
+	local ready, onTitle = 0, 0
+	for index, entry in lobby do
+		local row = Ui.new("Frame", {
+			Size = UDim2.new(1, -8, 0, 30),
+			BackgroundColor3 = Ui.colors.ink,
+			BackgroundTransparency = 0.4,
+			BorderSizePixel = 0,
+			LayoutOrder = index,
+			Parent = partyList,
+		}, { Ui.new("UICorner", { CornerRadius = UDim.new(0, 4) }), Ui.padding(6) })
+		local tag = if entry.userId == player.UserId
+			then "  (YOU)"
+			elseif isFriend(entry.userId) then "  (FRIEND)"
+			else ""
+		Ui.label({
+			Text = entry.name .. tag,
+			TextSize = Ui.text.small,
+			TextTruncate = Enum.TextTruncate.AtEnd,
+			TextWrapped = false,
+			Size = UDim2.new(0.62, 0, 1, 0),
+			Parent = row,
+		})
+		local word = if entry.ready then "READY" else STAGE_WORDS[entry.stage] or ""
+		Ui.label({
+			Text = word,
+			FontFace = Ui.fontBold,
+			TextSize = Ui.text.small,
+			TextColor3 = if entry.ready
+				then Ui.colors.good
+				elseif entry.stage == "title" then Ui.colors.dim
+				else Ui.colors.line,
+			TextXAlignment = Enum.TextXAlignment.Right,
+			AnchorPoint = Vector2.new(1, 0),
+			Position = UDim2.fromScale(1, 0),
+			Size = UDim2.new(0.38, 0, 1, 0),
+			Parent = row,
+		})
+		if entry.stage == "title" then
+			onTitle += 1
+			if entry.ready then
+				ready += 1
+			end
+		end
+	end
+
+	local server = State.server
+	local me = myEntry()
+	local meReady = me ~= nil and me.ready
+	local others = othersHere()
+	partyReady.Visible = not server.runActive
+	partyReady.Text = if meReady then "NOT READY" else "I'M READY"
+	partyStart.Text = if server.runActive then "JOIN THEM" else "GO IN"
+	if server.runActive then
+		partyStatus.Text = "A survey is under way here. Join and you drop in beside them."
+	elseif others == 0 then
+		partyStatus.Text =
+			"Nobody else is here yet. Invite friends: they join this server and play the same run."
+	else
+		partyStatus.Text =
+			`{ready} of {onTitle} on the title are ready. GO IN takes everyone who is ready.`
+	end
+end
+
+local function buildParty()
+	local frame = window("party", 560, 380)
+	heading(frame, "PLAY TOGETHER")
+	partyStatus = Ui.label({
+		TextSize = Ui.text.small,
+		TextColor3 = Ui.colors.dim,
+		TextYAlignment = Enum.TextYAlignment.Top,
+		Position = UDim2.fromOffset(0, 34),
+		Size = UDim2.new(1, 0, 0, 34),
+		Parent = frame,
+	})
+	partyList = Ui.new("ScrollingFrame", {
+		Position = UDim2.fromOffset(0, 74),
+		Size = UDim2.new(1, 0, 1, -122),
+		BackgroundTransparency = 1,
+		BorderSizePixel = 0,
+		ScrollBarThickness = 4,
+		ScrollingDirection = Enum.ScrollingDirection.Y,
+		AutomaticCanvasSize = Enum.AutomaticSize.Y,
+		CanvasSize = UDim2.new(),
+		Parent = frame,
+	}, { Ui.list(Enum.FillDirection.Vertical, 4) })
+	local row = Ui.new("Frame", {
+		AnchorPoint = Vector2.new(0, 1),
+		Position = UDim2.fromScale(0, 1),
+		Size = UDim2.new(1, 0, 0, 38),
+		BackgroundTransparency = 1,
+		Parent = frame,
+	}, { Ui.list(Enum.FillDirection.Horizontal, 8) })
+	local function button(
+		text: string,
+		order: number,
+		onPress: () -> (),
+		accent: Color3?
+	): TextButton
+		return Ui.button({
+			Text = text,
+			TextSize = 14,
+			Size = UDim2.new(0.25, -6, 1, 0),
+			LayoutOrder = order,
+			Parent = row,
+		}, onPress, accent)
+	end
+	button("INVITE FRIENDS", 1, function()
+		Menus.invite()
+	end, Ui.colors.good)
+	partyReady = button("I'M READY", 2, function()
+		local me = myEntry()
+		send("PartyReady", not (me ~= nil and me.ready))
+	end)
+	partyStart = button("GO IN", 3, function()
+		if State.server.runActive then
+			requestStart("continue")
+		else
+			requestStart(defaultMode(), true)
+		end
+	end, Ui.colors.good)
+	button("BACK", 4, Menus.close, Ui.colors.dim)
+	windows.party.first = partyStart
+	windows.party.onClose = function()
+		if State.server.stage == "title" and not startRequested then
+			task.defer(Menus.open, "title")
+		end
+	end
 end
 
 --------------------------------------------------------------------------------------------
@@ -315,7 +594,7 @@ local function refreshSettings()
 	local function row(label: string, value: string, onPress: () -> ())
 		order += 1
 		local frame = Ui.new("Frame", {
-			Size = UDim2.new(1, 0, 0, 36),
+			Size = UDim2.new(1, -8, 0, 36),
 			BackgroundTransparency = 1,
 			LayoutOrder = order,
 			Parent = settingsRows,
@@ -362,6 +641,9 @@ local function refreshSettings()
 			Menus.applyCosmetics()
 		end
 	)
+	row("FRIENDS", "INVITE", function()
+		Menus.invite()
+	end)
 	row("FREEZE DOTS (PHOTO)", if Dots.isFrozen() then "FROZEN" else "LIVE", function()
 		Dots.setFrozen(not Dots.isFrozen())
 	end)
@@ -370,10 +652,15 @@ end
 local function buildSettings()
 	local frame = window("settings", 560, 380)
 	heading(frame, "SETTINGS")
-	settingsRows = Ui.new("Frame", {
+	settingsRows = Ui.new("ScrollingFrame", {
 		Position = UDim2.fromOffset(0, 44),
 		Size = UDim2.new(1, 0, 1, -100),
 		BackgroundTransparency = 1,
+		BorderSizePixel = 0,
+		ScrollBarThickness = 4,
+		ScrollingDirection = Enum.ScrollingDirection.Y,
+		AutomaticCanvasSize = Enum.AutomaticSize.Y,
+		CanvasSize = UDim2.new(),
 		Parent = frame,
 	}, { Ui.list(Enum.FillDirection.Vertical, 4) })
 	closeButton(frame, "settings", "DONE")
@@ -693,6 +980,55 @@ local function buildNote()
 end
 
 --------------------------------------------------------------------------------------------
+-- The stairwell question: a small panel low on the screen, so the stairs stay in view behind it.
+
+local descendBody: TextLabel
+
+local function answerDescend(yes: boolean)
+	send("Descend", yes)
+	Menus.close()
+end
+
+local function buildDescend()
+	local frame = window("descend", 460, 170)
+	frame.AnchorPoint = Vector2.new(0.5, 1)
+	frame.Position = UDim2.new(0.5, 0, 1, -40)
+	heading(frame, "THE STAIRWELL")
+	descendBody = Ui.label({
+		Position = UDim2.fromOffset(0, 36),
+		Size = UDim2.new(1, 0, 1, -90),
+		Parent = frame,
+	})
+	local yes = Ui.button({
+		Text = "GO DOWN",
+		AnchorPoint = Vector2.new(0, 1),
+		Position = UDim2.fromScale(0, 1),
+		Size = UDim2.new(0.5, -6, 0, 38),
+		Parent = frame,
+	}, function()
+		answerDescend(true)
+	end, Ui.colors.gold)
+	Ui.button({
+		Text = "NOT YET",
+		AnchorPoint = Vector2.new(1, 1),
+		Position = UDim2.fromScale(1, 1),
+		Size = UDim2.new(0.5, -6, 0, 38),
+		Parent = frame,
+	}, function()
+		answerDescend(false)
+	end, Ui.colors.line)
+	windows.descend.first = yes
+end
+
+function Menus.askDescend(body: string)
+	if current ~= nil then
+		return -- another window has the player's attention; the doorway can be asked again
+	end
+	descendBody.Text = body
+	Menus.open("descend")
+end
+
+--------------------------------------------------------------------------------------------
 -- The finale: Ines speaks, then the choice. There is no close button: it is answered once.
 
 local function choose(choice: string)
@@ -994,6 +1330,7 @@ function Menus.start()
 	})
 	buildTitle()
 	buildSettings()
+	buildParty()
 	buildBench()
 	buildNote()
 	buildClear()
@@ -1001,6 +1338,7 @@ function Menus.start()
 	buildBoard()
 	buildEmotes()
 	buildEnding()
+	buildDescend()
 
 	State.onProfile(function()
 		Menus.applyCosmetics()
@@ -1011,10 +1349,13 @@ function Menus.start()
 	State.onState(function(server, previous)
 		if server.stage ~= "title" and previous.stage == "title" then
 			startRequested = false
-			if current == "title" or current == "settings" then
+			if current == "title" or current == "settings" or current == "party" then
 				Menus.close()
 			end
 		elseif server.stage == "title" then
+			if current == "party" then
+				refreshParty()
+			end
 			if previous.stage ~= "title" then
 				-- Back from the dark (the ladder): the title comes back, ready to start again.
 				startRequested = false
@@ -1041,6 +1382,7 @@ function Menus.start()
 		refreshBench()
 		Menus.open("bench")
 	end);
+	(Net.get("AskDescend") :: RemoteEvent).OnClientEvent:Connect(Menus.askDescend);
 	(Net.get("OpenNote") :: RemoteEvent).OnClientEvent:Connect(Menus.showNote);
 	(Net.get("Ending") :: RemoteEvent).OnClientEvent:Connect(Menus.showEnding);
 	(Net.get("LevelCleared") :: RemoteEvent).OnClientEvent:Connect(onLevelCleared);

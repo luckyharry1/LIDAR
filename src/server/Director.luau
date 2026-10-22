@@ -53,19 +53,22 @@ type Member = {
 	lastPingAt: number,
 	ownsKit: boolean,
 	effects: Progression.Effects,
+	charges: number, -- sweep charges in the gun; a sweep in a level spends one
+	trickle: number, -- 0..1 progress of the Trickle Charger towards the next charge
 	sessionStatic: number,
 	sessionLevels: number,
 	sessionCatches: number,
 	sessionLore: number,
 	sessionDistance: number,
 	endingOffered: boolean, -- Ines has asked; one answer is accepted
+	ready: boolean, -- on the title's Play Together screen: wants to go in with the others
 }
 
 type Collected = { key: boolean, cells: number, rescues: number, plate: boolean, echoes: number }
 type Decoy = { x: number, z: number, noise: number, expires: number }
 
 local CELL = Config.World.cellSize
-local DOORWAY_HOLD_SECONDS = 0.6
+local DOORWAY_QUESTION = "The stairs go down into the dark. Everyone in the survey goes with you."
 local DOORWAY_LEAVE_SECONDS = 1 -- the step through: the screen is black by then
 local LOCKED_TOAST_SECONDS = 4
 local PASSAGE_ORIGIN = Vector3.new(0, 0, -1500)
@@ -213,6 +216,26 @@ local function countFinds(level: World.Level): number
 	return total
 end
 
+-- Everyone on this server, for the title's Play Together screen.
+type LobbyEntry = { userId: number, name: string, stage: string, ready: boolean }
+
+local function lobbyList(): { LobbyEntry }
+	local list: { LobbyEntry } = {}
+	for player, member in members do
+		local stage: string = member.stage
+		table.insert(list, {
+			userId = player.UserId,
+			name = player.DisplayName,
+			stage = stage,
+			ready = member.ready and stage == "title",
+		})
+	end
+	table.sort(list, function(a, b)
+		return a.userId < b.userId
+	end)
+	return list
+end
+
 local function sendState(member: Member)
 	local level = run.level
 	local lore = run.lore
@@ -229,6 +252,9 @@ local function sendState(member: Member)
 		epoch = run.epoch,
 		origin = if level then level.origin else Vector3.zero,
 		sweepScale = if level and inLevel(member) then level.plan.def.sweepScale else 1,
+		charges = member.charges,
+		sweepsFree = not inLevel(member),
+		trickle = member.trickle,
 		-- With (tier, seed) these two options let the client rebuild the exact same plan.
 		forcedAnomaly = if level then level.model:GetAttribute("ForcedAnomaly") else "",
 		allowPlate = level ~= nil and level.model:GetAttribute("AllowPlate") == true,
@@ -247,6 +273,7 @@ local function sendState(member: Member)
 		dailyDay = day,
 		dailyDone = profile.daily.day == day,
 		runActive = run.active,
+		lobby = lobbyList(),
 		session = {
 			static = member.sessionStatic,
 			levels = member.sessionLevels,
@@ -619,7 +646,26 @@ local function wirePickup(level: World.Level, pickup: World.Pickup)
 			)
 		elseif kind == "cell" then
 			run.collected.cells += 1
-			toastStage("Battery cell. The sweep is charged.", "good", "level", "downed")
+			local gained = pickup.objective.charges or 1
+			local kept, spilled =
+				Progression.addCharges(member.charges, gained, member.effects.chargeCapacity)
+			local added = kept - member.charges
+			member.charges = kept
+			local sweeps = if added == 1 then "1 sweep" else `{added} sweeps`
+			if spilled > 0 then
+				local static = spilled * Config.Battery.overflowStatic
+				grant(member, static, "Cell")
+				sendProfile(member)
+				toast(
+					player,
+					if added > 0
+						then `Battery cell: +{sweeps}. Battery full, +{static} Static.`
+						else `Battery full. The cell gives +{static} Static.`,
+					"good"
+				)
+			else
+				toast(player, `Battery cell: +{sweeps}.`, "good")
+			end
 		elseif kind == "rescue" then
 			run.collected.rescues += 1
 			profileOf(member).stats.rescues += 1
@@ -658,9 +704,12 @@ local function levelSeed(tier: number): number
 	return (run.seedBase + tier * SEED_STEP) % (SEED_SPAN - 1) + 1
 end
 
--- An exit is an open doorway (no panel to bump into) with a short hold-to-confirm prompt, so
--- nobody leaves by walking into a doorway they could not see in the dark. Anyone of `stage`
--- (default "level") who confirms calls `enter`, which returns true once the party is leaving.
+-- Each player's open "go down?" question: the doorway they asked at, answered by `Descend`.
+local doorwayAsk: { [Player]: () -> () } = {}
+
+-- An exit is an open doorway (no panel to bump into). Using it asks the player, in a pop-up
+-- over the still-visible stairwell, whether to go down; a yes calls `enter`, which returns true
+-- once the party is leaving. Anyone of `stage` (default "level") can ask.
 local function watchDoorway(
 	prompt: ProximityPrompt,
 	alive: () -> boolean,
@@ -670,9 +719,9 @@ local function watchDoorway(
 	local wanted = stage or "level"
 	local door = prompt.Parent :: BasePart
 	door.CanCollide = false
-	prompt.ActionText = "Go down"
+	prompt.ActionText = "Look down"
 	prompt.ObjectText = "Stairwell"
-	prompt.HoldDuration = DOORWAY_HOLD_SECONDS
+	prompt.HoldDuration = 0
 	prompt.Enabled = true
 	prompt.Triggered:Connect(function(player: Player)
 		local member = members[player]
@@ -681,13 +730,27 @@ local function watchDoorway(
 			or member.stage ~= wanted
 			or not alive()
 			or not nearEnough(player, door)
+			or doorwayAsk[player] ~= nil
 		then
 			return
 		end
-		if enter(player) then
-			prompt.Enabled = false
+		doorwayAsk[player] = function()
+			if alive() and member.stage == wanted and nearEnough(player, door) then
+				if enter(player) then
+					prompt.Enabled = false
+				end
+			end
 		end
+		Remotes.send(player, "AskDescend", DOORWAY_QUESTION)
 	end)
+end
+
+local function onDescend(player: Player, yes: boolean)
+	local ask = doorwayAsk[player]
+	doorwayAsk[player] = nil
+	if yes and ask ~= nil then
+		ask()
+	end
 end
 
 local function beginLevel(tier: number)
@@ -1086,6 +1149,8 @@ end
 
 local function joinRun(member: Member, mode: string)
 	local profile = profileOf(member)
+	member.charges = member.effects.startCharges
+	member.trickle = 0
 	if not run.active then
 		run.active = true
 		run.mode = if mode == "daily" then "daily" else "run"
@@ -1118,6 +1183,22 @@ local function joinRun(member: Member, mode: string)
 	sendStateAll()
 end
 
+-- One intake room per server at a time: friends who go in together, or who start while
+-- someone is still inside, learn the scanner side by side.
+local function sharedIntake(): TutorialRoom.Tutorial?
+	for _, other in members do
+		local tutorial = other.tutorial
+		if
+			other.stage == "tutorial"
+			and tutorial ~= nil
+			and tutorial.model:GetAttribute("Closed") ~= true
+		then
+			return tutorial
+		end
+	end
+	return nil
+end
+
 local function leaveTutorial(member: Member)
 	local tutorial = member.tutorial
 	member.tutorial = nil
@@ -1125,33 +1206,55 @@ local function leaveTutorial(member: Member)
 	profile.tutorialDone = true
 	Data.touch(member.player)
 	Telemetry.funnel(member.player, "TutorialComplete")
+	-- Whoever leaves first builds the level; the rest wait for it, then drop in.
+	while run.phase == "transition" do
+		task.wait(TRANSITION_POLL_SECONDS)
+	end
+	if members[member.player] ~= member then
+		return
+	end
 	joinRun(member, "new")
 	if tutorial then
+		for _, other in members do
+			if other.tutorial == tutorial then
+				return -- someone is still inside
+			end
+		end
 		tutorial.model:Destroy()
 	end
 end
 
 local function startTutorial(member: Member)
-	local base = Vector3.new(table.unpack(Config.World.tutorialOrigin))
-	local tutorial =
-		TutorialRoom.build(base + Vector3.new(member.slot * Config.World.tutorialSpacing, 0, 0))
+	local tutorial = sharedIntake()
+	if tutorial == nil then
+		local base = Vector3.new(table.unpack(Config.World.tutorialOrigin))
+		local room =
+			TutorialRoom.build(base + Vector3.new(member.slot * Config.World.tutorialSpacing, 0, 0))
+		tutorial = room
+		-- Opening the door takes everyone in the room through it together.
+		room.exitPrompt.Triggered:Connect(function(player: Player)
+			local opener = members[player]
+			if
+				room.model:GetAttribute("Closed") == true
+				or opener == nil
+				or opener.tutorial ~= room
+				or opener.stage ~= "tutorial"
+				or not nearEnough(player, room.exitDoor)
+			then
+				return
+			end
+			room.model:SetAttribute("Closed", true)
+			for _, other in members do
+				if other.tutorial == room and other.stage == "tutorial" then
+					task.spawn(leaveTutorial, other)
+				end
+			end
+		end)
+	end
 	member.tutorial = tutorial
 	member.stage = "tutorial"
-	local used = false
-	tutorial.exitPrompt.Triggered:Connect(function(player: Player)
-		if
-			used
-			or player ~= member.player
-			or member.stage ~= "tutorial"
-			or not nearEnough(player, tutorial.exitDoor)
-		then
-			return
-		end
-		used = true
-		leaveTutorial(member)
-	end)
-	Director.placeMember(member, tutorial.spawnCFrame)
-	sendState(member)
+	Director.placeMember(member, (tutorial :: TutorialRoom.Tutorial).spawnCFrame)
+	sendStateAll()
 end
 
 local function onStart(player: Player, mode: string)
@@ -1160,6 +1263,7 @@ local function onStart(player: Player, mode: string)
 		return
 	end
 	member.starting = true
+	member.ready = false
 	Telemetry.funnel(player, "PressedPlay")
 	while run.phase == "transition" do
 		task.wait(TRANSITION_POLL_SECONDS) -- a level is being built: join once it is ready
@@ -1175,6 +1279,61 @@ local function onStart(player: Player, mode: string)
 		startTutorial(member)
 	else
 		joinRun(member, mode)
+	end
+end
+
+-- Play Together: a player on the title marks themselves ready; whoever presses Start takes
+-- everyone who is ready in with them. The server is the party (friends join it through a Roblox
+-- invite), so this only lines people up to go in at the same moment.
+local function onPartyReady(player: Player, on: boolean)
+	local member = members[player]
+	if member == nil or member.stage ~= "title" or member.starting then
+		return
+	end
+	member.ready = on
+	sendStateAll()
+end
+
+local function onPartyStart(player: Player, mode: string)
+	local leader = members[player]
+	if leader == nil or leader.stage ~= "title" or leader.starting then
+		return
+	end
+	local crew: { Player } = {}
+	for other, member in members do
+		if other ~= player and member.stage == "title" and member.ready and not member.starting then
+			table.insert(crew, other)
+		end
+	end
+	for _, other in crew do
+		toast(other, `{player.DisplayName} is taking everyone in.`, "info")
+	end
+	-- If anyone is new, the whole crew starts in the intake together and works out the
+	-- scanner side by side; the door takes them all into the first level.
+	local anyNew = not profileOf(leader).tutorialDone
+	for _, other in crew do
+		local member = members[other]
+		if member and not profileOf(member).tutorialDone then
+			anyNew = true
+		end
+	end
+	if anyNew and not Party.isLobby() and not run.active then
+		local everyone = { leader }
+		for _, other in crew do
+			table.insert(everyone, members[other])
+		end
+		for _, member in everyone do
+			member.starting = true
+			member.ready = false
+			Telemetry.funnel(member.player, "PressedPlay")
+			startTutorial(member)
+		end
+		return
+	end
+	-- The leader's run starts first; the others drop into it (onStart waits out the build).
+	task.spawn(onStart, player, mode)
+	for _, other in crew do
+		task.spawn(onStart, other, mode)
 	end
 end
 
@@ -1216,12 +1375,15 @@ local function onPlayerAdded(player: Player)
 		lastPingAt = 0,
 		ownsKit = false,
 		effects = Progression.effects(profile),
+		charges = 0,
+		trickle = 0,
 		sessionStatic = 0,
 		sessionLevels = 0,
 		sessionCatches = 0,
 		sessionLore = 0,
 		sessionDistance = 0,
 		endingOffered = false,
+		ready = false,
 	}
 	members[player] = member
 	Telemetry.funnel(player, "Joined")
@@ -1231,7 +1393,7 @@ local function onPlayerAdded(player: Player)
 		grant(member, streakBonus, "Streak")
 	end
 	sendProfile(member)
-	sendState(member)
+	sendStateAll() -- the others' Play Together screens list the newcomer
 	if streakBonus > 0 then
 		toast(player, `Visit {profile.streak.count}: +{streakBonus} Static.`, "good")
 	end
@@ -1290,6 +1452,7 @@ local function onPlayerRemoving(player: Player)
 		return
 	end
 	members[player] = nil
+	doorwayAsk[player] = nil
 	Telemetry.custom(player, "QuitAtTier", if member.stage == "title" then 0 else run.tier)
 	Telemetry.forget(player)
 	if member.tutorial then
@@ -1321,6 +1484,16 @@ local function onScanState(
 		return
 	end
 	local standing = member.stage ~= "downed"
+	-- A sweep in a level spends a charge when it starts. One the gun has no charge for is
+	-- not believed: nothing hears it, and teammates are not shown it.
+	if sweeping and standing and not member.scanSweeping and member.stage == "level" then
+		if member.charges > 0 then
+			member.charges -= 1
+			sendState(member)
+		else
+			sweeping = false
+		end
+	end
 	member.scanFiring = firing and standing
 	member.scanSweeping = sweeping and standing
 	member.crouching = crouching
@@ -1583,9 +1756,24 @@ end
 --------------------------------------------------------------------------------------------
 -- Periodic logic
 
-local function tickMembers()
+local function tickMembers(dt: number)
 	local level = run.level
 	for player, member in members do
+		-- Trickle Charger: a charge comes back slowly while walking a level.
+		local trickleSeconds = member.effects.trickleSeconds
+		if
+			level ~= nil
+			and member.stage == "level"
+			and trickleSeconds > 0
+			and member.charges < member.effects.chargeCapacity
+		then
+			member.trickle += dt / (trickleSeconds * level.plan.def.sweepScale)
+			if member.trickle >= 1 then
+				member.trickle = 0
+				member.charges += 1
+				sendState(member)
+			end
+		end
 		local root = rootOf(player)
 		if root ~= nil and member.stage ~= "title" then
 			local last = member.lastPosition
@@ -1751,6 +1939,14 @@ function Director.dev.grant(amount: number)
 	end
 end
 
+-- Sets everyone's sweep charges (capped at their battery's capacity).
+function Director.dev.charges(count: number)
+	for _, member in members do
+		member.charges = math.clamp(count, 0, member.effects.chargeCapacity)
+		sendState(member)
+	end
+end
+
 function Director.start()
 	Players.CharacterAutoLoads = false
 
@@ -1765,6 +1961,9 @@ function Director.start()
 	Remotes.on("SetSetting", onSetSetting)
 	Remotes.on("Funnel", onFunnel)
 	Remotes.on("Choose", onChoose)
+	Remotes.on("Descend", onDescend)
+	Remotes.on("PartyReady", onPartyReady)
+	Remotes.on("PartyStart", onPartyStart)
 
 	Players.PlayerAdded:Connect(onPlayerAdded)
 	Players.PlayerRemoving:Connect(onPlayerRemoving)
@@ -1779,7 +1978,7 @@ function Director.start()
 		accumulator += dt
 		if accumulator >= interval then
 			tickRevives(accumulator)
-			tickMembers()
+			tickMembers(accumulator)
 			accumulator = 0
 		end
 	end)

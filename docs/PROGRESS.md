@@ -312,7 +312,10 @@ Lidar.ignore(instance: Instance)                       -- never hit this with ra
 Lidar.onBatch(listener: (count: number, meanDistance: number, enemy: boolean, friend: boolean, objective: boolean) -> ())
 Lidar.onSweep(listener: () -> ())                      -- the local player's sweep fired
 Lidar.onRadar(listener: () -> ())                      -- the Pulse Radar fired
-Lidar.recharge()                                       -- a battery cell: sweep is ready now
+Lidar.charges: number       -- sweep charges in the gun (predicted; State.server.charges is the truth)
+Lidar.freeSweeps: boolean   -- outside a level sweeps cost nothing
+Lidar.trickle: number       -- 0..1 Trickle Charger progress
+Lidar.onDenied(listener: () -> ())                     -- a sweep was asked for with no charge
 Lidar.cast(look: CFrame, count: number, halfAngleDeg: number, params: RaycastParams)
     -- Rays from anywhere, no sound, no reporting: the title screen's backdrop.
 Lidar.start()
@@ -399,6 +402,37 @@ Footprints for monsters (red) and players (green), breath mist near monsters, th
 Same entry points as v1 (`X.start()`, `Menus.open/close/isOpen/applyCosmetics`,
 `Atmosphere.onZone/zone/forceDark/lit`, the `Ui` helpers).
 
+## Upgrade room light, home screen, Play Together (22 Oct, cloud thread; nothing seen in Studio)
+Vasco: the room with the upgrades (the havens with the workbench) was extremely bright after an
+exit; on the home screen text overlapped; there was no way to play with others from it.
+- Bright haven, likely cause: when a dark haven's lamp is found, its Neon ceiling panels and their
+  1.5/34 lights came back while the client still used the maze's strong dark bloom (tuned to make
+  dots glow), so the panels bloomed into a white-out. Now the ceiling tubes (`Tube` attribute in
+  `LoreRooms.buildLights`) come back dead: grey plastic and a 0.25/16 glow, so the lamp is the
+  light. The reveal also sets `Revealed` on the room's `LitZone`, and `Atmosphere` eases the bloom
+  to the lit-room values inside a found haven. Lit rooms (Lamp Room, Relay landing): panel lights
+  0.9/30 (was 1.5/34) and ambient 0.3 (was 0.55). Check in Studio: Copy Room after T1 once the
+  lamp is scanned; the Night Desk; the landing after a daily.
+- Overlap, likely cause: join toasts (visit streak, "Saving is unavailable" in Studio) are drawn
+  at the top of the screen, right over the big L I D A R letters. On the title, `Hud.toast` now
+  stays quiet and `Menus` shows them as small notices under the buttons. The title is now one
+  auto-sized column (letters, subtitle, buttons, status, notices), so nothing can land on anything
+  else.
+- Play Together: a PLAY TOGETHER button on the home screen (shows how many others are here) opens a
+  party screen listing everyone on the server, with friend tags and where each one is (title,
+  intake, in the dark, safe room). INVITE FRIENDS opens Roblox's invite (`Menus.invite`); I'M READY
+  marks you ready (`PartyReady` remote); GO IN (`PartyStart`) starts the run and takes everyone
+  who is ready with you (each goes through `onStart`, so a player who never did the intake does it
+  first and then joins). While a run is going the button says JOIN THEM. The server is still the
+  party: anyone on it plays the same run. State carries `lobby` (userId, name, stage, ready).
+- Intake together (Vasco: friends should work out the mechanics together): there is one shared
+  intake room per server. Anyone who starts the intake while someone is inside joins that room,
+  and GO IN puts the whole crew in it when anyone is new. Opening its door takes everyone inside
+  through together (the first builds the level, the rest wait for it and drop in). Settings has a
+  FRIENDS / INVITE row, and the rows scroll.
+- Not built: a private/solo server (reserving a server needs a published place; `Party.luau` has
+  the lobby/teleport path for that), a party leader, kicking.
+
 ## Verification
 
 Only what has actually been run is listed as verified.
@@ -476,3 +510,52 @@ Only what has actually been run is listed as verified.
 - Doorway confirm (Vasco: walking in by accident in the dark was confusing): the doorways keep no
   panel to bump into, but leaving needs a 0.6 s hold on a "Go down / Stairwell" prompt again
   (`watchDoorway` now wraps the exit prompt instead of polling positions).
+- Descend pop-up (Vasco: the hold prompt "only adds a step"): the doorway prompt (press E, no
+  hold, "Look down") now asks over the net (`AskDescend`); the client shows a small panel low on
+  the screen (`Menus` window "descend", backdrop 90% clear) with GO DOWN / NOT YET and answers with
+  `Descend(yes)`. The server keeps one pending ask per player (`doorwayAsk`) and re-checks
+  that the doorway is still live and the player still near before leaving. The stairwell is
+  drawn now (dark concrete, a dim emergency lamp every four steps, a brighter one at the bottom)
+  so it stays in view behind the pop-up and the walk is one place, not a cut.
+- Posters no longer flash near monsters: `Immersion.refreshLights` skips lights on hidden
+  `Marker` parts (poster and recorder glows).
+
+## Scanner power and battery cells (22 Oct, cloud thread, branch `claude/scanner-progression`; nothing seen in Studio)
+Vasco asked for a weaker base scanner, sweeps earned through battery cells (1 or 2 each), more
+progression between runs and room for monetization; then a faint pull towards unscanned finds.
+- Base scanner is weaker and grows with the bench (`Progression.effects`): scatter 380 dots/s
+  (Emitter +100 x5), reach 85 studs (Range Coil +16 x4, cap `maxRange` 150), sweep grid 56x70
+  (Sweep Grid up to 90x114), dot budget 18k/55k/110k (Phosphor +25% x4). Teammates' relayed
+  scans are drawn at the local player's reach and the base rate and grid.
+- Sweeps cost a charge in a level (free in the tutorial and havens). The timed recharge is gone.
+  `Config.Battery`: capacity 3 (+1 per Capacitor level; the id stays `battery`), 1 at the start of
+  a run (+1 per Spare Cell), 30% of cells give 2, a charge that does not fit pays 6 Static,
+  Trickle Charger 150/110/80 s per charge (times the tier's `sweepScale`). The server owns the
+  count (`Member.charges`, sent as `State.server.charges`); it spends one on the rising edge of
+  `scanSweeping` and ignores a sweep it has no charge for. The client predicts and shows
+  `SWEEP n/cap` (or `SWEEP 0 - FIND A CELL`, flashing when denied); the first denied sweep shows
+  the `item.cell` hint.
+- Cells: `Tiers.batteries` (4,4,4,3,3,3,3,3; endless one fewer every 6 floors, min 2) placed by
+  `LevelPlan` as `cell` objectives with `charges`; the first near the start, the rest prefer
+  dead ends. Optional objectives are now surveyors only (from tier 2). A double cell is two
+  cylinders. A cell goes to whoever picks it up.
+- New upgrades: `emitter`, `range`, `grid`, `spare`, `trickle`; bench order is scanner, battery,
+  tools. Scanner plus battery rows cost about 3,100 Static. `cellBonus` 12 -> 5.
+- `client/Lure` (new): unscanned cells and story things (`EchoKind` recorder, reveal, sign; set
+  in `World.newEcho`) give off faint warm motes (ParticleEmitter, about one every 3 s, 0.035
+  studs, 90% transparent at best) within 18 studs and in line of sight; the first ray that lands
+  on one stops it for good. Distinct from the gold found-item pulse in `Immersion`. Toned down
+  after Vasco's first look (cells too easy to spot).
+- `Immersion` found-item pulse: stops for good once the item is picked up (`Objective` event) or
+  the hidden thing has revealed itself (`Echo` event); it used to keep pulsing where a battery
+  cell had been taken.
+- `docs/MONETIZATION.md` (new): what could be sold and what never should be. No purchases added.
+- Dev: `charges N`.
+- Check in Studio: motes visible but subtle at 1080p and on a phone (raise `Brightness` or the
+  0.78 transparency if they vanish), the meter text fits, sweep denied at 0 without a sound glitch,
+  a double cell's dots, the server and client counts staying in step, and how often players run
+  dry (cells per tier is the knob).
+- Weaker again (22 Oct, Vasco: "the scanner can start being a little less powerful, so there's
+  some real progression"; keep the batteries standing out): scatter 260 dots/s (Emitter +120 x5 to
+  860), reach 65 studs (Range Coil +21 x4 to 149), sweep 44x56 (Sweep Grid 60x76, 76x96, 90x114),
+  widest cone 34 degrees without Wide Lens (was 40), dot budget 14k/42k/85k. Lure unchanged.
