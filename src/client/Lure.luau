@@ -16,9 +16,11 @@ local State = require(script.Parent.State)
 
 type Lure = { model: Model, part: Part, emitter: ParticleEmitter }
 
-local RANGE = 30 -- studs; farther than this nothing shows
+-- Tuned down after Vasco's first look (22 Oct): the cells were too easy to spot. A mote now
+-- appears every few seconds, only close by, and is barely brighter than nothing.
+local RANGE = 18 -- studs; farther than this nothing shows
 local REFRESH_SECONDS = 0.5
-local RATE = 0.9 -- motes per second at the closest; fewer farther away
+local RATE = 0.3 -- motes per second at the closest; fewer farther away
 local MOTE_COLOR = Color3.fromRGB(255, 240, 214) -- a warm white, not the gold of a found item
 local STORY_KINDS = { recorder = true, reveal = true, sign = true }
 local ANCESTOR_STEPS = 6 -- how far up from a hit part to look for the lured model
@@ -48,18 +50,18 @@ local function newLure(model: Model): Lure
 	emitter.Color = ColorSequence.new(MOTE_COLOR)
 	emitter.LightEmission = 1
 	emitter.LightInfluence = 0
-	emitter.Brightness = 1.5
+	emitter.Brightness = 1
 	emitter.Size = NumberSequence.new({
 		NumberSequenceKeypoint.new(0, 0),
-		NumberSequenceKeypoint.new(0.4, 0.05),
+		NumberSequenceKeypoint.new(0.4, 0.035),
 		NumberSequenceKeypoint.new(1, 0),
 	})
 	emitter.Transparency = NumberSequence.new({
 		NumberSequenceKeypoint.new(0, 1),
-		NumberSequenceKeypoint.new(0.35, 0.78),
+		NumberSequenceKeypoint.new(0.4, 0.9),
 		NumberSequenceKeypoint.new(1, 1),
 	})
-	emitter.Lifetime = NumberRange.new(2.4, 3.6)
+	emitter.Lifetime = NumberRange.new(2, 3)
 	emitter.Speed = NumberRange.new(0.1, 0.3)
 	emitter.SpreadAngle = Vector2.new(180, 180)
 	emitter.Acceleration = Vector3.new(0, 0.12, 0) -- drifts up, like dust in a draught

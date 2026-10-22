@@ -44,9 +44,10 @@ bench, wins one charge back every 150 / 110 / 80 s while walking a level (slower
 tiers).
 
 **Lures.** Unscanned cells, recorders, story objects and posters give off a few dim, slow
-motes of warm light when the player is within 30 studs and nothing is in between: too faint to
+motes of warm light, one every few seconds, when the player is within 18 studs and nothing is in between: too faint to
 read as a marker, just enough to pull the eye. The first ray that lands on the thing stops them
-for good, and from then on the gold found-item pulse takes over (`client/Lure`).
+for good, and from then on the gold found-item pulse takes over (`client/Lure`) until the item
+is picked up or revealed.
 
 **Dots** are tiny Neon cubes coloured by what they hit: wall, floor, ceiling, water (blue),
 friend (green), monster (red), objective (gold), hazard (violet). The world's dots are
