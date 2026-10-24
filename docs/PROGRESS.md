@@ -587,3 +587,11 @@ progression between runs and room for monetization; then a faint pull towards un
   some real progression"; keep the batteries standing out): scatter 260 dots/s (Emitter +120 x5 to
   860), reach 65 studs (Range Coil +21 x4 to 149), sweep 44x56 (Sweep Grid 60x76, 76x96, 90x114),
   widest cone 34 degrees without Wide Lens (was 40), dot budget 14k/42k/85k. Lure unchanged.
+- Stairwell lights and end (Vasco, 24 Oct): the emergency lamp bulbs are gone. Both walls carry
+  flush concrete light blocks (every 3 steps, alternating sides; `Passage.build` returns `update`)
+  that warm up and gain a point light over 0.7 s once a walker on the stairs is within 11 studs
+  (`Director.walkPassage` calls `passage.update` each 0.25 s poll). The closed end is now a
+  doorway (5 wide, 7.5 high, header tagged as an objective so a scan draws it gold) into 16
+  studs of corridor with no light; arriving 7 studs past the doorway ends the walk. Check in
+  Studio: blocks flush with the wall, the lit-ahead pace, darkness past the doorway, the fade to
+  black firing inside the dark.
