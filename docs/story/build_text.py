@@ -179,13 +179,15 @@ def add(id, kind, section, where, lines, speaker=None, title=None, glow=None, no
     E.append(d)
 
 
-def scene(id, kind, title, where, trigger, beats, note=None, look=None):
+def scene(id, kind, title, where, trigger, beats, note=None, look=None, stage=None):
     out = []
     for b in beats:
         if b[0] == "~":
             out.append({"shot": b[1]})
         elif b[0] == "^":
             out.append({"cap": b[1]})
+        elif b[0] == "@":
+            out.append({"stage": b[1]})
         else:
             out.append({"sp": b[0], "line": b[1]})
     d = {"id": id, "kind": kind, "title": title, "where": where, "trigger": trigger, "beats": out}
@@ -193,6 +195,8 @@ def scene(id, kind, title, where, trigger, beats, note=None, look=None):
         d["note"] = note
     if look:
         d["look"] = look
+    if stage:
+        d["stage"] = stage
     SCENES.append(d)
 
 
@@ -609,17 +613,17 @@ add("rev.dorm.model", "reveal", "dorm", "Model of the Halden Building",
 # ===================================================================== SCENES
 # --- OPENING CUTSCENE (plays on New Game; skippable on repeat)
 scene("cs.open", "cutscene", "The Halden Building", "New Game start", "Automatic, once per profile; skippable", [
-    ("~", "Black. A single office-night sound: ventilation, a clock, a sprung chair."),
+    ("@", "office"),
     ("^", "TUESDAY, 11:42 PM"),
     ("^", "HALDEN BUILDING, FLOOR 3"),
     ("Theo", "Last scan. Forty-one of forty-one. Pack up, go home."),
-    ("~", "Theo unplugs the tripod, steps back and leans a hand on the far wall. His hand sinks in. The wall is not there."),
+    ("@", "lean"),
     ("Theo", "Wait. That's not--"),
-    ("~", "The floor goes soft. Fluorescents flare and die. Black. A low electrical hum."),
+    ("@", "dark"),
     ("^", "LIDAR"),
-    ("~", "Wake. Damp yellow wallpaper, wet carpet. The wall behind him has run like wax. His scanner is still in his hand."),
+    ("@", "wake"),
     ("Theo", "This is not floor three. Scan the room. Find a door."),
-], note="~35 to 45 seconds. Ends on the first playable frame with the scanner raised; no black gap.", look="l0")
+], note="About 30 seconds. Staged in the client (Stage.luau, set office): scanner sweeps the floor, Theo leans on the wall, it melts, black, the title, a low shot of the melted wall. Ends on the first playable frame.", look="l0", stage="office")
 
 # --- TAPE 1: ORIENTATION (the clear opening explanation)
 scene("tape.orientation", "tape", "Survey Orientation (Tape 1 of 9)", "CRT/VCR in the first room (poi.l0.vcr); lit and playable on the first dot", "Interact; auto-offers at 20 seconds idle", [
@@ -847,6 +851,11 @@ scene("end.stay", "cutscene", "The Lamp", "After choice.stay", "Cutscene, then T
 ], note="Starts endless mode. The daily seed is tonight's floor.", look="lamp")
 
 
+for _s in SCENES:
+    if _s["kind"] == "tape":
+        _s["stage"] = "tape"  # played on a CRT: one figure at a desk, scanlines (Stage.luau)
+
+
 # ===================================================================== LEGACY (v1 ids)
 # The running build still asks for v1 ids. They stay available, marked legacy, until the build
 # thread migrates each caller to the v2 ids. Not listed in 03-ingame-text.md.
@@ -883,7 +892,7 @@ def validate():
             strings.append((e["id"] + ".thought", e["thought"]))
     for s in SCENES:
         for b in s["beats"]:
-            strings.append((s["id"], b.get("line") or b.get("shot") or b.get("cap")))
+            strings.append((s["id"], b.get("line") or b.get("shot") or b.get("cap") or b.get("stage")))
     for i, ln in strings:
         if not ln.isascii():
             print("NON-ASCII", i, ln)
@@ -934,8 +943,8 @@ def main():
            "export type Entry = {", "\tid: string,", "\tkind: string,", "\tsection: string,", "\twhere: string,", "\tlines: { string },",
            "\tspeaker: string?,", "\ttitle: string?,", "\tglow: { color: string, radius: number, look: string? }?,", "\tnote: string?,",
            "\tthought: string?,", "\tlook: string?,", "\tvo: string?,", "\tlegacy: boolean?,", "}",
-           "export type Beat = { sp: string?, line: string?, shot: string?, cap: string? }",
-           "export type Scene = { id: string, kind: string, title: string, where: string, trigger: string, beats: { Beat }, note: string?, look: string? }",
+           "export type Beat = { sp: string?, line: string?, shot: string?, cap: string?, stage: string? }",
+           "export type Scene = { id: string, kind: string, title: string, where: string, trigger: string, beats: { Beat }, note: string?, look: string?, stage: string? }",
            "", "local entries: { Entry } = {"]
     for e in E:
         parts = ["id = " + luau_str(e["id"]), "kind = " + luau_str(e["kind"]), "section = " + luau_str(e["section"]),
@@ -955,11 +964,11 @@ def main():
     out += ["}", "", "local scenes: { Scene } = {"]
     for s in SCENES:
         beats = ", ".join(
-            "{ " + (("sp = " + luau_str(b["sp"]) + ", line = " + luau_str(b["line"])) if "sp" in b else (("cap = " + luau_str(b["cap"])) if "cap" in b else ("shot = " + luau_str(b["shot"])))) + " }"
+            "{ " + (("sp = " + luau_str(b["sp"]) + ", line = " + luau_str(b["line"])) if "sp" in b else (("cap = " + luau_str(b["cap"])) if "cap" in b else (("stage = " + luau_str(b["stage"])) if "stage" in b else ("shot = " + luau_str(b["shot"]))))) + " }"
             for b in s["beats"])
         parts = ["id = " + luau_str(s["id"]), "kind = " + luau_str(s["kind"]), "title = " + luau_str(s["title"]),
                  "where = " + luau_str(s["where"]), "trigger = " + luau_str(s["trigger"]), "beats = { " + beats + " }"]
-        for k in ("note", "look"):
+        for k in ("note", "look", "stage"):
             if k in s:
                 parts.append(k + " = " + luau_str(s[k]))
         out.append("\t{ " + ", ".join(parts) + " },")
@@ -1007,7 +1016,9 @@ def main():
             cs.append("- **Note:** " + s["note"])
         cs.append("")
         for b in s["beats"]:
-            if "cap" in b:
+            if "stage" in b:
+                cs.append("> *[staging: %s]*" % b["stage"])
+            elif "cap" in b:
                 cs.append("> **[caption]** %s" % b["cap"])
             elif "shot" in b:
                 cs.append("> *[%s]*" % b["shot"])

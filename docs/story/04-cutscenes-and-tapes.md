@@ -8,17 +8,17 @@ All spoken lines are voiced (see `05-voice-and-radio.md`) and subtitled. Tapes p
 - **Where:** New Game start
 - **Trigger:** Automatic, once per profile; skippable
 - **Backdrop:** `l0`
-- **Note:** ~35 to 45 seconds. Ends on the first playable frame with the scanner raised; no black gap.
+- **Note:** About 30 seconds. Staged in the client (Stage.luau, set office): scanner sweeps the floor, Theo leans on the wall, it melts, black, the title, a low shot of the melted wall. Ends on the first playable frame.
 
-> *[Black. A single office-night sound: ventilation, a clock, a sprung chair.]*
+> *[staging: office]*
 > **[caption]** TUESDAY, 11:42 PM
 > **[caption]** HALDEN BUILDING, FLOOR 3
 > **Theo:** Last scan. Forty-one of forty-one. Pack up, go home.
-> *[Theo unplugs the tripod, steps back and leans a hand on the far wall. His hand sinks in. The wall is not there.]*
+> *[staging: lean]*
 > **Theo:** Wait. That's not--
-> *[The floor goes soft. Fluorescents flare and die. Black. A low electrical hum.]*
+> *[staging: dark]*
 > **[caption]** LIDAR
-> *[Wake. Damp yellow wallpaper, wet carpet. The wall behind him has run like wax. His scanner is still in his hand.]*
+> *[staging: wake]*
 > **Theo:** This is not floor three. Scan the room. Find a door.
 
 ## Survey Orientation (Tape 1 of 9) (`tape.orientation`, tape)
