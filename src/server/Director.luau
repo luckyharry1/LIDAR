@@ -1013,19 +1013,22 @@ function Director.walkPassage(next: () -> ())
 		local deadline = os.clock() + PASSAGE_MAX_SECONDS
 		while run.passage == passage and os.clock() < deadline do
 			local anyone, arrived = false, false
+			local positions: { Vector3 } = {}
 			for player, member in members do
 				if member.stage == "passage" then
 					anyone = true
 					local root = rootOf(player)
-					if
-						root
-						and (root.Position - passage.endPosition).Magnitude
-							<= PASSAGE_END_RADIUS
-					then
-						arrived = true
+					if root then
+						table.insert(positions, root.Position)
+						if
+							(root.Position - passage.endPosition).Magnitude <= PASSAGE_END_RADIUS
+						then
+							arrived = true
+						end
 					end
 				end
 			end
+			passage.update(positions)
 			if not anyone or arrived then
 				break
 			end
