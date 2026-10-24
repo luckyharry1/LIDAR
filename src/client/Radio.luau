@@ -35,6 +35,9 @@ local nextFake = 1
 local checkTimer = 0
 
 local function say(line: string, fake: boolean?)
+	if not State.storyLive then
+		return -- the first minutes stay quiet: the first hidden object starts the talking
+	end
 	Audio.sequence({ 0.55, 0.62, 0.5 }, 0.035, 0.16) -- a crackle of static first
 	Hud.dialogue(if fake then Lore.radio.fakeSpeaker else Lore.radio.speaker, line)
 end

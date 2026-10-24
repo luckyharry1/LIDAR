@@ -29,13 +29,13 @@ local SWEEP_HINT_SECONDS = 12
 local HINT_SECONDS = 8
 local SPRINT_HINT_AFTER = 35 -- seconds into the first level
 local TV_REACH = 3 -- studs: a dot this close to the television's screen counts as a hit on it
-local TV_AUTOPLAY_SECONDS = 50 -- the tape plays by itself if nobody finds the screen
+local THINK_GAP_SECONDS = 40 -- Theo thinks aloud at most this often
 local PROFILE_WAIT_SECONDS = 3 -- how long to wait for a saved profile before assuming a new player
 local SCENE_DELAY = 1.6 -- seconds after arriving at a camp before the surveyor speaks
 
 local Tutorial = {}
 
-local step = "idle" -- intake room progress: idle, scan, tape, sweep, find, door, done
+local step = "idle" -- intake room progress: idle, scan, sweep, find, door, done
 local stepStarted = 0
 local dotsAtStart = 0
 local shown: { [string]: boolean } = {}
@@ -45,6 +45,7 @@ local thoughts: { [string]: boolean } = {} -- Theo says each of these once per s
 local visited: { [string]: boolean } = {} -- camps whose surveyor has already spoken
 local tvHits = 0
 local tvPlayed = false
+local lastThought = -1000
 
 -- The printed lines of a story entry (margin notes left out unless asked for), joined.
 local function words(id: string, withMargin: boolean?): string
@@ -73,10 +74,12 @@ end
 
 -- Theo thinks out loud: subtitled, once per session. `key` is a LoreText "thought.<key>".
 local function think(key: string)
-	if thoughts[key] then
-		return
+	local now = os.clock()
+	if thoughts[key] or not State.storyLive or now - lastThought < THINK_GAP_SECONDS then
+		return -- quiet until the first hidden object speaks, and never chatty after it
 	end
 	thoughts[key] = true
+	lastThought = now
 	Hud.dialogue("Theo", Lore.thought(key))
 end
 
@@ -107,11 +110,7 @@ local function playTape()
 		light.Parent = screen
 	end
 	Hud.hint(nil)
-	Cutscene.play("tape.orientation", function()
-		if step == "tape" then
-			setStep("sweep")
-		end
-	end)
+	Cutscene.play("tape.orientation")
 end
 
 function setStep(name: string)
@@ -120,10 +119,6 @@ function setStep(name: string)
 	if name == "scan" then
 		dotsAtStart = Dots.spawned
 		Hud.hint("Scan the room. Find a door.\n[" .. Input.hint("fire") .. "]")
-	elseif name == "tape" then
-		Hud.hint(
-			"A television on a cart, by the right wall. Scan it.\n[" .. Input.hint("fire") .. "]"
-		)
 	elseif name == "sweep" then
 		Hud.hint(poster("rule.03", Input.hint("sweep") .. ": one sweep draws the whole view"))
 	elseif name == "find" then
@@ -180,12 +175,7 @@ local function update()
 	if step == "scan" then
 		if Dots.spawned - dotsAtStart >= FIRST_SCAN_DOTS then
 			(Net.get("Funnel") :: RemoteEvent):FireServer("TutorialFirstScan")
-			think("firstdot")
-			setStep("tape")
-		end
-	elseif step == "tape" then
-		if now - stepStarted > TV_AUTOPLAY_SECONDS then
-			playTape()
+			setStep("sweep")
 		end
 	elseif step == "sweep" then
 		if now - stepStarted > SWEEP_HINT_SECONDS then
@@ -227,7 +217,6 @@ local function beginIntake()
 	Cutscene.play("cs.open", function()
 		if State.server.stage == "tutorial" then
 			setStep("scan")
-			think("wake")
 		end
 	end)
 end
@@ -245,7 +234,8 @@ function Tutorial.start()
 	Lidar.onHit(function(position: Vector3)
 		local screen = tvScreen()
 		if
-			step == "tape"
+			step ~= "idle"
+			and step ~= "done"
 			and screen ~= nil
 			and (screen.Position - position).Magnitude < TV_REACH
 		then

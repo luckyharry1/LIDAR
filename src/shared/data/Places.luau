@@ -60,10 +60,9 @@ Places.tiers = {
 		},
 	},
 	[2] = {
-		reveals = { "poi.l0.vending", "poi.l0.coat" },
+		reveals = { "poi.l0.vending" },
 		signs = {
 			{ id = "rule.05", at = "any" },
-			{ id = "rule.06", at = "any" },
 			{ id = "sign.pit.1", at = "pit" },
 		},
 	},

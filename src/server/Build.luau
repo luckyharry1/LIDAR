@@ -82,6 +82,7 @@ function Build.pointLight(
 	light.Brightness = brightness
 	light.Range = range
 	light.Shadows = false
+	CollectionService:AddTag(light, Config.Tags.light)
 	light.Parent = parent
 	return light
 end
@@ -95,6 +96,32 @@ function Build.hide(root: Instance)
 			descendant.Transparency = 1
 		elseif descendant:IsA("Light") or descendant:IsA("SurfaceGui") then
 			(descendant :: any).Enabled = false
+		end
+	end
+end
+
+-- Builds `root` dark for every client: its parts draw nothing and its lights are off, each
+-- tagged `concealed` with what it looked like (attribute "ShowTransparency"). A client brings
+-- them back near where its own (or a teammate's) scan lands. Done on the server so the very
+-- first frame a client sees is already dark, however long the level takes to arrive. Parts
+-- that are already invisible (markers, a burnt-out lamp) are left alone.
+function Build.conceal(root: Instance)
+	for _, descendant in root:GetDescendants() do
+		if descendant:IsA("BasePart") then
+			if descendant.Transparency < 1 then
+				descendant:SetAttribute("ShowTransparency", descendant.Transparency)
+				descendant.Transparency = 1
+				CollectionService:AddTag(descendant, Config.Tags.concealed)
+			end
+		elseif
+			descendant:IsA("Light")
+			or descendant:IsA("SurfaceGui")
+			or descendant:IsA("ParticleEmitter")
+		then
+			if (descendant :: any).Enabled then
+				(descendant :: any).Enabled = false
+				CollectionService:AddTag(descendant, Config.Tags.concealed)
+			end
 		end
 	end
 end

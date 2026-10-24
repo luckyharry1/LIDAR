@@ -306,6 +306,7 @@ local function onEcho(
 	end
 	Hud.dialogue(speaker, line)
 	if thought ~= nil and thought ~= "" then
+		State.storyLive = true
 		Hud.dialogue("Theo", thought)
 	end
 end

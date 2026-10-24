@@ -6,27 +6,20 @@ All spoken lines are voiced (see `05-voice-and-radio.md`) and subtitled. Tapes p
 ## The Halden Building (`cs.open`, cutscene)
 
 - **Where:** New Game start
-- **Trigger:** Automatic, once per profile; skippable after first view
+- **Trigger:** Automatic, once per profile; skippable
 - **Backdrop:** `l0`
 - **Note:** ~35 to 45 seconds. Ends on the first playable frame with the scanner raised; no black gap.
 
 > *[Black. A single office-night sound: ventilation, a clock, a sprung chair.]*
 > **[caption]** TUESDAY, 11:42 PM
 > **[caption]** HALDEN BUILDING, FLOOR 3
-> **Theo:** Tuesday, eleven forty-two p.m. Halden Building, floor three.
-> **Theo:** Corbel and Pike want a full point cloud before the demolition crew arrives.
-> *[Slow track across an empty condemned office floor. Dust. A tripod-mounted scanner sweeps; red laser dots build the room. The sweep is exactly the player's gun, on a bigger scale.]*
-> **Theo:** Ten years empty. Nobody has walked this floor but me.
-> *[Scanner screen: SCAN 41 OF 41 COMPLETE. Theo lets out a breath.]*
-> **Theo:** That's the last one. Pack it up. Go home.
-> *[Theo unplugs the tripod, steps backward, and leans a hand on the far wall. His hand sinks in. The wall is not there.]*
+> **Theo:** Last scan. Forty-one of forty-one. Pack up, go home.
+> *[Theo unplugs the tripod, steps back and leans a hand on the far wall. His hand sinks in. The wall is not there.]*
 > **Theo:** Wait. That's not--
-> *[The floor goes soft. Fluorescents flare and die. Cut to black. A low electrical hum. Title card: LIDAR.]*
+> *[The floor goes soft. Fluorescents flare and die. Black. A low electrical hum.]*
 > **[caption]** LIDAR
-> *[Wake. Fluorescent buzz. Theo's POV, blurred, then slowly sharp: damp yellow wallpaper, wet carpet. His handheld scanner is in his hand.]*
-> **Theo:** Okay. Okay. Scanner still works. Hands still work.
-> **Theo:** This is not floor three.
-> **Theo:** Don't panic. Scan the room. Find a door.
+> *[Wake. Damp yellow wallpaper, wet carpet. The wall behind him has run like wax. His scanner is still in his hand.]*
+> **Theo:** This is not floor three. Scan the room. Find a door.
 
 ## Survey Orientation (Tape 1 of 9) (`tape.orientation`, tape)
 
