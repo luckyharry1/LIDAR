@@ -118,15 +118,17 @@ function setStep(name: string)
 	stepStarted = os.clock()
 	if name == "scan" then
 		dotsAtStart = Dots.spawned
-		Hud.hint("Scan the room. Find a door.\n[" .. Input.hint("fire") .. "]")
+		Hud.hint("Scan.\n[" .. Input.hint("fire") .. "]")
 	elseif name == "sweep" then
-		Hud.hint(poster("rule.03", Input.hint("sweep") .. ": one sweep draws the whole view"))
+		Hud.hint("[" .. Input.hint("sweep") .. "] sweeps the whole view")
 	elseif name == "find" then
-		local key = LoreText.get("rule.04")
-		local legend = if key then table.concat(key.lines, "\n") else ""
-		Hud.hint(legend .. "\n[" .. Input.hint("spread") .. " to narrow or widen the scatter]")
+		Hud.hint(
+			"White: walls. Green: friends. Red: danger.\n["
+				.. Input.hint("spread")
+				.. " widens the scatter]"
+		)
 	elseif name == "door" then
-		Hud.hint("The gold dots are a door. Walk to them.\n[" .. Input.hint("interact") .. "]")
+		Hud.hint("Gold dots are the way on.\n[" .. Input.hint("interact") .. "]")
 	else
 		Hud.hint(nil)
 	end
@@ -144,9 +146,7 @@ end
 
 -- Shown the first time a player reaches the tier that introduces something new.
 local function tierHint(tier: number): string?
-	if tier == 1 then
-		return poster("rule.05", Input.hint("crouch") .. " to move unseen")
-	elseif tier == 3 then
+	if tier == 3 then
 		return poster("rule.09", "Keep your dots on a lamp until it wakes")
 	elseif tier == 4 then
 		return words("rule.10", true)

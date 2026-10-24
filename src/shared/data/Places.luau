@@ -54,9 +54,7 @@ Places.tiers = {
 		reveals = { "poi.l0.desk", "poi.l0.whiteboard" },
 		signs = {
 			{ id = "plaque.l0", at = "start" },
-			{ id = "rule.04", at = "start" },
-			{ id = "rule.03", at = "start" },
-			{ id = "rule.02", at = "any" },
+			{ id = "rule.04", at = "any" },
 		},
 	},
 	[2] = {

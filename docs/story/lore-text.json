@@ -3899,7 +3899,7 @@
    "trigger": "Automatic, once per profile; skippable",
    "beats": [
     {
-     "shot": "Black. A single office-night sound: ventilation, a clock, a sprung chair."
+     "stage": "office"
     },
     {
      "cap": "TUESDAY, 11:42 PM"
@@ -3912,28 +3912,29 @@
      "line": "Last scan. Forty-one of forty-one. Pack up, go home."
     },
     {
-     "shot": "Theo unplugs the tripod, steps back and leans a hand on the far wall. His hand sinks in. The wall is not there."
+     "stage": "lean"
     },
     {
      "sp": "Theo",
      "line": "Wait. That's not--"
     },
     {
-     "shot": "The floor goes soft. Fluorescents flare and die. Black. A low electrical hum."
+     "stage": "dark"
     },
     {
      "cap": "LIDAR"
     },
     {
-     "shot": "Wake. Damp yellow wallpaper, wet carpet. The wall behind him has run like wax. His scanner is still in his hand."
+     "stage": "wake"
     },
     {
      "sp": "Theo",
      "line": "This is not floor three. Scan the room. Find a door."
     }
    ],
-   "note": "~35 to 45 seconds. Ends on the first playable frame with the scanner raised; no black gap.",
-   "look": "l0"
+   "note": "About 30 seconds. Staged in the client (Stage.luau, set office): scanner sweeps the floor, Theo leans on the wall, it melts, black, the title, a low shot of the melted wall. Ends on the first playable frame.",
+   "look": "l0",
+   "stage": "office"
   },
   {
    "id": "tape.orientation",
@@ -4010,7 +4011,8 @@
     }
    ],
    "note": "~60 to 75 seconds with beats; keep skippable. Journal entries 02 and 03 unlock.",
-   "look": "l0"
+   "look": "l0",
+   "stage": "tape"
   },
   {
    "id": "tape.halden",
@@ -4052,7 +4054,8 @@
      "line": "That door is on floor three. That is my floor."
     }
    ],
-   "look": "l0"
+   "look": "l0",
+   "stage": "tape"
   },
   {
    "id": "tape.hollis",
@@ -4098,7 +4101,8 @@
      "line": "That is what fading is. Keep somebody in sight."
     }
    ],
-   "look": "l0"
+   "look": "l0",
+   "stage": "tape"
   },
   {
    "id": "tape.tobi",
@@ -4142,7 +4146,8 @@
      "line": "Walk. Do not run. Do not ping near the Hush."
     }
    ],
-   "look": "l1"
+   "look": "l1",
+   "stage": "tape"
   },
   {
    "id": "tape.ravi",
@@ -4186,7 +4191,8 @@
      "line": "It doesn't breathe. That is the tell."
     }
    ],
-   "look": "l2"
+   "look": "l2",
+   "stage": "tape"
   },
   {
    "id": "tape.quill",
@@ -4230,7 +4236,8 @@
      "line": "Watch it, then step. Do not stare. Got it."
     }
    ],
-   "look": "l3"
+   "look": "l3",
+   "stage": "tape"
   },
   {
    "id": "tape.pike",
@@ -4283,7 +4290,8 @@
      "line": "Down to the Lamp."
     }
    ],
-   "look": "l4"
+   "look": "l4",
+   "stage": "tape"
   },
   {
    "id": "npc.joss",
