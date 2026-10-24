@@ -51,6 +51,14 @@ is now what the game reads.
   (`Props.sign`, 60 px per stud, `TextScaled`); tier 2 has one hidden object and one poster fewer;
   a melted wall (`Props.meltedWall`) stands behind the spawn point in the intake room and on
   tier 1.
+- Round 3 (Vasco, 24 Oct): the opening and the tapes are staged. `client/Stage.luau` draws them in a
+  ViewportFrame (its own light, the dark world untouched): the opening is a condemned office floor
+  with the scanner sweeping red dots, Theo leaning on a wall that melts, black, the title, then a
+  low look at the melted wall; a tape is a blocky speaker at a desk on a CRT with scanlines
+  (`Cutscene.buildScreen`). Scenes carry `stage` (`office` or `tape`) and `{stage = cue}` beats in
+  `LoreText`; staged scenes and surveyor talks no longer print narration lines (only the endings
+  do). Less text at the start: one-line intake hints, one poster fewer in tier 1, no tier 1 hint.
+  Needs a look in Studio: camera framing, the melt, part count of the dots (520), the CRT size.
 - Not done: spoken audio and per-area sound cues; the Bunk Room still has no surveyor scene; unused
   POIs (copier, vending extras, ticket machine, Pike's table, rope bridge, doorframe) have no
   prop yet; journal UI; the tapes after the first are not placed in the world; the Night Shift

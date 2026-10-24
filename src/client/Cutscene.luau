@@ -1,7 +1,8 @@
 --!strict
 -- Cutscenes, videotapes and surveyors talking, played from the story's scenes (LoreText.scene).
 -- Each beat is one of: a caption (a title on black), a line of speech (subtitled, click to
--- continue) or a line of narration (what the picture would show). Taps and clicks finish a
+-- continue), a staging cue (Stage.luau draws the picture) or, for the endings, a line of
+-- narration. Taps and clicks finish a
 -- line that is still typing, then move on. There is no voice yet, so every line is read, and
 -- every scene can be skipped.
 --
@@ -9,11 +10,13 @@
 -- behind a dim veil. The player is held still while a scene plays (State.menuOpen).
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 
 local Input = require(script.Parent.Input)
 local LoreText = require(ReplicatedStorage.Shared.data.LoreText)
+local Stage = require(script.Parent.Stage)
 local State = require(script.Parent.State)
 local Ui = require(script.Parent.Ui)
 
@@ -139,13 +142,60 @@ local function build()
 	end, Ui.colors.dim)
 end
 
+-- The television a tape is watched on: a rounded screen with scanlines and a faint flicker.
+-- Returns the screen (where the stage goes) and a function that tears it down.
+local function buildScreen(): (Frame, () -> ())
+	local crt = Ui.new("Frame", {
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.fromScale(0.5, 0.4),
+		Size = UDim2.fromScale(0.6, 0.6),
+		BackgroundColor3 = Color3.new(0, 0, 0),
+		BorderSizePixel = 0,
+		ClipsDescendants = true,
+		Parent = backdropGui,
+	}, {
+		Ui.new("UIAspectRatioConstraint", { AspectRatio = 1.33 }),
+		Ui.new("UICorner", { CornerRadius = UDim.new(0, 28) }),
+		Ui.new("UIStroke", { Color = Color3.fromRGB(60, 62, 66), Thickness = 8 }),
+	})
+	local flicker = Ui.new("Frame", {
+		Size = UDim2.fromScale(1, 1),
+		BackgroundColor3 = Color3.new(1, 1, 1),
+		BackgroundTransparency = 0.96,
+		BorderSizePixel = 0,
+		ZIndex = 5,
+		Parent = crt,
+	})
+	for line = 0, 23 do
+		Ui.new("Frame", {
+			Position = UDim2.fromScale(0, line / 24),
+			Size = UDim2.new(1, 0, 0, 2),
+			BackgroundColor3 = Color3.new(0, 0, 0),
+			BackgroundTransparency = 0.82,
+			BorderSizePixel = 0,
+			ZIndex = 6,
+			Parent = crt,
+		})
+	end
+	local connection = RunService.RenderStepped:Connect(function()
+		flicker.BackgroundTransparency = 0.93 + math.random() * 0.06
+	end)
+	return crt, function()
+		connection:Disconnect()
+		crt:Destroy()
+	end
+end
+
 local function fade(object: GuiObject, goal: number, seconds: number)
 	TweenService:Create(object, TweenInfo.new(seconds), { BackgroundTransparency = goal }):Play()
 end
 
 -- One line of speech or narration, typed out. A press while it types shows the rest.
 local function showLine(speaker: string, text: string, narration: boolean)
-	speakerLabel.Text = speaker
+	speakerLabel.Text = string.upper(speaker)
+	if not narration then
+		Stage.speak(speaker, (utf8.len(text) or #text) / TYPE_CPS)
+	end
 	lineLabel.Text = text
 	lineLabel.TextColor3 = if narration then Ui.colors.dim else Ui.colors.line
 	lineLabel.FontFace = if narration then Font.fromEnum(Enum.Font.RobotoMono) else Ui.font
@@ -222,6 +272,17 @@ function Cutscene.play(id: string, onDone: (() -> ())?)
 		Ui.focus(tapper)
 	end
 
+	local closeScreen: (() -> ())? = nil
+	if scene.stage ~= nil then
+		local container: GuiObject = backdrop
+		if scene.stage == "tape" then
+			local crt, close = buildScreen()
+			container = crt
+			closeScreen = close
+		end
+		Stage.open(container, scene.stage)
+	end
+
 	local keyConnection = UserInputService.InputBegan:Connect(
 		function(input: InputObject, _processed: boolean)
 			if ADVANCE_KEYS[input.KeyCode] then
@@ -251,13 +312,19 @@ function Cutscene.play(id: string, onDone: (() -> ())?)
 			if beat.cap ~= nil then
 				showCaption(beat.cap)
 			elseif beat.sp ~= nil and beat.line ~= nil then
-				showLine(string.upper(beat.sp), beat.line, false)
-			elseif beat.shot ~= nil then
-				showLine("", beat.shot, true)
+				showLine(beat.sp, beat.line, false)
+			elseif beat.stage ~= nil then
+				Stage.run(beat.stage)
+			elseif beat.shot ~= nil and scene.stage == nil and scene.kind == "cutscene" then
+				showLine("", beat.shot, true) -- a staged scene shows the picture instead
 			end
 		end
 		keyConnection:Disconnect()
 		tapConnection:Disconnect()
+		Stage.close()
+		if closeScreen then
+			closeScreen()
+		end
 		speakerLabel.Text = ""
 		lineLabel.Text = ""
 		promptLabel.Text = ""

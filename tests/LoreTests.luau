@@ -165,6 +165,7 @@ tests["every scene opens with something to show and every beat is one thing"] = 
 		for index, beat in scene.beats do
 			local parts = (if beat.cap then 1 else 0)
 				+ (if beat.shot then 1 else 0)
+				+ (if beat.stage then 1 else 0)
 				+ (if beat.sp or beat.line then 1 else 0)
 			assert(parts == 1, `{scene.id} beat {index} is not exactly one kind`)
 			if beat.sp ~= nil then
@@ -204,6 +205,22 @@ tests["hidden objects carry a thought and a prop"] = function()
 				reveal.thought ~= nil and reveal.thought ~= "",
 				`tier {tier}: {id} has no thought`
 			)
+		end
+	end
+end
+
+tests["the opening and every tape are staged with cues the stage knows"] = function()
+	local known = { office = true, lean = true, dark = true, wake = true }
+	local opening = LoreText.scene("cs.open")
+	assert(opening ~= nil and opening.stage == "office", "the opening is not staged")
+	for _, beat in opening.beats do
+		if beat.stage ~= nil then
+			assert(known[beat.stage], `unknown staging cue {beat.stage}`)
+		end
+	end
+	for _, scene in LoreText.scenes do
+		if scene.kind == "tape" then
+			assert(scene.stage == "tape", `{scene.id} is not staged`)
 		end
 	end
 end
