@@ -3,6 +3,36 @@
 The owner's checklist for putting LIDAR on Roblox. Nothing here has been done yet: the game
 has never been published. Items marked *(your call)* are decisions the code does not make.
 
+## 0. Release readiness (31 Oct)
+
+What is ready, what is not, in the order to do it.
+
+**Ready**
+- `scripts/check.sh` passes on the integration branch (stylua, selene, 76+ Lune tests, a Rojo
+  build). `build/LIDAR.rbxl` is the file to open in Studio and publish.
+- Studio playtest (one player, PC): title, the 3D opening and SKIP, intake, tiers, hidden
+  objects, pits, plates, havens, the stairwell with its GO DOWN prompt, the level-cleared
+  card, the weaker scanner and the bench. See the dated sections of `docs/PROGRESS.md`.
+- Place settings that the project file already sets: `CharacterAutoLoads` off,
+  `StreamingEnabled` off, black lighting.
+
+**Not ready (needs a person, or a published place)**
+1. Two players, real DataStore saves, the daily board with several entries, phone and gamepad
+   hardware, and sound by ear. Only a published or multi-client test can show these.
+2. Experience page: name, description, icon, thumbnails, maturity questionnaire (the art and
+   page threads own the content; the form is yours to fill in).
+3. Monetisation ids in `Config.Monetization` stay 0 until the passes and products exist in
+   the Creator Hub (`docs/MONETIZATION.md`). With 0 the game simply sells nothing.
+4. The three `ContentId rbxassetid://203785492 ... Asset type does not match` lines in the
+   Studio output come from an asset id that is not in this repo (probably a default avatar
+   asset). Worth a look in the Output window with the Creator Hub open.
+
+**Publishing steps** (nothing here has been done; it needs your Roblox account)
+1. `bash scripts/check.sh`, then open `build/LIDAR.rbxl` in Studio.
+2. Turn on Game Settings > Security > Allow API Services, and set max players to 4.
+3. File > Publish to Roblox as a new experience (or an existing place id of your own).
+4. Play the published place once alone and once with a friend, using section 8.
+
 ## 1. Before you publish
 
 - [ ] `./scripts/check.sh` passes.
