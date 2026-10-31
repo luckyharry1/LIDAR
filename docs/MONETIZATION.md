@@ -52,9 +52,9 @@ as everyone else.
 | --- | --- | --- |
 | Standard scanner | Always | cool white (196, 200, 210) / graphite |
 | Tungsten | 15 min in the dark | muted warm / dim brass |
-| Glacier | 45 min | muted ice teal (105, 170, 190) / slate |
+| Glacier | 45 min | pale mint-teal (150, 214, 196) / slate |
 | Orchid | 90 min | muted lilac / plum |
-| Blueprint | 180 min | royal blue (100, 120, 210) / gold, the fanciest earned skin |
+| Blueprint | 180 min | bold blue (92, 140, 245) / gold, the fanciest earned skin |
 | Rose Quartz | Game pass | hot pink (255, 80, 170) / bright pink |
 | Aurora | Game pass | electric cyan (40, 225, 255) / glowing teal |
 | Nightbloom | Game pass | bright indigo (105, 70, 255) / glowing indigo |
