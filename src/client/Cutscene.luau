@@ -280,7 +280,7 @@ function Cutscene.play(id: string, onDone: (() -> ())?)
 			container = crt
 			closeScreen = close
 		end
-		Stage.open(container, scene.stage)
+		Stage.open(container, scene.stage, scene.id)
 	end
 
 	local keyConnection = UserInputService.InputBegan:Connect(

@@ -78,9 +78,40 @@ local SIGN_LIGHT = { color = { 255, 232, 196 }, radius = 5 }
 local SIGN_SLOTS = { 0, -4.3, 4.3 } -- where along a wall a second and third sign go
 local MARKER_OFFSET = CFrame.new(0, 4, -2.2) -- a hidden object's light hangs this far into the room
 local LAMP_COLOR = Color3.fromRGB(255, 226, 170)
-local PATCH_FLOOR = Color3.fromRGB(126, 118, 104)
-local PATCH_WALL = Color3.fromRGB(150, 152, 144)
 local PATCH_PIXELS_PER_STUD = 6
+-- What a lit corner of each floor looks like, so no two floors share a wall or a floor: office
+-- carpet and wallpaper, wet green tile, clinic lino, rock, concrete. Two tiers share a floor.
+type PatchLook = { floor: Color3, wall: Color3, floorPattern: string, wallPattern: string }
+local PATCH_LOOKS: { PatchLook } = {
+	{
+		floor = Color3.fromRGB(126, 112, 88),
+		wall = Color3.fromRGB(184, 160, 86),
+		floorPattern = "squares",
+		wallPattern = "stripes",
+	},
+	{
+		floor = Color3.fromRGB(70, 128, 128),
+		wall = Color3.fromRGB(108, 160, 148),
+		floorPattern = "tiles",
+		wallPattern = "tiles",
+	},
+	{
+		floor = Color3.fromRGB(94, 132, 76),
+		wall = Color3.fromRGB(130, 156, 98),
+		floorPattern = "boards",
+		wallPattern = "stripes",
+	},
+	{
+		floor = Color3.fromRGB(104, 100, 98),
+		wall = Color3.fromRGB(160, 140, 112),
+		floorPattern = "tiles",
+		wallPattern = "boards",
+	},
+}
+
+local function patchLook(tier: number): PatchLook
+	return PATCH_LOOKS[(math.ceil(tier / 2) - 1) % #PATCH_LOOKS + 1]
+end
 -- Solid in the middle, nothing at both edges; the wall is solid at the floor, gone at the top.
 local PATCH_EDGE_FADE = NumberSequence.new({
 	NumberSequenceKeypoint.new(0, 1),
@@ -456,7 +487,8 @@ local function fadeSurface(
 	face: Enum.NormalId,
 	color: Color3,
 	across: NumberSequence,
-	down: NumberSequence
+	down: NumberSequence,
+	pattern: string
 )
 	local gui = Instance.new("SurfaceGui")
 	gui.Face = face
@@ -480,6 +512,30 @@ local function fadeSurface(
 	downGradient.Rotation = 90
 	downGradient.Transparency = down
 	downGradient.Parent = fill
+	-- Seams, so a wall reads as wallpaper, tile or planks and not a flat colour.
+	local seam = color:Lerp(Color3.new(0, 0, 0), 0.4)
+	local count = if pattern == "tiles" then 5 else 9
+	for index = 1, count - 1 do
+		local at = index / count
+		if pattern ~= "boards" then
+			local line = Instance.new("Frame")
+			line.Position = UDim2.fromScale(at, 0)
+			line.Size = UDim2.new(0, 2, 1, 0)
+			line.BackgroundColor3 = seam
+			line.BackgroundTransparency = 0.45
+			line.BorderSizePixel = 0
+			line.Parent = group
+		end
+		if pattern ~= "stripes" then
+			local line = Instance.new("Frame")
+			line.Position = UDim2.fromScale(0, at)
+			line.Size = UDim2.new(1, 0, 0, 2)
+			line.BackgroundColor3 = seam
+			line.BackgroundTransparency = 0.45
+			line.BorderSizePixel = 0
+			line.Parent = group
+		end
+	end
 end
 
 -- Visible floor and one wall for a cell, for a light to fall on. Only the wall nearest `toward`
@@ -489,8 +545,10 @@ local function buildPatch(
 	origin: Vector3,
 	cell: Maze.Cell,
 	parent: Instance,
-	toward: Vector3?
+	toward: Vector3?,
+	tier: number
 )
+	local look = patchLook(tier)
 	local center = World.cellCenter(origin, cell)
 	local span = CELL - THICK
 	local patch = Build.model("Patch", parent)
@@ -502,7 +560,14 @@ local function buildPatch(
 		collide = false,
 		parent = patch,
 	})
-	fadeSurface(floor, Enum.NormalId.Top, PATCH_FLOOR, PATCH_EDGE_FADE, PATCH_EDGE_FADE)
+	fadeSurface(
+		floor,
+		Enum.NormalId.Top,
+		look.floor,
+		PATCH_EDGE_FADE,
+		PATCH_EDGE_FADE,
+		look.floorPattern
+	)
 	local target = toward or center
 	local best: CFrame? = nil
 	for _, side in closedSides(maze, cell) do
@@ -523,7 +588,14 @@ local function buildPatch(
 			collide = false,
 			parent = patch,
 		})
-		fadeSurface(wall, Enum.NormalId.Front, PATCH_WALL, PATCH_EDGE_FADE, PATCH_WALL_FADE)
+		fadeSurface(
+			wall,
+			Enum.NormalId.Front,
+			look.wall,
+			PATCH_EDGE_FADE,
+			PATCH_WALL_FADE,
+			look.wallPattern
+		)
 	end
 end
 
@@ -608,7 +680,7 @@ local function buildLamps(
 		else
 			local range = Config.World.lampRange * glow.radius / LAMP_RADIUS
 			Build.pointLight(bulb, LAMP_COLOR, LAMP_BRIGHTNESS, range)
-			buildPatch(plan.maze, origin, cell, parent, base.Position)
+			buildPatch(plan.maze, origin, cell, parent, base.Position, plan.tier)
 		end
 		local echo =
 			newEcho(firstId + index - 1, "nook", cell, lantern, Places.nookLines(variant), glow)
@@ -739,7 +811,8 @@ function World.revealEcho(level: Level, echo: Echo)
 			level.origin,
 			echo.cell,
 			level.lit,
-			if echo.anchor then echo.anchor.Position else echo.model:GetPivot().Position
+			if echo.anchor then echo.anchor.Position else echo.model:GetPivot().Position,
+			level.plan.tier
 		)
 	end
 end

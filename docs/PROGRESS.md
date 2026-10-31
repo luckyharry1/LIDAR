@@ -595,3 +595,11 @@ progression between runs and room for monetization; then a faint pull towards un
   some real progression"; keep the batteries standing out): scatter 260 dots/s (Emitter +120 x5 to
   860), reach 65 studs (Range Coil +21 x4 to 149), sweep 44x56 (Sweep Grid 60x76, 76x96, 90x114),
   widest cone 34 degrees without Wide Lens (was 40), dot budget 14k/42k/85k. Lure unchanged.
+
+## Story presentation, round 4 (claude/cutscenes)
+
+- Staged scenes are lit properly now: the ViewportFrame ambient is high enough that the opening office and the tape rooms read clearly instead of black, with a melted wall that glows warm behind it.
+- Each of the seven tapes has a room of its own (Ines's map office, the 1994 lobby with the ribbon and the door that is not on any plan, grey security corridor, wet pump room, ward day room, rock cave with a projector, sodium garage) and cues that show the story: Ines reaches out, the lobby door lights, Hollis fades from the picture, the pump room goes dark, the Echo appears behind Ravi, the shape in Quill's cave steps closer.
+- Lamp-bags light up but say nothing (the same lamp over and over is not a story).
+- A lit patch of wall and floor now differs per floor (carpet and wallpaper, wet tile, planks, concrete) with seams so it reads as material, and flooded floor shows larger, brighter cyan dots.
+- Not run in Studio yet: check the tape rooms and the opening for brightness and cue timing.

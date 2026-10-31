@@ -1628,15 +1628,18 @@ local function onReveal(player: Player, echoId: number)
 				grant(other, Config.Economy.echoBonus, "Echo")
 				sendProfile(other)
 			end
-			Remotes.send(
-				otherPlayer,
-				"Echo",
-				echo.id,
-				echo.position,
-				speaker,
-				line,
-				echo.thought or ""
-			)
+			-- A lamp-bag lights up and says nothing: the same lamp over and over is not a story.
+			if echo.kind ~= "nook" then
+				Remotes.send(
+					otherPlayer,
+					"Echo",
+					echo.id,
+					echo.position,
+					speaker,
+					line,
+					echo.thought or ""
+				)
+			end
 		end
 	end
 	sendStateAll()

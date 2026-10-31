@@ -72,6 +72,8 @@ function DotRules.size(kind: DotKind, distance: number): number
 		size *= lidar.itemDotScale
 	elseif kind == "friend" or kind == "enemy" then
 		size *= lidar.markDotScale
+	elseif kind == "water" then
+		size *= 1.6 -- flooded floor reads as water at a glance, not as dim floor
 	end
 	return size
 end

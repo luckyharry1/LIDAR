@@ -3995,7 +3995,13 @@
      "line": "To prove it, I would need a true measurement of a real place. We have never had one. If you have one, I would very much like to meet you."
     },
     {
+     "stage": "reach"
+    },
+    {
      "shot": "She reaches forward. The tape cuts to static."
+    },
+    {
+     "stage": "static"
     },
     {
      "sp": "Theo",
@@ -4039,11 +4045,17 @@
      "shot": "Camera drifts down a corridor, floor three. At the very end is a door that is not on any plan. It is slightly open. Light is coming out of it."
     },
     {
+     "stage": "door"
+    },
+    {
      "sp": "Announcer",
      "line": "From the lobby to floor... three..."
     },
     {
      "shot": "Tape glitches. Static. End."
+    },
+    {
+     "stage": "static"
     },
     {
      "sp": "Theo",
@@ -4082,12 +4094,18 @@
      "shot": "Time jumps. The man is a little translucent. The footage loses detail where he stands."
     },
     {
+     "stage": "fade"
+    },
+    {
      "sp": "Hollis",
      "line": "Round eleven thousand. Funny. I do not see the other guards any more."
     },
     {
      "sp": "Hollis",
      "line": "Is anyone there? Can anyone see me?"
+    },
+    {
+     "stage": "gone"
     },
     {
      "shot": "The man stops. Looks straight into the camera. The footage keeps going, but he is gone from the frame. Keys, faint, continue."
@@ -4125,6 +4143,9 @@
     {
      "sp": "Tobi",
      "line": "So I stopped. If I stay silent, maybe nothing hears me."
+    },
+    {
+     "stage": "dim"
     },
     {
      "shot": "Longer silence. Dripping. A faint, patient breath."
@@ -4171,6 +4192,9 @@
      "shot": "He taps the table. Silence. Then, from the dark behind the camera, two taps. No breath. One tap."
     },
     {
+     "stage": "echo"
+    },
+    {
      "sp": "Echo",
      "line": "Ravi? Ravi? Ravi?"
     },
@@ -4213,11 +4237,17 @@
      "line": "Frame ten. Empty."
     },
     {
+     "stage": "shape"
+    },
+    {
      "sp": "Quill",
      "line": "Frame thirty. A shape at the far end."
     },
     {
      "shot": "A shape at the end of the corridor, drawn closer in each frame."
+    },
+    {
+     "stage": "shape"
     },
     {
      "sp": "Quill",
@@ -4226,6 +4256,9 @@
     {
      "sp": "Quill",
      "line": "But if I stare, it learns the stare."
+    },
+    {
+     "stage": "shape"
     },
     {
      "sp": "Quill",
