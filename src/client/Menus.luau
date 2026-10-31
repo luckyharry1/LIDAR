@@ -7,6 +7,7 @@ local Players = game:GetService("Players")
 local MarketplaceService = game:GetService("MarketplaceService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local SocialService = game:GetService("SocialService")
+local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 
 local Audio = require(script.Parent.Audio)
@@ -29,7 +30,8 @@ type LobbyEntry = State.LobbyEntry
 
 local CARD_SECONDS = 8
 local DOT_QUALITY_NEXT = { auto = "low", low = "medium", medium = "high", high = "auto" }
-local TITLE_LETTERS = "L  I  D  A  R"
+local TITLE_LETTERS = { "L", "I", "D", "A", "R" }
+local TITLE_SWEEP_SECONDS = 9
 
 local Menus = {}
 
@@ -39,6 +41,7 @@ local backdrop: TextButton
 local windows: { [string]: Window } = {}
 local current: string? = nil
 local titleStatus: TextLabel
+local titleLetters: { TextLabel } = {}
 local titleButtons: Frame
 local titleNotices: Frame
 local noticeOrder = 0
@@ -133,17 +136,22 @@ local function window(name: string, width: number, height: number, paper: boolea
 		frame.BackgroundTransparency = 0
 	end
 	windows[name] = { frame = frame, first = nil, onClose = nil }
+	if name ~= "title" then
+		Ui.brackets(frame, if paper then Ui.colors.paperInk else Ui.colors.line, 12, 20)
+	end
 	return frame
 end
 
 local function heading(parent: Instance, text: string): TextLabel
-	return Ui.label({
+	local label = Ui.label({
 		Text = text,
 		FontFace = Ui.fontBold,
 		TextSize = Ui.text.large,
 		Size = UDim2.new(1, 0, 0, 28),
 		Parent = parent,
 	})
+	Ui.rule({ Position = UDim2.fromOffset(0, 32), Parent = parent })
+	return label
 end
 
 local function closeButton(parent: Frame, name: string, text: string): TextButton
@@ -362,30 +370,109 @@ local function buildTitle()
 	local column = Ui.list(Enum.FillDirection.Vertical, 6)
 	column.HorizontalAlignment = Enum.HorizontalAlignment.Center
 	column.Parent = frame
-	Ui.label({
-		Text = TITLE_LETTERS,
-		FontFace = Ui.fontBold,
-		TextSize = Ui.text.hero,
-		TextWrapped = false,
-		TextXAlignment = Enum.TextXAlignment.Center,
-		Size = UDim2.new(1, 0, 0, 90),
+	-- The five letters are separate labels so they can scan in one after another.
+	local letters = Ui.new("Frame", {
+		Size = UDim2.new(1, 0, 0, 80),
+		BackgroundTransparency = 1,
 		LayoutOrder = 1,
 		Parent = frame,
+	}, {
+		Ui.new("UIListLayout", {
+			FillDirection = Enum.FillDirection.Horizontal,
+			HorizontalAlignment = Enum.HorizontalAlignment.Center,
+			VerticalAlignment = Enum.VerticalAlignment.Center,
+			Padding = UDim.new(0, 22),
+			SortOrder = Enum.SortOrder.LayoutOrder,
+		}),
 	})
+	titleLetters = {}
+	for index, letter in TITLE_LETTERS do
+		local label = Ui.label({
+			Text = letter,
+			FontFace = Ui.fontBold,
+			TextSize = Ui.text.hero,
+			TextWrapped = false,
+			TextXAlignment = Enum.TextXAlignment.Center,
+			Size = UDim2.fromOffset(56, 80),
+			LayoutOrder = index,
+			Parent = letters,
+		})
+		Ui.new("UIStroke", {
+			Color = Ui.colors.line,
+			Transparency = 0.82,
+			Thickness = 3,
+			Parent = label,
+		})
+		table.insert(titleLetters, label)
+	end
 	Ui.label({
-		Text = "THE UNDERSTORY",
+		Text = "THE BACKROOMS",
 		TextSize = Ui.text.body,
 		TextColor3 = Ui.colors.dim,
 		TextXAlignment = Enum.TextXAlignment.Center,
-		Size = UDim2.new(1, 0, 0, 22),
+		Size = UDim2.new(1, 0, 0, 20),
 		LayoutOrder = 2,
 		Parent = frame,
 	})
+	-- The colour key of the dots, so a new player reads the first scan before it happens.
+	local key = Ui.new("Frame", {
+		Size = UDim2.new(1, 0, 0, 16),
+		BackgroundTransparency = 1,
+		LayoutOrder = 3,
+		Parent = frame,
+	}, {
+		Ui.new("UIListLayout", {
+			FillDirection = Enum.FillDirection.Horizontal,
+			HorizontalAlignment = Enum.HorizontalAlignment.Center,
+			VerticalAlignment = Enum.VerticalAlignment.Center,
+			Padding = UDim.new(0, 20),
+			SortOrder = Enum.SortOrder.LayoutOrder,
+		}),
+	})
+	for index, entry in
+		{
+			{ "TERRAIN", Ui.colors.line },
+			{ "FRIEND", Ui.colors.good },
+			{ "DANGER", Ui.colors.bad },
+		}
+	do
+		local item = Ui.new("Frame", {
+			Size = UDim2.fromOffset(0, 16),
+			AutomaticSize = Enum.AutomaticSize.X,
+			BackgroundTransparency = 1,
+			LayoutOrder = index,
+			Parent = key,
+		}, {
+			Ui.new("UIListLayout", {
+				FillDirection = Enum.FillDirection.Horizontal,
+				VerticalAlignment = Enum.VerticalAlignment.Center,
+				Padding = UDim.new(0, 6),
+				SortOrder = Enum.SortOrder.LayoutOrder,
+			}),
+		})
+		Ui.new("Frame", {
+			Size = UDim2.fromOffset(7, 7),
+			BackgroundColor3 = entry[2],
+			BorderSizePixel = 0,
+			LayoutOrder = 1,
+			Parent = item,
+		}, { Ui.new("UICorner", { CornerRadius = UDim.new(1, 0) }) })
+		Ui.label({
+			Text = entry[1],
+			TextSize = 11,
+			TextColor3 = Ui.colors.dim,
+			TextWrapped = false,
+			Size = UDim2.fromOffset(0, 16),
+			AutomaticSize = Enum.AutomaticSize.X,
+			LayoutOrder = 2,
+			Parent = item,
+		})
+	end
 	titleButtons = Ui.new("Frame", {
 		Size = UDim2.fromOffset(320, 0),
 		AutomaticSize = Enum.AutomaticSize.Y,
 		BackgroundTransparency = 1,
-		LayoutOrder = 3,
+		LayoutOrder = 4,
 		Parent = frame,
 	}, { Ui.list(Enum.FillDirection.Vertical, 6) })
 	titleStatus = Ui.label({
@@ -394,14 +481,14 @@ local function buildTitle()
 		TextXAlignment = Enum.TextXAlignment.Center,
 		Size = UDim2.new(1, 0, 0, 0),
 		AutomaticSize = Enum.AutomaticSize.Y,
-		LayoutOrder = 4,
+		LayoutOrder = 5,
 		Parent = frame,
 	})
 	titleNotices = Ui.new("Frame", {
 		Size = UDim2.new(1, 0, 0, 0),
 		AutomaticSize = Enum.AutomaticSize.Y,
 		BackgroundTransparency = 1,
-		LayoutOrder = 5,
+		LayoutOrder = 6,
 		Parent = frame,
 	}, { Ui.list(Enum.FillDirection.Vertical, 2) })
 	local toastRemote = Net.get("Toast") :: RemoteEvent
@@ -410,6 +497,54 @@ local function buildTitle()
 			titleNotice(text, kind)
 		end
 	end)
+end
+
+-- The letters scan in one after another when the title opens, and a slow pulse runs through
+-- them now and then, like a sweep passing over a wall.
+local function sweepTitle(intro: boolean)
+	for index, letter in titleLetters do
+		task.delay((index - 1) * 0.16, function()
+			if intro then
+				letter.TextTransparency = 1
+				TweenService:Create(
+					letter,
+					TweenInfo.new(0.6, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+					{ TextTransparency = 0 }
+				):Play()
+			else
+				TweenService
+					:Create(
+						letter,
+						TweenInfo.new(
+							0.25,
+							Enum.EasingStyle.Sine,
+							Enum.EasingDirection.InOut,
+							0,
+							true
+						),
+						{ TextTransparency = 0.7 }
+					)
+					:Play()
+			end
+		end)
+	end
+end
+
+local function watchTitle()
+	local wasOpen = false
+	local last = os.clock()
+	while true do
+		task.wait(0.25)
+		local open = current == "title"
+		if open and not wasOpen then
+			sweepTitle(true)
+			last = os.clock()
+		elseif open and os.clock() - last > TITLE_SWEEP_SECONDS then
+			sweepTitle(false)
+			last = os.clock()
+		end
+		wasOpen = open
+	end
 end
 
 --------------------------------------------------------------------------------------------
@@ -733,15 +868,16 @@ local function refreshBench()
 			Parent = benchList,
 		})
 		Ui.label({
-			Text = string.upper(def.name) .. "  [" .. string.rep("#", level) .. string.rep(
-				"-",
-				def.maxLevel - level
-			) .. "]",
+			Text = string.upper(def.name),
 			FontFace = Ui.fontBold,
 			TextSize = Ui.text.small,
-			Size = UDim2.new(0.7, 0, 0, 18),
+			Size = UDim2.new(0.46, 0, 0, 18),
 			Parent = row,
 		})
+		Ui.pips({
+			Position = UDim2.new(0.46, 4, 0, 6),
+			Parent = row,
+		}, level, def.maxLevel, if level >= def.maxLevel then Ui.colors.good else Ui.colors.gold)
 		Ui.label({
 			Text = def.description,
 			TextSize = Ui.text.small,
@@ -1668,6 +1804,7 @@ function Menus.start()
 	refreshSettings()
 	refreshTitle()
 	Menus.open("title")
+	task.spawn(watchTitle)
 end
 
 return Menus
