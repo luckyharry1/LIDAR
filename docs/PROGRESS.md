@@ -19,10 +19,12 @@ Studio; `stylua --check` and `lune run tests/run` pass, `selene` could not run i
 
 - Store art: `scripts/art/store_art.py` renders the icon (`docs/store/icon-512.png`, `icon-1024.png`)
   and seven 1920x1080 thumbnails in the order the page brief asks for (hero corridor, the scan,
-  red aura, co-op in a flooded hall, a lit camp, a reveal object, a five-place strip). They are
+  red aura, co-op in a flooded hall, a lit camp, lore, dot looks and upgrades), plus two more icon
+  options (round 2 after Vasco's feedback: catchier hero, bolder 2/3/4, lore and looks panels in
+  place of the reveal and variety ones). They are
   drawn the way the game draws: a scanner fires rays into a set, only the hits are shown (white
   terrain, green friends, red threats, gold exit, blue water, warm lamp light). Re-run
-  `python3 scripts/art/store_art.py [icon hero scan aura together camp reveal variety]` after
+  `python3 scripts/art/store_art.py [icon hero scan aura together camp lore looks]` after
   changing the look. These are stand-ins made from a model of the game, not screenshots: swap in
   real Studio captures (HUD hidden) when someone has them. Upload steps are in `docs/PUBLISHING.md`.
 - `Ui.luau`: buttons get a small accent bar on the left; new `Ui.brackets` (viewfinder corner
