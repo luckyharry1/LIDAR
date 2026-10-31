@@ -745,21 +745,61 @@ def lore(path):
 
 
 # The scanner skins in src/shared/data/Skins.luau on claude/skins-monetization (PR #15): a plain
-# Classic, four earned by playtime (minutes in the dark), three bought with Robux. Colours are
-# each skin's dot colour. Keep in step with that file. The earned skins are drawn muted on
-# purpose (quiet, a little greyed) so the premium ones, drawn vivid with a halo, stand out.
+# Classic, four earned by playtime (minutes in the dark), two bought with Static (Ember, Plum),
+# and three bought with Robux. Each has a dot colour, a gun colour and a scanner model. Keep in
+# step with that file. The earned and Static skins are quiet; the Robux ones are bright with a halo.
+# (name, dot colour, gun colour, model, tag)
 LOOKS_EARNED = [
-    ("CLASSIC", (196, 200, 210), "DEFAULT"),
-    ("TUNGSTEN", (214, 196, 160), "15 MIN"),
-    ("GLACIER", (150, 214, 196), "45 MIN"),
-    ("ORCHID", (196, 176, 208), "90 MIN"),
-    ("BLUEPRINT", (5, 60, 205), "180 MIN"),
+    ("CLASSIC", (196, 200, 210), (96, 100, 108), "classic", "DEFAULT"),
+    ("TUNGSTEN", (214, 196, 160), (112, 100, 80), "classic", "15 MIN"),
+    ("GLACIER", (150, 214, 196), (62, 98, 112), "classic", "45 MIN"),
+    ("ORCHID", (196, 176, 208), (98, 84, 110), "lantern", "90 MIN"),
+    ("BLUEPRINT", (5, 60, 205), (205, 165, 70), "classic", "180 MIN"),
+]
+LOOKS_STATIC = [
+    ("EMBER", (230, 120, 110), (150, 62, 52), "classic", "120 STATIC"),
+    ("PLUM", (170, 100, 170), (100, 52, 104), "classic", "120 STATIC"),
 ]
 LOOKS_ROBUX = [
-    ("ROSE QUARTZ", (255, 80, 170)),
-    ("AURORA", (40, 225, 255)),
-    ("NIGHTBLOOM", (95, 45, 235)),
+    ("ROSE QUARTZ", (255, 80, 170), (230, 60, 140), "blossom"),
+    ("AURORA", (40, 225, 255), (0, 170, 205), "dish"),
+    ("NIGHTBLOOM", (95, 45, 235), (70, 30, 200), "prism"),
 ]
+
+
+def lighten(color, f):
+    return tuple(int(c + (255 - c) * f) for c in color)
+
+
+def glyph_items(model, cx, cy, color, s=1.0, r=2.4):
+    """A tiny dot drawing of a scanner model, in the gun colour, for the middle of a burst."""
+    items = []
+    r *= s
+    if model == "lantern":
+        w, h = 13 * s, 17 * s
+        for a, b in [((-w, -h), (w, -h)), ((w, -h), (w, h)), ((w, h), (-w, h)), ((-w, h), (-w, -h))]:
+            items += line_items((cx + a[0], cy + a[1]), (cx + b[0], cy + b[1]), color, 6 * s, r)
+        items += arc_items(cx, cy - h, w * 0.7, np.pi, 2 * np.pi, color, 6 * s, r)
+        items.append((cx, cy, 4.5 * s, lighten(color, 0.6)))
+    elif model == "blossom":
+        for k in range(6):
+            a = k / 6 * 2 * np.pi
+            px, py = cx + np.cos(a) * 15 * s, cy + np.sin(a) * 15 * s
+            items += arc_items(px, py, 8 * s, 0, 2 * np.pi, color, 5 * s, r)
+        items.append((cx, cy, 5 * s, lighten(color, 0.6)))
+    elif model == "dish":
+        items += arc_items(cx - 6 * s, cy, 22 * s, -1.0, 1.0, color, 6 * s, r)
+        items += line_items((cx - 6 * s + 22 * s * np.cos(1.0), cy + 22 * s * np.sin(1.0)), (cx - 6 * s + 22 * s * np.cos(1.0), cy - 22 * s * np.sin(1.0)), color, 6 * s, r)
+        items += line_items((cx - 14 * s, cy), (cx + 12 * s, cy), color, 6 * s, r)
+        items.append((cx + 14 * s, cy, 4.5 * s, lighten(color, 0.6)))
+    elif model == "prism":
+        top, right, bot, left = (cx, cy - 26 * s), (cx + 14 * s, cy), (cx, cy + 26 * s), (cx - 14 * s, cy)
+        for a, b in [(top, right), (right, bot), (bot, left), (left, top), (top, bot)]:
+            items += line_items(a, b, color, 6 * s, r)
+        items += line_items((cx - 14 * s, cy), (cx - 24 * s, cy + 12 * s), color, 6 * s, r)
+        items += line_items((cx + 14 * s, cy), (cx + 24 * s, cy + 12 * s), color, 6 * s, r)
+        items.append((cx, cy, 4.5 * s, lighten(color, 0.6)))
+    return items
 
 
 def muted(color, amount=0.55, dim=0.62):
@@ -797,42 +837,52 @@ def burst_items(cx, cy, color, rng, radius=118, sparkle=0):
 
 
 def looks(path):
-    """Thumbnail 7: make the dark yours. Scanner skins earned by playing, and a few to buy.
-    Looks only, never power."""
+    """Thumbnail 7: make the dark yours. Scanner skins earned by playing, bought with Static, and a
+    few to buy with Robux. Looks only, never power."""
     size = (1920, 1080)
     base = Image.new("RGB", size, (2, 3, 5))
     rng = np.random.default_rng(9)
     items = []
-    row1_y, row2_y = 415, 850
+    crisp = []
+    row1_y, row2_y = 405, 835
     xs1 = [260 + i * 350 for i in range(5)]
-    xs2 = [610 + i * 350 for i in range(3)]
+    xs_static = [300, 610]
+    xs_robux = [1080, 1390, 1700]
     # a progress line through the earned row, with a bright head at the last unlock
     for x in np.arange(xs1[0], xs1[-1], 9):
         items.append((x, row1_y + 128, 1.6, (70, 78, 96)))
-    for (name, color, tag), x in zip(LOOKS_EARNED, xs1):
-        quiet = color
-        items += burst_items(x, row1_y, quiet, rng, 92)
+    for (name, color, gun, model, tag), x in zip(LOOKS_EARNED, xs1):
+        items += burst_items(x, row1_y, color, rng, 92)
         if name == "BLUEPRINT":
-            # in game only the dots and the gold gun are different; keep the extras small:
-            # a faint dashed ring and a gold dot at the centre for the gun
             for k in range(0, 72, 2):
                 a = k / 72 * 2 * np.pi
-                items.append((x + np.cos(a) * 108, row1_y + np.sin(a) * 108, 1.8, tuple(int(c * 0.7) for c in color)))
-            items.append((x, row1_y, 6.5, (205, 165, 70)))
-        items.append((x, row1_y + 128, 6, quiet))
+                items.append((x + np.cos(a) * 108, row1_y + np.sin(a) * 108, 1.8, scaled(color, 0.7)))
+            items.append((x, row1_y, 6.5, gun))
+        elif model != "classic":
+            crisp += glyph_items(model, x, row1_y, lighten(gun, 0.7), 1.1)
+        items.append((x, row1_y + 128, 6, color))
+    for (name, color, gun, model, tag), x in zip(LOOKS_STATIC, xs_static):
+        items += burst_items(x, row2_y, color, rng, 92)
     premium = []
-    for (name, color), x in zip(LOOKS_ROBUX, xs2):
+    for (name, color, gun, model), x in zip(LOOKS_ROBUX, xs_robux):
         premium += burst_items(x, row2_y, color, rng, 92, sparkle=1)
+        crisp += glyph_items(model, x, row2_y, lighten(gun, 0.75), 1.25, r=2.6)
     # standard looks glow softly; premium looks get a stronger glow of their own
     img = glow_compose(base, soft_dot_layer(size, items), 0.55)
     img = glow_compose(img, soft_dot_layer(size, premium), 1.9)
+    img = glow_compose(img, soft_dot_layer(size, crisp), 0.35)
     plain_text(img, "EARNED BY PLAYING", (960, row1_y - 125), 24, (150, 160, 178), anchor="ma", bold=True, spacing=5)
-    plain_text(img, "PREMIUM", (960, row2_y - 172), 24, (255, 214, 110), anchor="ma", bold=True, spacing=5)
-    for (name, color, tag), x in zip(LOOKS_EARNED, xs1):
-        plain_text(img, name, (x, row1_y + 158), 26, tuple(int(c + (255 - c) * 0.4) for c in color) if name == "BLUEPRINT" else color, anchor="ma", bold=True, spacing=4)
+    plain_text(img, "BUY WITH STATIC", (455, row2_y - 150), 24, (150, 160, 178), anchor="ma", bold=True, spacing=5)
+    plain_text(img, "PREMIUM", (1390, row2_y - 172), 24, (255, 214, 110), anchor="ma", bold=True, spacing=5)
+    for (name, color, gun, model, tag), x in zip(LOOKS_EARNED, xs1):
+        label = lighten(color, 0.4) if name == "BLUEPRINT" else color
+        plain_text(img, name, (x, row1_y + 158), 26, label, anchor="ma", bold=True, spacing=4)
         plain_text(img, tag, (x, row1_y + 196), 20, (150, 160, 178) if tag != "DEFAULT" else (96, 240, 140), anchor="ma", bold=True, spacing=3)
-    for (name, color), x in zip(LOOKS_ROBUX, xs2):
-        plain_text(img, name, (x, row2_y + 148), 30, tuple(int(c + (255 - c) * 0.3) for c in color), anchor="ma", bold=True, spacing=4)
+    for (name, color, gun, model, tag), x in zip(LOOKS_STATIC, xs_static):
+        plain_text(img, name, (x, row2_y + 130), 26, lighten(color, 0.3), anchor="ma", bold=True, spacing=4)
+        plain_text(img, tag, (x, row2_y + 168), 20, (150, 160, 178), anchor="ma", bold=True, spacing=3)
+    for (name, color, gun, model), x in zip(LOOKS_ROBUX, xs_robux):
+        plain_text(img, name, (x, row2_y + 148), 30, lighten(color, 0.6), anchor="ma", bold=True, spacing=4)
     img = vignette(img, 0.8)
     img = dot_text(img, "MAKE THE DARK YOURS", (960, 60), 110, pitch=8, anchor="ma")
     plain_text(img, "NEW DOT COLOURS AND SCANNER LOOKS. LOOKS ONLY, NEVER POWER.", (960, 215), 30, (200, 206, 220), anchor="ma", bold=True, spacing=4)
@@ -935,18 +985,19 @@ def scaled(color, f):
     return tuple(int(c * f) for c in color)
 
 
-def pass_icon(path, colors, sweep=True, seed=11):
-    """A dot burst in one colour (or three overlapping bursts), in the style of icon B."""
+def pass_icon(path, skins, seed=11):
+    """A dot burst in a skin's colour with its scanner model in the middle, or, for the pack,
+    three overlapping bursts. `skins` is a list of (dot colour, gun colour, model)."""
     rng = np.random.default_rng(seed)
     items = []
-    if len(colors) == 1:
-        col = colors[0]
+    if len(skins) == 1:
+        col, gun, model = skins[0]
         items += burst_items(256, 256, col, rng, 170, sparkle=1)
-        for t in np.linspace(30, 190, 30):
-            items.append((256 + np.cos(-np.pi / 3) * t, 256 + np.sin(-np.pi / 3) * t, 2.8, col))
+        items += glyph_items(model, 256, 256, lighten(gun, 0.45), 2.0, r=2.6)
     else:
-        for col, (dx, dy) in zip(colors, [(-62, 44), (62, 44), (0, -66)]):
+        for (col, gun, model), (dx, dy) in zip(skins, [(-62, 44), (62, 44), (0, -66)]):
             items += burst_items(256 + dx, 256 + dy, col, rng, 100, sparkle=0)
+            items += glyph_items(model, 256 + dx, 256 + dy, lighten(gun, 0.45), 1.0)
     img = tile(items, glow=1.4)
     img.save(path)
 
@@ -1035,11 +1086,12 @@ def badge_hidden(path):
     tile(items, glow=1.4).save(path)
 
 
+PASS_SKINS = {name: (color, gun, model) for name, color, gun, model in LOOKS_ROBUX}
 PASS_ICONS = {
-    "rose-quartz": [(255, 80, 170)],
-    "aurora": [(40, 225, 255)],
-    "nightbloom": [(95, 45, 235)],
-    "phosphor-pack": [(255, 80, 170), (40, 225, 255), (95, 45, 235)],
+    "rose-quartz": [PASS_SKINS["ROSE QUARTZ"]],
+    "aurora": [PASS_SKINS["AURORA"]],
+    "nightbloom": [PASS_SKINS["NIGHTBLOOM"]],
+    "phosphor-pack": [PASS_SKINS["ROSE QUARTZ"], PASS_SKINS["AURORA"], PASS_SKINS["NIGHTBLOOM"]],
 }
 BADGES = {
     "first-scan": badge_scan,
