@@ -64,8 +64,8 @@ Skins.list = {
 	{
 		id = "blueprint",
 		name = "Blueprint",
-		blurb = "Royal blue dots with a golden gun. Fancy!",
-		wall = { 92, 140, 245 },
+		blurb = "Deep ultramarine dots with a golden gun. Fancy!",
+		wall = { 5, 60, 205 },
 		gun = { 205, 165, 70 },
 		kind = "playtime",
 		minutes = 180,
