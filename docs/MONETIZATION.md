@@ -57,7 +57,7 @@ as everyone else.
 | Blueprint | 180 min | deep ultramarine (5, 60, 205) / gold, the fanciest earned skin |
 | Rose Quartz | Game pass | hot pink (255, 80, 170) / bright pink |
 | Aurora | Game pass | electric cyan (40, 225, 255) / glowing teal |
-| Nightbloom | Game pass | bright indigo (105, 70, 255) / glowing indigo |
+| Nightbloom | Game pass | bright indigo-violet (95, 45, 235) / glowing indigo |
 
 The earned skins are deliberately quiet, a faint tint close to the standard dots, and the
 Robux skins are fully saturated so they are obvious at a glance, to you and to teammates.
