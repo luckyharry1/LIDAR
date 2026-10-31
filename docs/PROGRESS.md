@@ -13,6 +13,31 @@ into `main` yet.
 objects, posters, gate items and the secret alcove are written. See "Story places" below. None of
 it has been run in Studio. `scripts/check.sh` could not run in full in the cloud (see there).
 
+**Art pass (cloud thread, 31 Oct 2026, branch `claude/art-polish`, based on `main` at 2402851):**
+store art for the Roblox page and a visual polish of the interface. Nothing here has been run in
+Studio; `stylua --check` and `lune run tests/run` pass, `selene` could not run in the cloud.
+
+- Store art: `scripts/art/store_art.py` renders the icon (`docs/store/icon-512.png`, `icon-1024.png`)
+  and seven 1920x1080 thumbnails in the order the page brief asks for (hero corridor, the scan,
+  red aura, co-op in a flooded hall, a lit camp, a reveal object, a five-place strip). They are
+  drawn the way the game draws: a scanner fires rays into a set, only the hits are shown (white
+  terrain, green friends, red threats, gold exit, blue water, warm lamp light). Re-run
+  `python3 scripts/art/store_art.py [icon hero scan aura together camp reveal variety]` after
+  changing the look. These are stand-ins made from a model of the game, not screenshots: swap in
+  real Studio captures (HUD hidden) when someone has them. Upload steps are in `docs/PUBLISHING.md`.
+- `Ui.luau`: buttons get a small accent bar on the left; new `Ui.brackets` (viewfinder corner
+  marks), `Ui.rule` (fading hairline) and `Ui.pips` (a meter of small bars).
+- `Menus.luau`: every window except the title gets corner brackets; headings get a rule under
+  them; the workbench shows upgrade levels as pips (gold, green when complete) instead of `###--`;
+  the title letters are five labels that scan in one after another when the title opens, with a
+  soft pulse through them every 9 s; the subtitle now reads THE BACKROOMS (it still said THE
+  UNDERSTORY after the story pivot); a one-line colour key (terrain, friend, danger) sits under it.
+- `Hud.luau`: the level title card draws a hairline out from the middle under the name.
+- To check in Studio: title (letters fade in left to right, the key row does not push the buttons
+  off a 705x338 phone viewport; if it does, drop the key row first), brackets sit on the window
+  corners and not 20 px inside (they assume the window's 20 px padding), workbench pips line up
+  next to the names, the title card rule sits between name and subtitle.
+
 **Backrooms story pivot and light sensitivity (cloud thread, 22 Oct 2026, branch
 `claude/haven-lights`, based on `claude/stairwell`):** Vasco asked for a clearer story, then (after
 a first look) for the lore to be felt from the first minute of the game. The story (a Backrooms

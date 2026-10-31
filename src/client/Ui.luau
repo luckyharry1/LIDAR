@@ -137,6 +137,86 @@ function Ui.panel(properties: { [string]: any }, children: { Instance }?): Frame
 	return frame
 end
 
+-- Four short corner marks round a frame, like the brackets of a scanner's viewfinder. `inset`
+-- is the frame's own UIPadding, so the marks sit on its true corners.
+function Ui.brackets(frame: GuiObject, color: Color3?, length: number?, inset: number?)
+	local tint = color or Ui.colors.line
+	local size = length or 10
+	local pad = inset or 0
+	local holder = Ui.new("Frame", {
+		Name = "Brackets",
+		BackgroundTransparency = 1,
+		Position = UDim2.fromOffset(-pad, -pad),
+		Size = UDim2.new(1, pad * 2, 1, pad * 2),
+		Parent = frame,
+	})
+	for _, corner in { Vector2.new(0, 0), Vector2.new(1, 0), Vector2.new(0, 1), Vector2.new(1, 1) } do
+		for _, bar in { Vector2.new(size, 2), Vector2.new(2, size) } do
+			Ui.new("Frame", {
+				AnchorPoint = corner,
+				Position = UDim2.fromScale(corner.X, corner.Y),
+				Size = UDim2.fromOffset(bar.X, bar.Y),
+				BackgroundColor3 = tint,
+				BackgroundTransparency = 0.35,
+				BorderSizePixel = 0,
+				Parent = holder,
+			})
+		end
+	end
+end
+
+-- A hairline that fades out at both ends: a quiet divider under a heading.
+function Ui.rule(properties: { [string]: any }): Frame
+	local line = Ui.new("Frame", {
+		BackgroundColor3 = Ui.colors.line,
+		BackgroundTransparency = 0,
+		BorderSizePixel = 0,
+		Size = UDim2.new(1, 0, 0, 1),
+	}, {
+		Ui.new("UIGradient", {
+			Transparency = NumberSequence.new({
+				NumberSequenceKeypoint.new(0, 0.2),
+				NumberSequenceKeypoint.new(0.7, 0.75),
+				NumberSequenceKeypoint.new(1, 1),
+			}),
+		}),
+	})
+	for key, value in properties do
+		(line :: any)[key] = value
+	end
+	return line
+end
+
+-- A row of small bars, `level` of `total` filled: the meter for an upgrade or a score.
+function Ui.pips(
+	properties: { [string]: any },
+	level: number,
+	total: number,
+	accent: Color3?
+): Frame
+	local color = accent or Ui.colors.line
+	local row = Ui.new("Frame", {
+		BackgroundTransparency = 1,
+		Size = UDim2.fromOffset(0, 8),
+		AutomaticSize = Enum.AutomaticSize.X,
+	}, { Ui.list(Enum.FillDirection.Horizontal, 3) })
+	for index = 1, total do
+		local filled = index <= level
+		Ui.new("Frame", {
+			Size = UDim2.fromOffset(11, 6),
+			LayoutOrder = index,
+			BackgroundColor3 = if filled then color else Ui.colors.line,
+			BackgroundTransparency = if filled then 0.05 else 0.84,
+			BorderSizePixel = 0,
+			Parent = row,
+		})
+	end
+	for key, value in properties do
+		(row :: any)[key] = value
+	end
+	return row
+end
+
 function Ui.padding(all: number): UIPadding
 	return Ui.new("UIPadding", {
 		PaddingLeft = UDim.new(0, all),
@@ -184,10 +264,23 @@ function Ui.button(
 	for key, value in properties do
 		(button :: any)[key] = value
 	end
+	-- A short bar on the left edge in the button's colour: it marks the control as pressable
+	-- when the fill is dark, and inverts with the fill when the button lights up.
+	local tick = Ui.new("Frame", {
+		Name = "Tick",
+		Position = UDim2.new(0, 6, 0, 8),
+		Size = UDim2.new(0, 2, 1, -16),
+		BackgroundColor3 = color,
+		BackgroundTransparency = 0.5,
+		BorderSizePixel = 0,
+		Parent = button,
+	})
 	local function highlight(on: boolean)
 		button.BackgroundColor3 = if on then color else Ui.colors.panel
 		button.TextColor3 = if on then Ui.colors.ink else color
 		stroke.Transparency = if on then 0 else 0.45
+		tick.BackgroundColor3 = if on then Ui.colors.ink else color
+		tick.BackgroundTransparency = if on then 0.2 else 0.5
 	end
 	button.MouseEnter:Connect(function()
 		highlight(true)

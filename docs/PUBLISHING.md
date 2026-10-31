@@ -28,7 +28,8 @@ has never been published. Items marked *(your call)* are decisions the code does
 | Security > Enable Studio Access to API Services | On while testing | Saves and the daily board use DataStores. Without access, Studio keeps profiles in memory and tells the player. Published servers always have access. |
 | Devices | Computer, phone, tablet, console *(your call)* | The input layer handles keyboard and mouse, gamepad and touch. VR is not handled. |
 | Experience questionnaire (maturity) | *(your call)* | The game is a dark horror maze: invisible monsters, jump scares, being chased and caught. The story has no blood, gore or death on screen (people are "lost", never killed). The answers are yours to give. |
-| Name, description, icon, thumbnails | *(your call)* | Nothing in the repo yet. |
+| Name, description | *(your call)* | See the page brief in the project files (`roblox-page/page-copy.md`). |
+| Icon and thumbnails | Upload `docs/store/icon-512.png` and `docs/store/thumbnail-1` to `7` in that order (1 is the one search shows) | Creator Hub > Experience > Media. Generated stand-ins from `scripts/art/store_art.py`; replace with real Studio captures when you have them. |
 
 ## 4. Data stores
 

@@ -73,6 +73,7 @@ local mapPlayer: Frame
 local mapExit: Frame
 local cardTitle: TextLabel
 local cardSubtitle: TextLabel
+local cardRule: Frame
 local downedPanel: Frame
 local downedFill: Frame
 local photoLabel: TextLabel
@@ -139,12 +140,17 @@ end
 function Hud.titleCard(title: string, subtitle: string)
 	cardTitle.Text = string.upper(title)
 	cardSubtitle.Text = subtitle
+	-- A hairline draws out from the middle under the name, like a scan line settling.
+	cardRule.Size = UDim2.fromOffset(0, 1)
+	cardRule.BackgroundTransparency = 0.4
+	tween(cardRule, 1.4, { Size = UDim2.fromOffset(300, 1) })
 	tween(cardTitle, 0.8, { TextTransparency = 0 })
 	tween(cardSubtitle, 1.2, { TextTransparency = 0.15 })
 	task.delay(CARD_SECONDS, function()
 		if cardTitle.Text == string.upper(title) then
 			tween(cardTitle, 1.2, { TextTransparency = 1 })
 			tween(cardSubtitle, 1.2, { TextTransparency = 1 })
+			tween(cardRule, 1.2, { BackgroundTransparency = 1 })
 		end
 	end)
 end
@@ -565,8 +571,17 @@ local function build()
 		TextXAlignment = Enum.TextXAlignment.Center,
 		TextTransparency = 1,
 		AnchorPoint = Vector2.new(0.5, 0.5),
-		Position = UDim2.new(0.5, 0, 0.3, 36),
+		Position = UDim2.new(0.5, 0, 0.3, 48),
 		Size = UDim2.fromOffset(800, 22),
+		Parent = gui,
+	})
+	cardRule = Ui.new("Frame", {
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.new(0.5, 0, 0.3, 30),
+		Size = UDim2.fromOffset(0, 1),
+		BackgroundColor3 = Ui.colors.line,
+		BackgroundTransparency = 1,
+		BorderSizePixel = 0,
 		Parent = gui,
 	})
 
