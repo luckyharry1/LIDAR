@@ -12,6 +12,7 @@ written at 1024), thumbnails 1920x1080 (16:9).
 """
 
 import os
+import shutil
 import sys
 
 import numpy as np
@@ -750,14 +751,14 @@ def lore(path):
 LOOKS_EARNED = [
     ("CLASSIC", (196, 200, 210), "DEFAULT"),
     ("TUNGSTEN", (214, 196, 160), "15 MIN"),
-    ("GLACIER", (170, 196, 208), "45 MIN"),
+    ("GLACIER", (150, 214, 196), "45 MIN"),
     ("ORCHID", (196, 176, 208), "90 MIN"),
-    ("BLUEPRINT", (150, 166, 204), "180 MIN"),
+    ("BLUEPRINT", (92, 140, 245), "180 MIN"),
 ]
 LOOKS_ROBUX = [
     ("ROSE QUARTZ", (255, 80, 170)),
     ("AURORA", (40, 225, 255)),
-    ("NIGHTBLOOM", (120, 85, 255)),
+    ("NIGHTBLOOM", (105, 70, 255)),
 ]
 
 
@@ -811,6 +812,13 @@ def looks(path):
     for (name, color, tag), x in zip(LOOKS_EARNED, xs1):
         quiet = color
         items += burst_items(x, row1_y, quiet, rng, 92)
+        if name == "BLUEPRINT":
+            # in game only the dots and the gold gun are different; keep the extras small:
+            # a faint dashed ring and a gold dot at the centre for the gun
+            for k in range(0, 72, 2):
+                a = k / 72 * 2 * np.pi
+                items.append((x + np.cos(a) * 108, row1_y + np.sin(a) * 108, 1.8, tuple(int(c * 0.7) for c in color)))
+            items.append((x, row1_y, 6.5, (205, 165, 70)))
         items.append((x, row1_y + 128, 6, quiet))
     premium = []
     for (name, color), x in zip(LOOKS_ROBUX, xs2):
@@ -908,6 +916,8 @@ def main():
             icon_corridor(os.path.join(OUT, f"icon-a-corridor-{side}.png"), side)
             icon_radar(os.path.join(OUT, f"icon-b-radar-{side}.png"), side)
             icon_letter(os.path.join(OUT, f"icon-c-letter-{side}.png"), side)
+            # the icon in use is option B (Vasco's pick, 2026-10-31)
+            shutil.copyfile(os.path.join(OUT, f"icon-b-radar-{side}.png"), os.path.join(OUT, f"icon-{side}.png"))
 
     jobs = {
         "icon": icons,
