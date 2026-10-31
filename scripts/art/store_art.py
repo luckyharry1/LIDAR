@@ -745,19 +745,19 @@ def lore(path):
 
 # The scanner skins in src/shared/data/Skins.luau on claude/skins-monetization (PR #15): a plain
 # Classic, four earned by playtime (minutes in the dark), three bought with Robux. Colours are
-# each skin's `wall` colour. Keep in step with that file. The earned skins are drawn muted on
+# each skin's dot colour. Keep in step with that file. The earned skins are drawn muted on
 # purpose (quiet, a little greyed) so the premium ones, drawn vivid with a halo, stand out.
 LOOKS_EARNED = [
-    ("CLASSIC", (226, 232, 245), "DEFAULT"),
-    ("TUNGSTEN", (255, 226, 170), "15 MIN"),
-    ("GLACIER", (160, 235, 255), "45 MIN"),
-    ("ORCHID", (222, 170, 255), "90 MIN"),
-    ("BLUEPRINT", (112, 152, 255), "180 MIN"),
+    ("CLASSIC", (196, 200, 210), "DEFAULT"),
+    ("TUNGSTEN", (214, 196, 160), "15 MIN"),
+    ("GLACIER", (170, 196, 208), "45 MIN"),
+    ("ORCHID", (196, 176, 208), "90 MIN"),
+    ("BLUEPRINT", (150, 166, 204), "180 MIN"),
 ]
 LOOKS_ROBUX = [
-    ("ROSE QUARTZ", (255, 165, 205)),
-    ("CHROME", (245, 248, 255)),
-    ("NIGHTBLOOM", (150, 124, 255)),
+    ("ROSE QUARTZ", (255, 80, 170)),
+    ("AURORA", (40, 225, 255)),
+    ("NIGHTBLOOM", (120, 85, 255)),
 ]
 
 
@@ -809,22 +809,22 @@ def looks(path):
     for x in np.arange(xs1[0], xs1[-1], 9):
         items.append((x, row1_y + 128, 1.6, (70, 78, 96)))
     for (name, color, tag), x in zip(LOOKS_EARNED, xs1):
-        quiet = muted(color)
+        quiet = color
         items += burst_items(x, row1_y, quiet, rng, 92)
         items.append((x, row1_y + 128, 6, quiet))
     premium = []
     for (name, color), x in zip(LOOKS_ROBUX, xs2):
-        premium += burst_items(x, row2_y, vivid(color), rng, 92, sparkle=1)
+        premium += burst_items(x, row2_y, color, rng, 92, sparkle=1)
     # standard looks glow softly; premium looks get a stronger glow of their own
     img = glow_compose(base, soft_dot_layer(size, items), 0.55)
     img = glow_compose(img, soft_dot_layer(size, premium), 1.9)
-    plain_text(img, "EARNED BY PLAYING", (960, row1_y - 150), 24, (150, 160, 178), anchor="ma", bold=True, spacing=5)
+    plain_text(img, "EARNED BY PLAYING", (960, row1_y - 125), 24, (150, 160, 178), anchor="ma", bold=True, spacing=5)
     plain_text(img, "PREMIUM", (960, row2_y - 172), 24, (255, 214, 110), anchor="ma", bold=True, spacing=5)
     for (name, color, tag), x in zip(LOOKS_EARNED, xs1):
-        plain_text(img, name, (x, row1_y + 158), 26, muted(color, 0.5, 0.8), anchor="ma", bold=True, spacing=4)
+        plain_text(img, name, (x, row1_y + 158), 26, color, anchor="ma", bold=True, spacing=4)
         plain_text(img, tag, (x, row1_y + 196), 20, (150, 160, 178) if tag != "DEFAULT" else (96, 240, 140), anchor="ma", bold=True, spacing=3)
     for (name, color), x in zip(LOOKS_ROBUX, xs2):
-        plain_text(img, name, (x, row2_y + 148), 30, vivid(color), anchor="ma", bold=True, spacing=4)
+        plain_text(img, name, (x, row2_y + 148), 30, tuple(int(c + (255 - c) * 0.3) for c in color), anchor="ma", bold=True, spacing=4)
     img = vignette(img, 0.8)
     img = dot_text(img, "MAKE THE DARK YOURS", (960, 60), 110, pitch=8, anchor="ma")
     plain_text(img, "NEW DOT COLOURS AND SCANNER LOOKS. LOOKS ONLY, NEVER POWER.", (960, 215), 30, (200, 206, 220), anchor="ma", bold=True, spacing=4)
