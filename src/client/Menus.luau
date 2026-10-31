@@ -1009,13 +1009,13 @@ end
 
 local function buyLabel(passId: number): string
 	local price = passPrice(passId)
-	return if price then `GET  R$ {price}` else "GET"
+	return if price then `GET IT!  R$ {price}` else "GET IT!"
 end
 
 refreshSkins = function()
 	local profile = State.profile
 	local meta = State.meta
-	skinsPlayed.Text = "TIME IN THE DARK  " .. duration(profile.stats.playSeconds)
+	skinsPlayed.Text = "EXPLORED FOR  " .. duration(profile.stats.playSeconds)
 	for _, child in skinsList:GetChildren() do
 		if child:IsA("Frame") then
 			child:Destroy()
@@ -1032,7 +1032,7 @@ refreshSkins = function()
 	)
 		order += 1
 		local line = Ui.new("Frame", {
-			Size = UDim2.new(1, -8, 0, 44),
+			Size = UDim2.new(1, -8, 0, 52),
 			BackgroundTransparency = 1,
 			LayoutOrder = order,
 			Parent = skinsList,
@@ -1058,16 +1058,17 @@ refreshSkins = function()
 			FontFace = Ui.fontBold,
 			TextSize = Ui.text.small,
 			Position = UDim2.fromOffset(46, 3),
-			Size = UDim2.new(0.55, -46, 0, 18),
+			Size = UDim2.new(0.6, -46, 0, 18),
 			Parent = line,
 		})
+		-- Up to two lines, so a long description is never cut off.
 		Ui.label({
 			Text = blurb,
 			TextSize = 11,
 			TextColor3 = Ui.colors.dim,
-			TextTruncate = Enum.TextTruncate.AtEnd,
-			Position = UDim2.fromOffset(46, 22),
-			Size = UDim2.new(0.55, -46, 0, 16),
+			TextYAlignment = Enum.TextYAlignment.Top,
+			Position = UDim2.fromOffset(46, 21),
+			Size = UDim2.new(0.6, -46, 0, 28),
 			Parent = line,
 		})
 		local function status(text: string, color: Color3)
@@ -1078,7 +1079,7 @@ refreshSkins = function()
 				TextXAlignment = Enum.TextXAlignment.Right,
 				AnchorPoint = Vector2.new(1, 0),
 				Position = UDim2.fromScale(1, 0),
-				Size = UDim2.new(0.43, 0, 1, 0),
+				Size = UDim2.new(0.38, 0, 1, 0),
 				Parent = line,
 			})
 		end
@@ -1088,12 +1089,12 @@ refreshSkins = function()
 				TextSize = Ui.text.small,
 				AnchorPoint = Vector2.new(1, 0.5),
 				Position = UDim2.fromScale(1, 0.5),
-				Size = UDim2.new(0.4, 0, 0, 30),
+				Size = UDim2.new(0.36, 0, 0, 30),
 				Parent = line,
 			}, onPress, color)
 		end
 		if profile.skin == id then
-			status("IN USE", Ui.colors.good)
+			status("WEARING!", Ui.colors.good)
 		elseif def == nil then
 			action("USE", function()
 				send("EquipSkin", "")
@@ -1106,7 +1107,7 @@ refreshSkins = function()
 				end, Ui.colors.gold)
 			elseif owned == "playtime" then
 				status(
-					`PLAY {duration(SkinRules.secondsLeft(def, profile.stats.playSeconds))} MORE`,
+					`{duration(SkinRules.secondsLeft(def, profile.stats.playSeconds))} TO GO!`,
 					Ui.colors.dim
 				)
 			else
@@ -1114,7 +1115,10 @@ refreshSkins = function()
 				if passId == 0 then
 					status("COMING SOON", Ui.colors.dim)
 				elseif not meta.canPromptPurchase then
-					status(`AFTER {Config.Monetization.promptAfterLevels} LEVELS`, Ui.colors.dim)
+					status(
+						`BEAT {Config.Monetization.promptAfterLevels} LEVELS FIRST`,
+						Ui.colors.dim
+					)
 				else
 					action(buyLabel(passId), function()
 						MarketplaceService:PromptGamePassPurchase(player, passId)
@@ -1123,10 +1127,10 @@ refreshSkins = function()
 			end
 		end
 	end
-	row("", "Standard scanner", "Plain white dots. Always yours.", nil, nil, nil)
+	row("", "Classic", "Plain white dots. Always yours!", nil, nil, nil)
 	for _, def in Skins.list do
 		local blurb = if def.kind == "playtime"
-			then `{def.blurb} Earned after {duration((def.minutes or 0) * 60)} in the dark.`
+			then `{def.blurb} Unlocks after {duration((def.minutes or 0) * 60)} of exploring!`
 			else def.blurb
 		row(def.id, def.name, blurb, def.wall, def.gun, def)
 	end
@@ -1144,14 +1148,14 @@ refreshSkins = function()
 	end
 	skinsPack.Visible = packId ~= 0 and lockedRobux and meta.canPromptPurchase
 	if skinsPack.Visible then
-		skinsPack.Text = "ALL ROBUX SKINS"
+		skinsPack.Text = "GET THEM ALL!"
 			.. (if passPrice(packId) then `  R$ {passPrice(packId)}` else "")
 	end
 end
 
 local function buildSkins()
 	local frame = window("skins", 620, 380)
-	heading(frame, "SCANNER SKINS")
+	heading(frame, "SKINS")
 	skinsPlayed = Ui.label({
 		TextSize = Ui.text.small,
 		TextColor3 = Ui.colors.dim,
@@ -1162,7 +1166,7 @@ local function buildSkins()
 		Parent = frame,
 	})
 	Ui.label({
-		Text = "A look for your dots and your gun. Every skin is the same scanner.",
+		Text = "Give your dots and your gun a new look!",
 		TextSize = Ui.text.small,
 		TextColor3 = Ui.colors.dim,
 		Position = UDim2.fromOffset(0, 28),
@@ -1180,7 +1184,7 @@ local function buildSkins()
 		Parent = frame,
 	}, { Ui.list(Enum.FillDirection.Vertical, 4) })
 	skinsPack = Ui.button({
-		Text = "ALL ROBUX SKINS",
+		Text = "GET THEM ALL!",
 		AnchorPoint = Vector2.new(0, 1),
 		Position = UDim2.fromScale(0, 1),
 		Size = UDim2.fromOffset(260, 38),
