@@ -93,11 +93,11 @@ end
 DotRules.gridSizes =
 	{ Config.Lidar.gridNear, Config.Lidar.gridMid, Config.Lidar.gridFar, Config.Lidar.gridItem }
 
--- How many permanent dots the world may hold for a quality setting and Phosphor level.
-function DotRules.budget(quality: string, phosphorLevel: number): number
+-- How many permanent dots the world may hold for a quality setting and Afterglow level.
+function DotRules.budget(quality: string, afterglowLevel: number): number
 	local lidar = Config.Lidar
 	local base = lidar.dotBudget[quality] or lidar.dotBudget.medium
-	return math.floor(base * (1 + lidar.budgetPerPhosphorLevel * phosphorLevel))
+	return math.floor(base * (lidar.budgetBase + lidar.budgetPerAfterglowLevel * afterglowLevel))
 end
 
 -- The sweep's charge moves from 0 (just fired) to 1 (ready).

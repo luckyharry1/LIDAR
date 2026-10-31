@@ -17,7 +17,7 @@ tests["every skin is well formed and its pass key exists in Config"] = function(
 		end
 		if def.kind == "playtime" then
 			assert((def.minutes or 0) > 0, def.id .. " is a playtime skin with no minutes")
-		else
+		elseif def.kind == "robux" then
 			assert(def.pass ~= nil, def.id .. " is a robux skin with no pass key")
 			assert(
 				Config.Monetization.skinPassIds[def.pass :: string] ~= nil,
@@ -30,17 +30,23 @@ end
 
 tests["playtime skins unlock on time alone, robux skins need a pass"] = function()
 	local tungsten, rose = Skins.byId.tungsten, Skins.byId.rose
-	assert(SkinRules.status(tungsten, 0, {}) == "playtime", "unlocked at zero minutes")
-	assert(SkinRules.status(tungsten, 15 * 60 - 1, {}) == "playtime", "unlocked a second early")
-	assert(SkinRules.status(tungsten, 15 * 60, {}) == "owned", "not unlocked on time")
-	assert(SkinRules.status(tungsten, 0, { pack = true }) == "playtime", "the pack bought playtime")
-	assert(SkinRules.status(rose, 1e9, {}) == "robux", "playtime unlocked a robux skin")
-	assert(SkinRules.status(rose, 0, { rose = true }) == "owned", "its own pass did not unlock it")
+	assert(SkinRules.status(tungsten, 0, {}, {}) == "playtime", "unlocked at zero minutes")
+	assert(SkinRules.status(tungsten, 15 * 60 - 1, {}, {}) == "playtime", "unlocked a second early")
+	assert(SkinRules.status(tungsten, 15 * 60, {}, {}) == "owned", "not unlocked on time")
 	assert(
-		SkinRules.status(rose, 0, { aurora = true }) == "robux",
+		SkinRules.status(tungsten, 0, { pack = true }, {}) == "playtime",
+		"the pack bought playtime"
+	)
+	assert(SkinRules.status(rose, 1e9, {}, {}) == "robux", "playtime unlocked a robux skin")
+	assert(
+		SkinRules.status(rose, 0, { rose = true }, {}) == "owned",
+		"its own pass did not unlock it"
+	)
+	assert(
+		SkinRules.status(rose, 0, { aurora = true }, {}) == "robux",
 		"another skin's pass unlocked it"
 	)
-	assert(SkinRules.status(rose, 0, { pack = true }) == "owned", "the pack did not unlock it")
+	assert(SkinRules.status(rose, 0, { pack = true }, {}) == "owned", "the pack did not unlock it")
 	assert(SkinRules.secondsLeft(tungsten, 15 * 60 - 90) == 90, "wrong time left")
 	assert(SkinRules.secondsLeft(tungsten, 1e9) == 0, "negative time left")
 end
@@ -100,16 +106,12 @@ tests["skin and playtime survive a save; a bad skin id is dropped"] = function()
 	assert(hostile.stats.playSeconds == 0, "negative playtime accepted")
 end
 
-tests["wallTint is the skin, else the Static dot tint, else nothing"] = function()
+tests["wallTint is the skin's colour, else nothing"] = function()
 	local profile = SaveData.default()
 	assert(SkinRules.wallTint(profile) == nil, "plain scanner has a tint")
-	profile.cosmetics.owned.dots_mint = true
-	profile.cosmetics.dots = "dots_mint"
-	local mint = SkinRules.wallTint(profile)
-	assert(mint ~= nil and mint[2] == 230, "Static dot tint not shared")
 	profile.skin = "rose"
 	local rose = SkinRules.wallTint(profile)
-	assert(rose ~= nil and rose[1] == 255 and rose[2] == 80, "skin does not win over the tint")
+	assert(rose ~= nil and rose[1] == 255 and rose[2] == 80, "wrong skin colour")
 end
 
 tests["no skin colour is close to a meaning colour or to the plain dots"] = function()
@@ -134,6 +136,61 @@ tests["no skin colour is close to a meaning colour or to the plain dots"] = func
 			)
 		end
 	end
+end
+
+tests["Static skins are bought once, then wear for free"] = function()
+	local profile = SaveData.default()
+	local ok = SkinRules.equip(profile, "ember", {})
+	assert(not ok and profile.skin == "" and profile.static == 0, "wore a skin it could not afford")
+	profile.static = 200
+	ok = SkinRules.equip(profile, "ember", {})
+	assert(
+		ok and profile.static == 200 - Skins.byId.ember.cost and profile.skin == "ember",
+		"first wear should cost Static"
+	)
+	SkinRules.equip(profile, "", {})
+	local spent = profile.static
+	SkinRules.equip(profile, "ember", {})
+	assert(profile.static == spent and profile.skin == "ember", "charged twice")
+	profile.ownedSkins.ember = nil
+	assert(SkinRules.enforce(profile, {}) and profile.skin == "", "kept an unowned Static skin")
+end
+
+tests["every skin has a scanner model the gun can build"] = function()
+	local known = {}
+	for _, model in Skins.models do
+		known[model] = true
+	end
+	local extra = 0
+	for _, def in Skins.list do
+		assert(known[def.model], def.id .. " has an unknown model " .. def.model)
+		if def.model ~= "classic" then
+			extra += 1
+		end
+		if def.kind == "static" then
+			assert((def.cost or 0) > 0, def.id .. " is a Static skin with no cost")
+		end
+	end
+	-- Players should be able to earn exactly one non-classic model by playing, as a taste of
+	-- the ones that cost Robux.
+	local earnedModels = 0
+	for _, def in Skins.list do
+		if def.kind == "playtime" and def.model ~= "classic" then
+			earnedModels += 1
+		end
+	end
+	assert(earnedModels == 1, "exactly one earned skin should have a different model")
+	assert(extra >= 4, "too few distinct scanner models")
+end
+
+tests["version 2 saves migrate: the old cosmetics are folded into the skins"] = function()
+	local profile = SaveData.load({
+		version = 2,
+		static = 40,
+		cosmetics = { owned = { dots_amber = true }, dots = "dots_amber", gun = "" },
+	})
+	assert(profile.version == Config.SaveVersion and profile.static == 40, "not migrated")
+	assert(profile.skin == "" and next(profile.ownedSkins) == nil, "old cosmetics leaked in")
 end
 
 return tests

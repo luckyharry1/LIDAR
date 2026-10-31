@@ -4,28 +4,31 @@
 
 local Config = {}
 
-Config.SaveVersion = 2
+Config.SaveVersion = 3
 
 -- The LIDAR gun. Left click scatters a stream of tiny, permanent dots inside a cone; right
 -- click fires one loud top-to-bottom sweep that draws a whole grid at once. The scatter is
 -- free but starts weak; the sweep costs a battery charge (Config.Battery). Bench upgrades
 -- (data/Upgrades, Progression.effects) raise the base numbers below towards their caps.
 Config.Lidar = {
-	dotsPerSecond = 260, -- base scatter rate; the Emitter upgrade adds emitterDotsPerLevel
-	emitterDotsPerLevel = 120, -- five levels: 260 up to 860
+	dotsPerSecond = 150, -- base scatter rate; the Emitter upgrade adds emitterDotsPerLevel
+	emitterDotsPerLevel = 75, -- five levels: 150 up to 525 (each one a step of a half of the start)
 	coneHalfAngleDeg = 26, -- default spread
 	coneMinDeg = 8, -- the scroll wheel narrows the spread down to this
 	coneMaxDeg = 34, -- and widens it up to this
 	coneMaxWideDeg = 56, -- with the Wide Lens upgrade
 	coneStepDeg = 4,
-	baseRange = 65, -- studs the scatter and sweep reach before upgrades
-	rangePerLevel = 21, -- the Range Coil upgrade adds this per level (four levels: 149)
+	baseRange = 42, -- studs the scatter and sweep reach before upgrades
+	rangePerLevel = 16, -- the Range Coil upgrade adds this per level (four levels: 106)
 	maxRange = 150, -- studs; the hard cap, also what the server allows for pings and reveals
 
 	-- How many permanent dots the world can hold, by the quality setting. When the budget is
 	-- full the oldest dot is reused, so the live count can never exceed it.
 	dotBudget = { low = 14000, medium = 42000, high = 85000 },
-	budgetPerPhosphorLevel = 0.25, -- the Phosphor upgrade adds this share per level (four: x2)
+	-- The world's dot memory scales with the Afterglow upgrade: the budget above times
+	-- budgetBase with none, plus budgetPerAfterglowLevel for each level (four: x1.4).
+	budgetBase = 0.6,
+	budgetPerAfterglowLevel = 0.2,
 	fadingDots = 1600, -- separate small pool for dots that fade (people, monsters, footprints)
 
 	dotSize = 0.01, -- studs at close range
@@ -61,8 +64,8 @@ Config.Lidar = {
 	mimicDotDelay = 0.35, -- the Mimic's tell: its dots land late
 
 	-- Lines in one sweep and rays per line, by Sweep Grid upgrade level (0 to 3).
-	sweepRowsByLevel = { 44, 60, 76, 90 },
-	sweepColumnsByLevel = { 56, 76, 96, 114 },
+	sweepRowsByLevel = { 30, 42, 54, 66 },
+	sweepColumnsByLevel = { 40, 56, 72, 88 },
 	sweepSeconds = 1.3, -- time from the top line to the bottom line
 	sweepUpDeg = 30,
 	sweepDownDeg = 36,
@@ -270,7 +273,6 @@ Config.Net = {
 		Emote = 2,
 		Reveal = 2,
 		BuyUpgrade = 4,
-		EquipCosmetic = 4,
 		EquipSkin = 4,
 		SetSetting = 6,
 		Start = 2,

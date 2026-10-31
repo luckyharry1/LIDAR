@@ -43,8 +43,8 @@ tests["current saves round-trip unchanged"] = function()
 	profile.static = 321
 	profile.upgrades.cooling = 2
 	profile.toggles.lens = false
-	profile.cosmetics.owned.dots_mint = true
-	profile.cosmetics.dots = "dots_mint"
+	profile.ownedSkins.ember = true
+	profile.skin = "ember"
 	profile.settings.palette = "alt"
 	profile.settings.volume = 0.4
 	profile.checkpointTier = 6
@@ -58,8 +58,8 @@ tests["current saves round-trip unchanged"] = function()
 		"core fields changed"
 	)
 	assert(
-		again.cosmetics.dots == "dots_mint" and again.settings.palette == "alt",
-		"cosmetics or settings changed"
+		again.skin == "ember" and again.ownedSkins.ember and again.settings.palette == "alt",
+		"skins or settings changed"
 	)
 	assert(
 		again.settings.volume == 0.4 and again.checkpointTier == 6 and again.lore.office_welcome,
@@ -76,7 +76,7 @@ tests["hostile or corrupt values are clamped or dropped"] = function()
 		version = Config.SaveVersion,
 		static = -500,
 		upgrades = { battery = 9999, hacked = 5, cooling = "many" },
-		cosmetics = { owned = { fake = true }, dots = "fake", gun = 7 },
+		ownedSkins = { fake = true, tungsten = true, ember = true },
 		settings = { palette = "rainbow", scanMode = {}, volume = 40 },
 		checkpointTier = 0 / 0,
 		bestTier = -3,
@@ -91,10 +91,10 @@ tests["hostile or corrupt values are clamped or dropped"] = function()
 		"bad upgrade entries kept"
 	)
 	assert(
-		next(profile.cosmetics.owned) == nil
-			and profile.cosmetics.dots == ""
-			and profile.cosmetics.gun == "",
-		"bad cosmetics kept"
+		profile.ownedSkins.fake == nil
+			and profile.ownedSkins.tungsten == nil
+			and profile.ownedSkins.ember == true,
+		"bad owned skins kept (only real Static skins may be owned)"
 	)
 	assert(
 		profile.settings.palette == "default" and profile.settings.scanMode == "auto",

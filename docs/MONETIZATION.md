@@ -14,13 +14,13 @@ fits Roblox's guidance on fair monetization.
 
 ## What players work towards for free (built)
 
-- **The scanner** starts weak (260 dots a second, 65 studs, a coarse sweep, a narrow cone). Static from every
-  run buys Emitter, Range Coil, Sweep Grid and Phosphor at the workbench.
+- **The scanner** starts weak on purpose (150 dots a second, 42 studs, a coarse 30 x 40 sweep, a narrow
+  cone), so each upgrade is a big step. Static from every run buys Emitter, Range Coil, Sweep Grid and
+  Afterglow (the world remembers more dots) at the workbench.
 - **The battery**: sweeps cost charges found as battery cells in the maze. Capacitor, Spare
   Cell and Trickle Charger make the battery better.
 - **Tools**: Quiet Shutter, Wide Lens, Pulse Radar, Echo Beacon, Wayfinder, Soft Soles.
-- **Cosmetics for Static**: three dot tints and two gun housings.
-- **Scanner skins** (`data/Skins`, the SKINS button on the start screen and at the workbench):
+- **Phosphor skins** (`data/Skins`, the PHOSPHOR SKINS button on the start screen and the panel in the workbench):
   four earned by time in the dark (15, 45, 90 and 180 minutes of walking; standing still or
   idling at the title earns nothing) and three that Robux buys. See "Skins" below.
 - **Daily**: one shared seed a day with a leaderboard, and a visit streak.
@@ -43,21 +43,27 @@ replay. If it is ever added, cap it (one small pack a day) and never sell charge
 
 ## Skins
 
-A skin recolours the white terrain dots and the gun housing. It never changes range, rate,
+**Phosphor** is the one place for looks: a skin is a dot colour AND a scanner model (the shape of
+the gun). The old Static finishes (dot tints and gun housings) were folded in: they are now the two
+Static skins, and the old upgrade called Phosphor (more dots remembered) is renamed **Afterglow**. A
+skin recolours the white terrain dots and the gun, and the gun takes its shape from the skin's model
+(client/Viewmodel: classic, lantern, dish, prism, blossom). It never changes range, rate,
 charges or what anything does, and it keeps clear of the meaning colours (green friends, red
 monsters, gold objectives, bright purple hazards), so a skinned player reads the dark the same
 as everyone else.
 
 | Skin | How you get it | Dots / gun |
 | --- | --- | --- |
-| Standard scanner | Always | cool white (196, 200, 210) / graphite |
+| Classic | Always | cool white (196, 200, 210) / graphite, the classic gun |
 | Tungsten | 15 min in the dark | muted warm / dim brass |
 | Glacier | 45 min | pale mint-teal (150, 214, 196) / slate |
-| Orchid | 90 min | muted lilac / plum |
+| Orchid | 90 min | muted lilac / plum, **lantern** model (the one different shape players earn by playing, a taste of the Robux ones) |
 | Blueprint | 180 min | deep ultramarine (5, 60, 205) / gold, the fanciest earned skin |
-| Rose Quartz | Game pass | hot pink (255, 80, 170) / bright pink |
-| Aurora | Game pass | electric cyan (40, 225, 255) / glowing teal |
-| Nightbloom | Game pass | bright indigo-violet (95, 45, 235) / glowing indigo |
+| Ember | 120 Static | coral (230, 120, 110) / brick |
+| Plum | 120 Static | plum (170, 100, 170) / dark plum |
+| Rose Quartz | Game pass | hot pink (255, 80, 170) / bright pink, **blossom** model |
+| Aurora | Game pass | electric cyan (40, 225, 255) / glowing teal, **dish** model |
+| Nightbloom | Game pass | bright indigo-violet (95, 45, 235) / glowing indigo, **prism** model |
 
 The earned skins are deliberately quiet, a faint tint close to the standard dots, and the
 Robux skins are fully saturated so they are obvious at a glance, to you and to teammates.

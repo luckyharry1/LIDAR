@@ -109,9 +109,6 @@ local VALIDATORS: { [string]: Validator } = {
 	BuyUpgrade = function(id)
 		return isShortString(id)
 	end,
-	EquipCosmetic = function(slot, id)
-		return isShortString(slot) and isShortString(id)
-	end,
 	EquipSkin = function(id)
 		return isShortString(id)
 	end,

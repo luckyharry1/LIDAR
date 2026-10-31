@@ -83,7 +83,7 @@ tests["closer surfaces are packed more finely"] = function()
 	assert(sizes[3] / lidar.gridMidRange * 770 <= 9, "far grid too coarse just past mid")
 end
 
-tests["dot budget follows the quality setting and the Phosphor upgrade"] = function()
+tests["dot budget follows the quality setting and the Afterglow upgrade"] = function()
 	assert(
 		DotRules.budget("low", 0) < DotRules.budget("medium", 0),
 		"medium should hold more than low"
@@ -94,7 +94,7 @@ tests["dot budget follows the quality setting and the Phosphor upgrade"] = funct
 	)
 	assert(
 		DotRules.budget("medium", 3) > DotRules.budget("medium", 0),
-		"Phosphor should raise the budget"
+		"Afterglow should raise the budget"
 	)
 	assert(
 		DotRules.budget("nonsense", 0) == DotRules.budget("medium", 0),

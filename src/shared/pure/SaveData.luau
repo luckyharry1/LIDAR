@@ -11,8 +11,8 @@ export type Profile = {
 	static: number,
 	upgrades: { [string]: number },
 	toggles: { [string]: boolean },
-	cosmetics: { owned: { [string]: boolean }, dots: string, gun: string },
-	skin: string, -- equipped scanner skin (data/Skins); empty is the plain scanner
+	skin: string, -- equipped Phosphor skin (data/Skins); empty is the plain scanner
+	ownedSkins: { [string]: boolean }, -- skins bought with Static
 	settings: {
 		palette: string,
 		sharedScans: boolean,
@@ -56,8 +56,8 @@ function SaveData.default(): Profile
 		static = 0,
 		upgrades = {},
 		toggles = {},
-		cosmetics = { owned = {}, dots = "", gun = "" },
 		skin = "",
+		ownedSkins = {},
 		settings = {
 			palette = "default",
 			sharedScans = true,
@@ -86,6 +86,11 @@ local MIGRATIONS: { [number]: (data: { [string]: any }) -> () } = {
 		data.static = data.currency
 		data.currency = nil
 		data.version = 2
+	end,
+	-- Version 3 folded the Static dot tints and gun housings (`cosmetics`) into the skins.
+	[2] = function(data)
+		data.cosmetics = nil
+		data.version = 3
 	end,
 }
 
@@ -144,17 +149,10 @@ function SaveData.load(raw: any): Profile
 			profile.toggles[id] = on
 		end
 	end
-	local cosmetics = tableOf(data.cosmetics)
-	for id in flags(cosmetics.owned) do
-		if Upgrades.cosmeticById[id] ~= nil then
-			profile.cosmetics.owned[id] = true
-		end
-	end
-	for _, slot in { "dots", "gun" } do
-		local id = cosmetics[slot]
-		local def = if type(id) == "string" then Upgrades.cosmeticById[id] else nil
-		if def ~= nil and def.slot == slot and profile.cosmetics.owned[id] then
-			(profile.cosmetics :: { [string]: any })[slot] = id
+	for id in flags(data.ownedSkins) do
+		local def = Skins.byId[id]
+		if def ~= nil and def.kind == "static" then
+			profile.ownedSkins[id] = true
 		end
 	end
 	profile.skin = if type(data.skin) == "string" and Skins.byId[data.skin] ~= nil

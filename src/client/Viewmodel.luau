@@ -14,9 +14,9 @@ local Config = require(ReplicatedStorage.Shared.Config)
 local Lidar = require(script.Parent.Lidar)
 local Skins = require(ReplicatedStorage.Shared.data.Skins)
 local State = require(script.Parent.State)
-local Upgrades = require(ReplicatedStorage.Shared.data.Upgrades)
 
 type Piece = { part: Part, offset: CFrame }
+type ModelDef = { specs: { Spec }, light: CFrame }
 type Spec = {
 	size: { number },
 	at: { number },
@@ -24,6 +24,7 @@ type Spec = {
 	shape: Enum.PartType?,
 	turn: number?, -- yaw in degrees (cylinders lie along x, so 90 points them forward)
 	pitch: number?,
+	glow: boolean?, -- dim neon in the skin's dot colour
 }
 
 local lidar = Config.Lidar
@@ -35,8 +36,9 @@ local DEFAULT_HOUSING = { 96, 100, 108 }
 local DARK = { 34, 36, 40 }
 local READY_LIGHT = Color3.fromRGB(200, 220, 255)
 local CHARGING_LIGHT = Color3.fromRGB(255, 60, 40)
+local GLOW_TRANSPARENCY = 0.45 -- the model's glowing part: dim, so it never competes with the dots
+local PLAIN_DOTS = { 196, 200, 210 }
 local LIGHT_SIZE = 0.014 -- a pinprick: it must never compete with the dots
-local LIGHT_OFFSET = CFrame.new(0, 0.115, 0.2)
 local SWAY = 0.018
 local KICK = 0.006 -- how far the gun jitters while scanning
 local SWEEP_TILT = 0.2 -- share of the sweep's own angles the gun follows as it runs
@@ -45,25 +47,121 @@ local FIRST_PERSON_DISTANCE = 1.2 -- beyond this the camera is in third person: 
 local LOWERED_ABOVE = 0.2 -- how lit it must be before the scanner is put away
 
 -- Sizes and positions are in gun-local studs before SCALE; z is negative toward the muzzle.
-local SPECS: { Spec } = {
-	{ size = { 0.34, 0.4, 1.2 }, at = { 0, 0, 0 } }, -- body
-	{ size = { 0.24, 0.5, 0.28 }, at = { 0, -0.4, 0.34 }, pitch = -12 }, -- grip
-	{ size = { 0.3, 0.12, 0.7 }, at = { 0, 0.26, 0.05 } }, -- top rail
-	{
-		size = { 0.5, 0.26, 0.26 },
-		at = { 0, 0.02, -0.82 },
-		color = DARK,
-		shape = Enum.PartType.Cylinder,
-		turn = 90,
-	}, -- barrel
-	{
-		size = { 0.07, 0.48, 0.48 },
-		at = { 0, 0.02, -1.1 },
-		color = DARK,
-		shape = Enum.PartType.Cylinder,
-		turn = 90,
-	}, -- emitter dish
-	{ size = { 0.36, 0.08, 0.3 }, at = { 0, -0.24, -0.3 }, color = DARK }, -- trigger guard
+-- Every scanner model is a list of these pieces. A piece with no colour takes the skin's gun
+-- colour; `glow` pieces are dim neon in the skin's dot colour, so each model still reads as its
+-- own shape in the dark, where little else of the gun shows.
+local GRIP: Spec = { size = { 0.24, 0.5, 0.28 }, at = { 0, -0.4, 0.34 }, pitch = -12 }
+
+local MODELS: { [string]: ModelDef } = {
+	-- The original: a boxy gun with a barrel and an emitter dish.
+	classic = {
+		light = CFrame.new(0, 0.115, 0.2),
+		specs = {
+			{ size = { 0.34, 0.4, 1.2 }, at = { 0, 0, 0 } }, -- body
+			GRIP,
+			{ size = { 0.3, 0.12, 0.7 }, at = { 0, 0.26, 0.05 } }, -- top rail
+			{
+				size = { 0.5, 0.26, 0.26 },
+				at = { 0, 0.02, -0.82 },
+				color = DARK,
+				shape = Enum.PartType.Cylinder,
+				turn = 90,
+			}, -- barrel
+			{
+				size = { 0.07, 0.48, 0.48 },
+				at = { 0, 0.02, -1.1 },
+				color = DARK,
+				shape = Enum.PartType.Cylinder,
+				turn = 90,
+			}, -- emitter dish
+			{ size = { 0.36, 0.08, 0.3 }, at = { 0, -0.24, -0.3 }, color = DARK }, -- trigger guard
+		},
+	},
+	-- A hand lantern: a round body, a cage, a carry handle and a glowing lens.
+	lantern = {
+		light = CFrame.new(0, 0.24, 0.3),
+		specs = {
+			{
+				size = { 0.9, 0.42, 0.42 },
+				at = { 0, 0, -0.1 },
+				shape = Enum.PartType.Cylinder,
+				turn = 90,
+			},
+			{
+				size = { 0.1, 0.52, 0.52 },
+				at = { 0, 0, -0.58 },
+				color = DARK,
+				shape = Enum.PartType.Cylinder,
+				turn = 90,
+			},
+			{
+				size = { 0.05, 0.36, 0.36 },
+				at = { 0, 0, -0.66 },
+				glow = true,
+				shape = Enum.PartType.Cylinder,
+				turn = 90,
+			},
+			{ size = { 0.06, 0.2, 0.6 }, at = { 0, 0.38, -0.1 }, color = DARK }, -- carry handle
+			{ size = { 0.05, 0.05, 0.9 }, at = { 0.27, 0, -0.1 }, color = DARK }, -- cage bars
+			{ size = { 0.05, 0.05, 0.9 }, at = { -0.27, 0, -0.1 }, color = DARK },
+			{ size = { 0.22, 0.4, 0.26 }, at = { 0, -0.42, 0.25 }, pitch = -12 }, -- grip
+		},
+	},
+	-- A radar dish on a slim body, with a glowing feed in front of the dish.
+	dish = {
+		light = CFrame.new(0, 0.2, 0.2),
+		specs = {
+			{ size = { 0.28, 0.3, 1.0 }, at = { 0, 0, 0 } },
+			GRIP,
+			{ size = { 0.1, 0.1, 0.4 }, at = { 0, 0.05, -0.6 }, color = DARK }, -- neck
+			{
+				size = { 0.06, 0.9, 0.9 },
+				at = { 0, 0.05, -0.95 },
+				shape = Enum.PartType.Cylinder,
+				turn = 90,
+			},
+			{
+				size = { 0.14, 0.14, 0.14 },
+				at = { 0, 0.05, -0.72 },
+				glow = true,
+				shape = Enum.PartType.Ball,
+			},
+		},
+	},
+	-- A long slim barrel with fins and a glowing crystal at the muzzle.
+	prism = {
+		light = CFrame.new(0, 0.16, 0.35),
+		specs = {
+			{ size = { 0.24, 0.28, 1.4 }, at = { 0, 0, -0.1 } },
+			{ size = { 0.22, 0.5, 0.26 }, at = { 0, -0.38, 0.4 }, pitch = -12 },
+			{ size = { 0.04, 0.3, 0.7 }, at = { 0, 0.26, -0.3 } }, -- top fin
+			{ size = { 0.62, 0.04, 0.5 }, at = { 0, 0, -0.5 } }, -- wings
+			{
+				size = { 0.22, 0.22, 0.22 },
+				at = { 0, 0.02, -0.95 },
+				glow = true,
+				turn = 45,
+				pitch = 45,
+			}, -- crystal
+		},
+	},
+	-- Flower petals round the muzzle with a glowing heart.
+	blossom = {
+		light = CFrame.new(0, 0.2, 0.2),
+		specs = {
+			{ size = { 0.26, 0.3, 1.0 }, at = { 0, 0, 0 } },
+			GRIP,
+			{ size = { 0.62, 0.05, 0.34 }, at = { 0, 0.02, -0.78 } }, -- petals
+			{ size = { 0.05, 0.62, 0.34 }, at = { 0, 0.02, -0.78 } },
+			{ size = { 0.5, 0.05, 0.3 }, at = { 0, 0.02, -0.82 }, turn = 45 },
+			{
+				size = { 0.18, 0.18, 0.18 },
+				at = { 0, 0.02, -0.84 },
+				glow = true,
+				shape = Enum.PartType.Ball,
+			},
+		},
+	},
 }
 
 local Viewmodel = {}
@@ -73,7 +171,9 @@ local model = Instance.new("Model")
 model.Name = "Scanner"
 local pieces: { Piece } = {}
 local housing: { Part } = {}
+local glows: { Part } = {}
 local light: Part
+local builtModel = ""
 local swayTime = 0
 local sweepStarted = 0
 local wasSweeping = false
@@ -102,20 +202,30 @@ local function rgb(triple: { number }): Color3
 	return Color3.fromRGB(triple[1], triple[2], triple[3])
 end
 
-local function build()
-	for _, spec in SPECS do
+-- Builds the parts of one scanner model, replacing whatever was there.
+local function build(modelId: string)
+	local def = MODELS[modelId] or MODELS.classic
+	builtModel = if MODELS[modelId] then modelId else "classic"
+	model:ClearAllChildren()
+	table.clear(pieces)
+	table.clear(housing)
+	table.clear(glows)
+	for _, spec in def.specs do
 		local size = Vector3.new(spec.size[1], spec.size[2], spec.size[3]) * SCALE
-		local part =
-			newPart(size, rgb(spec.color or DEFAULT_HOUSING), Enum.Material.Metal, spec.shape)
+		local material = if spec.glow then Enum.Material.Neon else Enum.Material.Metal
+		local part = newPart(size, rgb(spec.color or DEFAULT_HOUSING), material, spec.shape)
 		local offset = CFrame.new(spec.at[1] * SCALE, spec.at[2] * SCALE, spec.at[3] * SCALE)
 			* CFrame.Angles(math.rad(spec.pitch or 0), math.rad(spec.turn or 0), 0)
 		table.insert(pieces, { part = part, offset = offset })
-		if spec.color == nil then
+		if spec.glow then
+			part.Transparency = GLOW_TRANSPARENCY
+			table.insert(glows, part)
+		elseif spec.color == nil then
 			table.insert(housing, part)
 		end
 	end
 	light = newPart(Vector3.one * LIGHT_SIZE, READY_LIGHT, Enum.Material.Neon, Enum.PartType.Ball)
-	table.insert(pieces, { part = light, offset = LIGHT_OFFSET })
+	table.insert(pieces, { part = light, offset = def.light })
 end
 
 local function update(dt: number)
@@ -170,21 +280,28 @@ local function update(dt: number)
 	light.Transparency = if Lidar.firing or Lidar.sweeping then 0.35 else 0.7
 end
 
+-- Wears the equipped Phosphor skin: its model (the gun's shape), housing colour and glow.
 local function applySkin()
-	-- A scanner skin (start screen or workbench) wins over a Static housing.
-	local scannerSkin = Skins.byId[State.profile.skin]
-	local skin = Upgrades.cosmeticById[State.profile.cosmetics.gun]
-	local color =
-		rgb(if scannerSkin then scannerSkin.gun elseif skin then skin.color else DEFAULT_HOUSING)
+	local skin = Skins.byId[State.profile.skin]
+	local wanted = if skin then skin.model else "classic"
+	if wanted ~= builtModel then
+		build(wanted)
+	end
+	local housingColor = rgb(if skin then skin.gun else DEFAULT_HOUSING)
 	for _, part in housing do
-		part.Color = color
+		part.Color = housingColor
+	end
+	local glowColor = rgb(if skin then skin.wall else PLAIN_DOTS)
+	for _, part in glows do
+		part.Color = glowColor
 	end
 end
 
 function Viewmodel.start()
-	build()
+	build("classic")
 	Lidar.ignore(model)
 	State.onProfile(applySkin)
+	applySkin()
 	RunService:BindToRenderStep("LidarViewmodel", Enum.RenderPriority.Camera.Value + 2, update)
 end
 

@@ -34,7 +34,7 @@ has never been published. Items marked *(your call)* are decisions the code does
 
 | Store | Kind | Holds |
 | --- | --- | --- |
-| `LidarSave` (`Config.Save.storeName`) | Standard | One profile per player (Static, upgrades, cosmetics, settings, checkpoint, story progress, stats), with a session lock so two servers cannot write the same profile. Saves use `UpdateAsync`. |
+| `LidarSave` (`Config.Save.storeName`) | Standard | One profile per player (Static, upgrades, skins, settings, checkpoint, story progress, stats), with a session lock so two servers cannot write the same profile. Saves use `UpdateAsync`. |
 | `LidarDaily_YYYYMMDD` (`Config.Daily.storePrefix` + date) | Ordered | One per day: each player's best time on the daily run. |
 
 Changing `Config.Save.storeName` starts everyone from scratch. Bump `Config.SaveVersion` and
