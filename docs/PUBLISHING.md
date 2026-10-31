@@ -73,7 +73,7 @@ add a migration in `src/shared/pure/SaveData.luau` instead when the profile shap
 
 ## 5. Optional: monetisation
 
-All off while the ids are zero; the game runs fine without them. A zero id shows "coming soon"
+The pass ids for experience 10770688614 are filled in (created 31 Oct, default pass image, no custom icons yet); the game runs fine with any of them set back to zero. A zero id shows "coming soon"
 on the skins screen and hides the Surveyor's Kit button. For each pass below: Creator Hub >
 the experience > Monetization > Passes > Create a pass, then paste the number from its URL into
 `src/shared/Config.luau` under `Config.Monetization` and publish again. The buy buttons read the

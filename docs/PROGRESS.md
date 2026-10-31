@@ -705,7 +705,7 @@ on the start screen and at the workbench, plus a brainstorm of other monetizatio
   R$ price from `GetProductInfo`), an "ALL ROBUX SKINS" pack button, BACK returns to the title or
   bench. Skin tint overrides the Static dot tint (`Menus.applyCosmetics`) and housing
   (`Viewmodel`). The title scene wears the skin, which doubles as the preview.
-- `Config.Monetization`: `skinPassIds` {pack, rose, aurora, nightbloom} (all 0 = coming soon);
+- `Config.Monetization`: `skinPassIds` {pack, rose, aurora, nightbloom} (ids filled in on 31 Oct: the five passes exist in the Creator Hub, 75 Robux each, 199 for the pack, 99 for the kit; untested with a real purchase);
   `cosmeticPackProductId` removed (nothing used it). Ids to create are listed in `docs/PUBLISHING.md`.
 - Docs: `docs/MONETIZATION.md` gained "Skins" and a 17-item brainstorm; `docs/TESTING.md` has
   the Studio checks.

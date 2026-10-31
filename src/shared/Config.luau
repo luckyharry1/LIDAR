@@ -327,14 +327,14 @@ Config.Audio = {
 -- from the Creator Dashboard (Monetization > Passes). What may be sold, and what never should
 -- be, is in docs/MONETIZATION.md; the list of ids to create is in docs/PUBLISHING.md.
 Config.Monetization = {
-	surveyorKitPassId = 0, -- convenience pass: a mid-level checkpoint beacon
+	surveyorKitPassId = 2061451417, -- convenience pass: a mid-level checkpoint beacon
 	-- One game pass per Robux skin (keys match `pass` in data/Skins), plus a pack that unlocks all
 	-- of them. Looks only: no pass here ever changes how the scanner works.
 	skinPassIds = {
-		pack = 0, -- "Phosphor Pack": every Robux skin, now and added later
-		rose = 0, -- Rose Quartz
-		aurora = 0, -- Aurora
-		nightbloom = 0, -- Nightbloom
+		pack = 2058266712, -- "Phosphor Pack": every Robux skin, now and added later
+		rose = 2057354800, -- Rose Quartz
+		aurora = 2061739322, -- Aurora
+		nightbloom = 2060791884, -- Nightbloom
 	} :: { [string]: number },
 	promptAfterLevels = 2, -- never show a buy button before this many levels are cleared
 	playSecondsMoving = 60, -- playtime only counts while the player moved within this window

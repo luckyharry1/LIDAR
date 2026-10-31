@@ -1,8 +1,8 @@
 # Monetization plan
 
-The skin system and the Surveyor's Kit are built; no real purchase exists until their ids are
-filled in (they live in `Config.Monetization`; zero means "not configured" and the button reads
-"coming soon"). The rest is the plan for when the game has players. The list of passes to create
+The skin system and the Surveyor's Kit are built, and their five game passes were created on
+31 Oct with the ids in `Config.Monetization` (zero would mean "not configured": the button reads
+"coming soon"). Nothing has been bought or tested with real Robux yet. The rest is the plan for when the game has players. The list of passes to create
 is in `docs/PUBLISHING.md` section 5.
 
 ## The rule
