@@ -17,7 +17,7 @@ What is ready, what is not, in the order to do it.
   `StreamingEnabled` off, black lighting.
 
 **Not ready (needs a person, or a published place)**
-1. Two players, real DataStore saves, the daily board with several entries, phone and gamepad
+1. Two players, real DataStore saves, the daily board with several entries, gamepad
    hardware, and sound by ear. Only a published or multi-client test can show these.
 2. Experience page: name, description, icon, thumbnails, maturity questionnaire (the art and
    page threads own the content; the form is yours to fill in).
@@ -56,7 +56,7 @@ What is ready, what is not, in the order to do it.
 | --- | --- | --- |
 | Places > max players | 4 | A run is one party of up to `Config.Coop.maxPlayers` (4). |
 | Security > Enable Studio Access to API Services | On while testing | Saves and the daily board use DataStores. Without access, Studio keeps profiles in memory and tells the player. Published servers always have access. |
-| Devices | Computer, phone, tablet, console *(your call)* | The input layer handles keyboard and mouse, gamepad and touch. VR is not handled. |
+| Devices | Computer, phone, tablet *(phone controls confirmed on a real phone, 31 Oct)*; console *(your call, untested)* | The input layer handles keyboard and mouse, gamepad and touch. VR is not handled. |
 | Experience questionnaire (maturity) | *(your call)* | The game is a dark horror maze: invisible monsters, jump scares, being chased and caught. The story has no blood, gore or death on screen (people are "lost", never killed). The answers are yours to give. |
 | Name, description | *(your call)* | See the page brief in the project files (`roblox-page/page-copy.md`). |
 | Icon and thumbnails | Upload `docs/store/icon-512.png` and `docs/store/thumbnail-1` to `7` in that order (1 is the one search shows) | Creator Hub > Experience > Media. Generated stand-ins from `scripts/art/store_art.py`; replace with real Studio captures when you have them. |

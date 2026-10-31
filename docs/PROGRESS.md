@@ -681,7 +681,7 @@ Earlier Studio freezes after BEGIN (22 and 24 Oct) did not recur: most likely St
 Seen but not fixed: in the opening's first shot a pillar sits in front of the camera, hiding
 the middle of the frame.
 
-Still untested: two players, real saves, phone and gamepad hardware, sound by ear, the wall
+Still untested: two players, real saves, gamepad hardware (phone controls confirmed on a real phone on 31 Oct), sound by ear, the wall
 melt and CRT tape screens, the lamp wake rule (10 dots with line of sight), the Mimic after a
 rescue, a full run to the finale.
 
