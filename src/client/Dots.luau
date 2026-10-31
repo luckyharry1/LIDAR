@@ -84,17 +84,51 @@ local function newWorld(): Folder
 end
 world = newWorld()
 
--- Sets the palette ("default" or "alt") and an optional wall tint from a cosmetic.
-function Dots.setPalette(name: string, wallTint: { number }?)
+local cosmeticWall: Color3? = nil
+local themeColors: { [string]: Color3 } = {}
+
+local function applyColors(name: string)
 	local palette = Config.Palettes[name] or Config.Palettes.default
 	for kind, triple in palette do
 		colors[kind] = rgb(triple)
 	end
-	if wallTint then
-		colors.wall = rgb(wallTint)
+	for kind, color in themeColors do
+		colors[kind] = color
+	end
+	if cosmeticWall then
+		colors.wall = cosmeticWall
 	end
 end
+
+local paletteName = "default"
+
+-- Sets the palette ("default" or "alt") and an optional wall tint from a cosmetic.
+function Dots.setPalette(name: string, wallTint: { number }?)
+	paletteName = name
+	cosmeticWall = if wallTint then rgb(wallTint) else nil
+	applyColors(name)
+end
 Dots.setPalette("default", nil)
+
+-- Gives each floor its own surfaces: wall, floor and ceiling dots take the floor's colours.
+-- Called on arrival, when the picture is wiped, so no old dot changes colour. The colourblind
+-- palette keeps its own set, since its colours are chosen for contrast, and a cosmetic wall
+-- tint still wins.
+function Dots.setTheme(wall: { number }?, floor: { number }?, ceiling: { number }?)
+	themeColors = {}
+	if paletteName == "default" then
+		if wall then
+			themeColors.wall = rgb(wall)
+		end
+		if floor then
+			themeColors.floor = rgb(floor)
+		end
+		if ceiling then
+			themeColors.ceiling = rgb(ceiling)
+		end
+	end
+	applyColors(paletteName)
+end
 
 function Dots.color(kind: DotRules.DotKind): Color3
 	return colors[kind]

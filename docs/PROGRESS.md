@@ -587,3 +587,14 @@ progression between runs and room for monetization; then a faint pull towards un
   some real progression"; keep the batteries standing out): scatter 260 dots/s (Emitter +120 x5 to
   860), reach 65 studs (Range Coil +21 x4 to 149), sweep 44x56 (Sweep Grid 60x76, 76x96, 90x114),
   widest cone 34 degrees without Wide Lens (was 40), dot budget 14k/42k/85k. Lure unchanged.
+
+## Floor surfaces and a louder water (Vasco, 31 Oct)
+- Each floor now has its own surfaces: `Dots.setTheme` recolours wall, floor and ceiling dots from
+  the floor's look in LoreText (yellow wallpaper, pale pool tile, ward green, Hollow violet, Garage
+  concrete), lifted to a dot-friendly brightness. Applied in `Immersion.applyMood` on arrival; the
+  colourblind palette and a cosmetic wall tint still win; the Relay floors use the default set.
+- Wading: rings of blue dots spread from the feet (`Immersion.wakeRipples`, `Avatar.waterSurface`),
+  quicker when sprinting, slow when standing still.
+- Cutscenes are the story thread's (PR #14, `Stage.luau`); POI text is the "Make POIs varied" thread's.
+- Check in Studio: do the five floors read as different places by colour alone, is the Hollow wall
+  bright enough, do the rings show on the water surface without scanning.

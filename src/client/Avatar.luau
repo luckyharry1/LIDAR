@@ -26,6 +26,7 @@ local SPECTATE_ZOOM = 12
 local Avatar = {}
 
 Avatar.wading = false -- true while standing in a flooded cell
+Avatar.waterSurface = 0 -- height of the water under the player while wading
 Avatar.moving = false
 Avatar.crouching = false -- crouch is actually applied (not downed, not lit, no menu open)
 
@@ -118,6 +119,9 @@ local function update(dt: number)
 		probe.FilterDescendantsInstances = { character }
 		local hit = workspace:Raycast(root.Position, Vector3.new(0, -WATER_PROBE, 0), probe)
 		Avatar.wading = hit ~= nil and hit.Instance:GetAttribute("Flooded") == true
+		if hit ~= nil and Avatar.wading then
+			Avatar.waterSurface = hit.Position.Y
+		end
 	end
 
 	local velocity = root.AssemblyLinearVelocity * Vector3.new(1, 0, 1)
