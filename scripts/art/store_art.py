@@ -743,66 +743,65 @@ def lore(path):
     img.save(path)
 
 
-LOOKS = [
-    ("STANDARD", (226, 232, 245), False),
-    ("AMBER", (235, 180, 110), False),
-    ("VIOLET", (180, 150, 235), True),
-    ("MINT", (150, 230, 205), True),
-    ("SIGNAL", (255, 84, 84), True),
+# The scanner skins in src/shared/data/Skins.luau on claude/skins-monetization (PR #15): a plain
+# Classic, four earned by playtime (minutes in the dark), three bought with Robux. Colours are
+# each skin's `wall` colour. Keep in step with that file.
+LOOKS_EARNED = [
+    ("CLASSIC", (226, 232, 245), "DEFAULT"),
+    ("TUNGSTEN", (255, 226, 170), "15 MIN"),
+    ("GLACIER", (160, 235, 255), "45 MIN"),
+    ("ORCHID", (222, 170, 255), "90 MIN"),
+    ("BLUEPRINT", (112, 152, 255), "180 MIN"),
 ]
-UPGRADES = [("EMITTER", 3, 5), ("RANGE COIL", 2, 4), ("SWEEP GRID", 1, 3), ("PHOSPHOR", 3, 4)]
+LOOKS_ROBUX = [
+    ("ROSE QUARTZ", (255, 165, 205)),
+    ("CHROME", (245, 248, 255)),
+    ("NIGHTBLOOM", (150, 124, 255)),
+]
 
 
 def burst_items(cx, cy, color, rng, radius=118):
     """A scan burst: rings of dots with a bright core, in a dot colour."""
     items = []
     for ring, r in enumerate(np.linspace(radius * 0.18, radius, 7)):
-        n = int(14 + ring * 11)
+        n = int(14 + ring * 11 * radius / 118)
         for k in range(n):
             ang = (k / n) * 2 * np.pi + rng.uniform(-0.03, 0.03)
             fade = 1.0 - ring / 9.0
-            items.append((cx + np.cos(ang) * r, cy + np.sin(ang) * r, 2.4 - ring * 0.12, tuple(c * fade for c in color)))
+            items.append((cx + np.cos(ang) * r, cy + np.sin(ang) * r, max(2.4 - ring * 0.12, 1.2), tuple(c * fade for c in color)))
     items.append((cx, cy, 5, color))
     return items
 
 
 def looks(path):
-    """Thumbnail 7: make the dark yours. Dot colours to unlock and a scanner to upgrade."""
+    """Thumbnail 7: make the dark yours. Scanner skins earned by playing, and a few to buy.
+    Looks only, never power."""
     size = (1920, 1080)
     base = Image.new("RGB", size, (2, 3, 5))
     rng = np.random.default_rng(9)
     items = []
-    for index, (name, color, locked) in enumerate(LOOKS):
-        cx = 250 + index * 355
-        cy = 470
-        burst = burst_items(cx, cy, color, rng)
-        if locked:
-            burst = [(x, y, r, tuple(c * 0.75 for c in col)) for x, y, r, col in burst]
-        items += burst
-    # Upgrade meters in the lower half, as in the workbench.
-    layer = soft_dot_layer(size, items)
-    img = glow_compose(base, layer)
-    draw = ImageDraw.Draw(img)
-    for index, (name, color, locked) in enumerate(LOOKS):
-        cx = 250 + index * 355
-        plain_text(img, name, (cx, 618), 28, tuple(int(c * (0.85 if locked else 1.0)) for c in color), anchor="ma", bold=True, spacing=5)
-        if locked:
-            # a small padlock
-            x, y = cx, 678
-            draw.rounded_rectangle((x - 13, y - 2, x + 13, y + 22), 4, fill=(120, 130, 150))
-            draw.arc((x - 9, y - 18, x + 9, y + 6), 180, 360, fill=(120, 130, 150), width=4)
-        else:
-            plain_text(img, "UNLOCKED", (cx, 664), 20, (96, 240, 140), anchor="ma", bold=True, spacing=3)
-    for row, (name, level, total) in enumerate(UPGRADES):
-        y = 760 + row * 52
-        for k in range(total):
-            filled = k < level
-            x = 1000 + k * 36
-            draw.rectangle((x, y - 8, x + 28, y + 8), fill=(255, 214, 110) if filled else (42, 48, 60))
-        plain_text(img, name, (960, y), 26, (200, 206, 220), anchor="rm", bold=True, spacing=4)
+    row1_y, row2_y = 430, 840
+    xs1 = [260 + i * 350 for i in range(5)]
+    xs2 = [610 + i * 350 for i in range(3)]
+    # a progress line through the earned row, with a bright head at the last unlock
+    for x in np.arange(xs1[0], xs1[-1], 9):
+        items.append((x, row1_y + 128, 1.6, (70, 78, 96)))
+    for (name, color, tag), x in zip(LOOKS_EARNED, xs1):
+        items += burst_items(x, row1_y, color, rng, 92)
+        items.append((x, row1_y + 128, 6, color))
+    for (name, color), x in zip(LOOKS_ROBUX, xs2):
+        items += burst_items(x, row2_y, color, rng, 92)
+    img = glow_compose(base, soft_dot_layer(size, items))
+    plain_text(img, "EARNED BY PLAYING", (960, row1_y - 150), 24, (150, 160, 178), anchor="ma", bold=True, spacing=5)
+    plain_text(img, "PREMIUM", (960, row2_y - 150), 24, (255, 214, 110), anchor="ma", bold=True, spacing=5)
+    for (name, color, tag), x in zip(LOOKS_EARNED, xs1):
+        plain_text(img, name, (x, row1_y + 158), 26, color, anchor="ma", bold=True, spacing=4)
+        plain_text(img, tag, (x, row1_y + 196), 20, (150, 160, 178) if tag != "DEFAULT" else (96, 240, 140), anchor="ma", bold=True, spacing=3)
+    for (name, color), x in zip(LOOKS_ROBUX, xs2):
+        plain_text(img, name, (x, row2_y + 124), 26, color, anchor="ma", bold=True, spacing=4)
     img = vignette(img, 0.8)
-    img = dot_text(img, "MAKE THE DARK YOURS", (960, 70), 110, pitch=8, anchor="ma")
-    plain_text(img, "EARN STATIC. UPGRADE THE SCANNER. UNLOCK NEW LOOKS.", (960, 220), 32, (200, 206, 220), anchor="ma", bold=True, spacing=5)
+    img = dot_text(img, "MAKE THE DARK YOURS", (960, 60), 110, pitch=8, anchor="ma")
+    plain_text(img, "NEW DOT COLOURS AND SCANNER LOOKS. LOOKS ONLY, NEVER POWER.", (960, 215), 30, (200, 206, 220), anchor="ma", bold=True, spacing=4)
     img.save(path)
 
 
