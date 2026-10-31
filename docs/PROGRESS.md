@@ -625,5 +625,4 @@ same walls, floor and text, and checkpoints sometimes put you next to a monster.
 - Tests: one hidden object per tier and none repeated, no notice hung twice, no enemy post within
   3 steps of the beacon over 40 seeds x 14 tiers, a roamer with `keepClear` does not linger there.
 - Check in Studio: the lit cell around each found object reads as that floor; whether the 1.5x
-  light looks too bright; that tiers 7 and 8 still share one patch look (PR #14 has four looks for
-  five floors); the story text of the eight objects is the story thread's to sharpen.
+  light looks too bright; tiers 7 and 8 now have their own patch looks (PR #14).
