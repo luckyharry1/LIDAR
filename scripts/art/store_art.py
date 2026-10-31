@@ -15,7 +15,7 @@ import os
 import sys
 
 import numpy as np
-from PIL import Image, ImageDraw, ImageFilter, ImageFont
+from PIL import Image, ImageChops, ImageDraw, ImageFilter, ImageFont
 
 OUT = os.path.join(os.path.dirname(__file__), "..", "..", "docs", "store")
 
@@ -36,6 +36,7 @@ class Box:
         self.kind = kind
 
 
+PROJECTION = {}
 KINDS = ["wall", "green", "red", "gold"]
 CELL = 10.0
 WALL_HEIGHT = 9.0
@@ -141,6 +142,7 @@ def render(
     floor_tint=(0.72, 0.86, 1.0),
     line_level=0.62,
     wall_tint=(1.0, 1.0, 1.0),
+    dot_tint=(1.0, 1.0, 1.0),
 ):
     """Scans from `scanner` (all round, with a brighter wedge in front for the fresh sweep) and
     draws the hit points from a separate viewer camera, the way the game's dots show through
@@ -252,6 +254,13 @@ def render(
     # Viewer camera.
     veye, right, up, forward = look_at(eye, target)
     f = 0.5 * height / np.tan(np.radians(fov) / 2)
+
+    def project_point(point):
+        rel_p = np.array(point, dtype=np.float64) - veye
+        zz = rel_p @ forward
+        return (width / 2 + f * (rel_p @ right) / zz, height / 2 - f * (rel_p @ up) / zz)
+
+    PROJECTION["fn"] = project_point
     rel = pts - veye
     x = rel @ right
     y = rel @ up
@@ -281,6 +290,7 @@ def render(
     cool = np.where((surface == 0) & (kind == 0), 1, 0)[:, None]
     colors = np.where(cool == 1, colors * np.array(floor_tint, dtype=np.float32), colors)
     colors = np.where((cool == 0) & ((kind == 0)[:, None]), colors * np.array(wall_tint, dtype=np.float32), colors)
+    colors = np.where((kind == 0)[:, None], colors * np.array(dot_tint, dtype=np.float32), colors)
     warm = np.array([255, 176, 84], dtype=np.float32)
     mix = np.clip(heat * 1.4, 0, 1)[:, None]
     colors = np.where((kind == 0)[:, None], colors * (1 - mix) + warm * mix, colors)
@@ -360,6 +370,8 @@ def plain_text(img, text, xy, size, color=(132, 142, 158), anchor="la", bold=Fal
         total = sum(font.getlength(ch) + spacing for ch in text) - spacing
         if anchor[0] == "m":
             x -= total / 2
+        elif anchor[0] == "r":
+            x -= total
         for ch in text:
             draw.text((x, y), ch, font=font, fill=color, anchor="l" + anchor[1])
             x += font.getlength(ch) + spacing
@@ -429,6 +441,107 @@ LEVEL = [
 LEVEL = [row.ljust(20, "#")[:20] for row in LEVEL]
 
 
+# ----------------------------------------------------------------------------------------
+# 2D helpers for the graphic pieces (lore wall, looks and upgrades, icons)
+
+
+def soft_dot_layer(size, items, scale=2):
+    """items: (x, y, radius, (r, g, b)). Returns a supersampled-then-reduced RGB float layer of
+    round dots, so 2D pieces have the same soft round dots as the scanned ones."""
+    width, height = size
+    layer = Image.new("RGB", (width * scale, height * scale), (0, 0, 0))
+    draw = ImageDraw.Draw(layer)
+    for x, y, r, color in items:
+        draw.ellipse(
+            ((x - r) * scale, (y - r) * scale, (x + r) * scale, (y + r) * scale),
+            fill=tuple(int(c) for c in color),
+        )
+    return layer.resize(size, Image.LANCZOS)
+
+
+def glow_compose(base, layer, glow=1.0):
+    """Adds a dot layer to `base` with the same two-radius glow and highlight roll-off."""
+    width, height = base.size
+    tight = layer.filter(ImageFilter.GaussianBlur(radius=max(width, height) / 500))
+    wide = layer.filter(ImageFilter.GaussianBlur(radius=max(width, height) / 110))
+    out = np.asarray(base, dtype=np.float32) + np.asarray(layer, dtype=np.float32)
+    out += np.asarray(tight, dtype=np.float32) * 0.8 * glow
+    out += np.asarray(wide, dtype=np.float32) * 1.0 * glow
+    peak = np.maximum(out.max(axis=2, keepdims=True), 1e-3)
+    out = out / peak * (255.0 * (1.0 - np.exp(-peak / 170.0)) * 1.05)
+    return Image.fromarray(np.clip(out, 0, 255).astype(np.uint8))
+
+
+def text_dots(text, xy, size, pitch, anchor="la", lit=None, color=(226, 232, 245), seed=1, bold=True):
+    """Dot-matrix text as dot items. `lit` is (x, y, radius): dots near it are bright and full,
+    dots far from it are dim and patchy, so text looks half-scanned out of the dark."""
+    font = ImageFont.truetype(FONT_BOLD if bold else FONT_REG, size)
+    probe = Image.new("L", (1920, 1080), 0)
+    ImageDraw.Draw(probe).text(xy, text, font=font, fill=255, anchor=anchor)
+    arr = np.asarray(probe)
+    rng = np.random.default_rng(seed)
+    items = []
+    ys, xs = np.nonzero(arr[::pitch, ::pitch] > 128)
+    for yi, xi in zip(ys, xs):
+        x, y = xi * pitch + pitch / 2, yi * pitch + pitch / 2
+        level = 1.0
+        if lit is not None:
+            d = np.hypot(x - lit[0], y - lit[1]) / lit[2]
+            level = float(np.clip(1.25 - d * d, 0.0, 1.0))
+            if rng.uniform() > 0.62 + 0.38 * level:
+                continue
+        shade = (0.45 + 0.55 * level) * rng.uniform(0.85, 1.0)
+        items.append((x, y, pitch * 0.34, tuple(c * shade for c in color)))
+    return items
+
+
+BEAT = [(0, 0), (0.08, 0.12), (0.14, 0), (0.22, 0), (0.25, -0.2), (0.3, 1.0), (0.35, -0.5), (0.4, 0), (0.5, 0), (0.6, 0.28), (0.7, 0), (1, 0)]
+
+
+def ecg(items, y, x0, x1, color, pitch=7, amp=170):
+    """A heartbeat trace made of dots: a flat line with two beats, fading out at the ends."""
+    xs_shape = [p[0] for p in BEAT]
+    ys_shape = [p[1] for p in BEAT]
+    beats = [(0.30, 0.2), (0.68, 0.2)]
+    for x in np.arange(x0, x1, pitch / 7):
+        t = (x - x0) / (x1 - x0)
+        v = 0.0
+        for start, width in beats:
+            u = (t - start) / width
+            if 0 <= u <= 1:
+                v += float(np.interp(u, xs_shape, ys_shape))
+        fade = float(np.clip(1.0 - abs(t - 0.5) * 1.3, 0.2, 1.0))
+        items.append((x, y - v * amp, 2.0, tuple(c * fade for c in color)))
+    return items
+
+
+def figure_dots(items, cx, cy, height, color, rng, count=1400, width=0.34):
+    """A standing figure as scattered dots (top of head at cy - height). Used on 2D pieces."""
+    for _ in range(count):
+        part = rng.uniform()
+        if part < 0.12:  # head
+            ang = rng.uniform(0, 2 * np.pi)
+            rad = rng.uniform(0, 1) ** 0.5 * height * 0.075
+            x, y = cx + np.cos(ang) * rad, cy - height * 0.93 + np.sin(ang) * rad
+        elif part < 0.62:  # torso
+            x = cx + rng.uniform(-1, 1) * height * width * 0.5
+            y = cy - rng.uniform(0.42, 0.84) * height
+        elif part < 0.78:  # arms
+            side = rng.choice([-1, 1])
+            x = cx + side * height * (width * 0.5 + 0.03 + rng.uniform(0, 0.03))
+            y = cy - rng.uniform(0.38, 0.8) * height
+        else:  # legs
+            side = rng.choice([-1, 1])
+            x = cx + side * height * 0.09 + rng.uniform(-0.03, 0.03) * height
+            y = cy - rng.uniform(0.0, 0.42) * height
+        items.append((x, y, rng.uniform(1.6, 2.6), color))
+    return items
+
+
+# ----------------------------------------------------------------------------------------
+# The pieces
+
+
 def fp(size, boxes, seed, count=1_300_000, **overrides):
     """A first-person scan of a corridor-like set, seen from just behind the scanner so that
     the vertical scan lines wrap over floor, walls and ceiling and show the shape."""
@@ -446,10 +559,11 @@ def fp(size, boxes, seed, count=1_300_000, **overrides):
         lines=(-44, -30, -18, -8, 2, 12, 24, 38),
     )
     options.update(overrides)
+    scanner = options.pop("scanner", (0.0, -2.0))
     heading = options.pop("heading")
     eye = options.pop("eye")
     target = options.pop("target")
-    return render(size, boxes, (0.0, -2.0), heading, eye, target, count=count, seed=seed, **options)
+    return render(size, boxes, scanner, heading, eye, target, count=count, seed=seed, **options)
 
 
 def tint_edges(img, color, strength=0.7, start=0.45):
@@ -471,46 +585,98 @@ def caption(img, text, sub=None, y=960, color=(226, 232, 245)):
 
 
 def hero(path):
-    boxes = corridor_scene(red_at=(3.4, -92), friends=[(-6.8, -45), (-6.8, -48.5)])
-    img = vignette(fp((1920, 1080), boxes, seed=3), 0.8)
+    """Thumbnail 1: the search thumbnail. A scanned corridor, something tall waiting at the end
+    of it, and a line that makes you want to know what it is."""
+    size = (1920, 1080)
+    boxes = corridor_scene(
+        red_at=(2.2, -40), exit_door=False
+    )
+    img = fp(
+        size, boxes, seed=3, count=1_500_000, lines=(-44, -30, -18, -6, 6, 18, 32, 46),
+        first_person_cone=(4.0, -3.0, 26.0), line_level=0.5,
+    )
+    img = tint_edges(vignette(img, 0.85), (255, 30, 30), 0.28, 0.6)
+    img = dot_text(img, "LIDAR", (80, 60), 150, pitch=9, anchor="la")
+    plain_text(img, "THE DARK IS FULL.", (960, 905), 76, (226, 232, 245), anchor="ma", bold=True, spacing=8)
+    plain_text(img, "YOUR SCANNER IS ALL YOU HAVE.", (960, 1000), 38, (255, 110, 110), anchor="ma", bold=True, spacing=7)
     img.save(path)
 
 
 def scan_view(path):
-    """Thumbnail 2: the sweep mid-pass, half the room drawn, half still black."""
+    """Thumbnail 2: what you can see, and what is there. A scanned room, and red presences in
+    the dark just outside it, felt as auras rather than shown."""
     size = (1920, 1080)
     boxes, scanner = maze(LEVEL)
+    haunts = [(150, 25), (35, 55), (165, 80), (115, 85), (45, 25)]
+    for hx, hz in haunts:
+        boxes += figure(hx, hz, 9.0, "red", 1.15)
     img = render(
-        size, boxes, scanner, heading=np.radians(8), eye=(100, 108, 142), target=(90, 0, 28),
-        fov=54, count=1_400_000, rings=170, max_range=130, wedge=80, seed=4, dot=1.25,
+        size, boxes, scanner, heading=np.radians(8), eye=(100, 108, 142), target=(95, 0, 28),
+        fov=52, count=1_500_000, rings=170, max_range=76, wedge=70, seed=4, dot=1.3,
     )
-    img = vignette(img, 0.7)
-    img = dot_text(img, "LIDAR", (110, 120), 200, pitch=11)
-    plain_text(img, "YOU CAN ONLY SEE WHAT YOU SCAN", (118, 345), 34, (226, 232, 245), bold=True, spacing=3)
-    legend(img, 118, 420, 26, [(WHITE, "TERRAIN"), (GREEN, "FRIEND"), (RED, "DANGER")])
+    project = PROJECTION["fn"]
+    glow = Image.new("RGB", size, (0, 0, 0))
+    gd = ImageDraw.Draw(glow)
+    for hx, hz in haunts:
+        px, py = project((hx, 4.5, hz))
+        for radius, alpha in ((150, 26), (95, 44), (50, 70)):
+            gd.ellipse((px - radius, py - radius, px + radius, py + radius), fill=(alpha, 0, 0))
+    glow = glow.filter(ImageFilter.GaussianBlur(40))
+    arr = np.asarray(img, dtype=np.float32) + np.asarray(glow, dtype=np.float32) * 1.4
+    img = Image.fromarray(np.clip(arr, 0, 255).astype(np.uint8))
+    img = vignette(img, 0.75)
+    img = dot_text(img, "YOU ARE NOT ALONE", (110, 90), 120, pitch=8, color=(255, 120, 120))
+    plain_text(img, "WHITE IS WALL.  GREEN IS FRIEND.  RED IS WHAT FOUND YOU.", (116, 255), 28, (200, 206, 220), bold=True, spacing=3)
     img.save(path)
 
 
+def ecg_line(img, y, color=(255, 70, 70), x0=140, x1=1780):
+    items = ecg([], y, x0, x1, color)
+    return glow_compose(img, soft_dot_layer(img.size, items), 1.1)
+
+
 def aura(path):
-    """Thumbnail 3: the screen edge glowing red, a few red dots round a corner."""
-    boxes = corridor_scene(red_at=(5.4, -36), exit_door=False, extras=[Box(2.5, 5.5, -33, 1.2, 11, 6)])
-    img = fp((1920, 1080), boxes, seed=8, lines=(-30, -14, 2, 18, 34), first_person_cone=(10.0, -3.0, 26.0))
-    img = tint_edges(vignette(img, 0.85), (255, 40, 40), 0.5, 0.5)
-    img = caption(img, "SOMETHING IS NEAR.", "THE EDGES GO RED BEFORE YOU SEE IT", color=(255, 120, 120))
+    """Thumbnail 3: the screen edge glowing red, a heartbeat, something behind the wall."""
+    boxes = corridor_scene(
+        red_at=(5.6, -30), exit_door=False, extras=[Box(2.6, 5.5, -28, 1.2, 11, 6)]
+    )
+    img = fp(
+        (1920, 1080), boxes, seed=8, lines=(-30, -14, 2, 18, 34), first_person_cone=(10.0, -3.0, 26.0),
+        eye=(1.2, 6.0, 5.0),
+    )
+    img = tint_edges(vignette(img, 0.85), (255, 30, 30), 0.62, 0.42)
+    img = ecg_line(img, 905)
+    img = dot_text(img, "LISTEN.", (960, 55), 150, pitch=9, anchor="ma", color=(255, 100, 100))
+    plain_text(img, "THE EDGES GO RED BEFORE YOU SEE IT", (960, 975), 32, (230, 150, 150), anchor="ma", bold=True, spacing=6)
     img.save(path)
 
 
 def together(path):
-    """Thumbnail 4: friends' green dots in a flooded hall, water in blue."""
-    boxes = corridor_scene(
-        friends=[(-5.5, -26), (3.0, -38), (-1.5, -56)], exit_door=False
+    """Thumbnail 4: four scanners, one dark. Each friend's scan is a different green layer over
+    the water, and what they find, you find."""
+    size = (1920, 1080)
+    friends = [(-5.5, -22), (3.4, -34), (-2.0, -48)]
+    boxes = corridor_scene(friends=friends, exit_door=False, red_at=(0.5, -105))
+    common = dict(
+        floor_tint=(0.2, 0.52, 1.0), line_level=0.6, lines=(-40, -24, -9, 6, 21, 36),
+        first_person_cone=(0.0, -4.0, 34.0),
     )
-    img = fp(
-        (1920, 1080), boxes, seed=12, floor_tint=(0.2, 0.52, 1.0), lines=(-44, -30, -16, -4, 8, 20, 34),
-        first_person_cone=(0.0, -4.0, 34.0), line_level=0.7,
-    )
+    base = fp(size, boxes, seed=12, **common)
+    layers = [base]
+    for index, (fx, fz) in enumerate(friends):
+        layers.append(
+            fp(
+                size, boxes, seed=40 + index, count=700_000, scanner=(fx, fz - 1.5), dot_tint=(0.35, 1.0, 0.55),
+                floor_tint=(0.25, 0.9, 0.55), line_level=0.85, lines=(-20, -8, 4, 16, 28),
+                first_person_cone=(float(8 - index * 7), -4.0, 22.0),
+            )
+        )
+    img = layers[0]
+    for extra in layers[1:]:
+        img = ImageChops.screen(img, extra)
     img = vignette(img, 0.8)
-    img = dot_text(img, "SCAN TOGETHER", (960, 70), 112, pitch=8, anchor="ma")
+    img = dot_text(img, "SCAN TOGETHER", (960, 40), 112, pitch=8, anchor="ma")
+    plain_text(img, "1 TO 4 PLAYERS  /  WHAT THEY FIND, YOU FIND", (960, 960), 36, (140, 240, 170), anchor="ma", bold=True, spacing=6)
     img.save(path)
 
 
@@ -535,106 +701,223 @@ def camp(path):
     img.save(path)
 
 
-def reveal(path):
-    """Thumbnail 6: a hidden object lights its surroundings once it has been scanned enough."""
-    spot = (-3.0, 3.4, -34.0)
-    boxes = corridor_scene(
-        exit_door=False,
-        extras=[
-            Box(-3.0, 1.2, -34.0, 3.0, 2.4, 3.0),
-            Box(-3.0, 3.1, -34.0, 1.4, 1.2, 1.4, "gold"),
-            Box(-3.0, 3.9, -34.0, 0.5, 0.6, 0.5, "gold"),
-        ],
-    )
-    img = fp(
-        (1920, 1080), boxes, seed=16, lamps=[(spot, 17.0)], lines=(-20, -8, 4, 16),
-        first_person_cone=(-6.0, -4.0, 18.0), line_level=0.4,
-    )
-    img = caption(vignette(img, 0.88), "SCAN IT UNTIL IT SPEAKS.", "HIDDEN OBJECTS WAKE THE ROOM AROUND THEM", color=(255, 214, 140))
+def lore(path):
+    """Thumbnail 6: lore. Notes on a dark wall, half scanned out of it, with a tape and a
+    redaction: enough to make you wonder who wrote them."""
+    size = (1920, 1080)
+    base = Image.new("RGB", size, (2, 3, 5))
+    rng = np.random.default_rng(6)
+    items = []
+    beam = (1010, 520, 640)
+    # A faint scatter of wall dots, brighter near the beam.
+    for _ in range(9000):
+        x, y = rng.uniform(0, 1920), rng.uniform(0, 1080)
+        d = np.hypot(x - beam[0], y - beam[1]) / 900.0
+        if rng.uniform() < np.clip(1.0 - d, 0.02, 1.0) * 0.7:
+            items.append((x, y, rng.uniform(0.9, 1.6), tuple(int(v * np.clip(1.1 - d, 0.1, 1)) for v in (120, 130, 150))))
+    lit = (beam[0], beam[1], 980)
+    notes = [
+        ("SURVEY BULLETIN", (260, 230), 40, (226, 232, 245)),
+        ("LEVEL 2: THE WARDS", (260, 300), 64, (226, 232, 245)),
+        ("DO NOT ANSWER VOICES.", (260, 392), 52, (255, 214, 110)),
+        ("SURVEY: 3% MAPPED.", (720, 620), 58, (226, 232, 245)),
+        ("EXIT: NOT FOUND.", (720, 696), 58, (255, 110, 110)),
+        ("THE BOTTOM IS THE LAMP.", (1130, 270), 42, (226, 232, 245)),
+        ("WADE. DO NOT LINGER.", (1130, 344), 42, (150, 190, 255)),
+    ]
+    for index, (text, xy, size_px, color) in enumerate(notes):
+        items += text_dots(text, xy, size_px, max(size_px // 8, 4), lit=lit, color=color, seed=20 + index)
+    # A redaction bar over a line, the way a surveyor blacks out a name.
+    items += text_dots("UNIT 0041", (260, 490), 44, 6, lit=lit, color=(200, 206, 220), seed=40)
+    for gx in range(0, 230, 7):
+        for gy in range(0, 34, 7):
+            items.append((560 + gx, 492 + gy, 2.3, (210, 216, 228)))
+    img = glow_compose(base, soft_dot_layer(size, items))
+    # A tape marker: REC dot and a play triangle.
+    draw = ImageDraw.Draw(img)
+    draw.ellipse((130, 118, 156, 144), fill=(255, 60, 60))
+    plain_text(img, "TAPE 03", (176, 131), 30, (230, 150, 150), anchor="lm", bold=True, spacing=4)
+    img = vignette(img, 0.85)
+    img = dot_text(img, "THE DARK HAS A STORY", (960, 790), 96, pitch=7, anchor="ma")
+    plain_text(img, "FIND THE SURVEYORS. FIND THE TAPES. FIND THE WAY OUT.", (960, 960), 30, (200, 206, 220), anchor="ma", bold=True, spacing=4)
     img.save(path)
 
 
-def variety_panel(kind, seed):
-    size = (384, 1080)
-    half = 9
-    t = 1.0
-    boxes = [
-        Box(-half - t / 2, 5.5, -60, t, 11, 120),
-        Box(half + t / 2, 5.5, -60, t, 11, 120),
-        Box(0, 11 + t / 2, -60, 2 * half + 2 * t, t, 120),
-        Box(0, 5.5, -120.5, 2 * half, 11, t),
-    ]
-    rng = np.random.default_rng(seed)
-    opts = dict(floor_tint=(0.82, 0.86, 0.95))
-    if kind == "OFFICE":
-        for i in range(6):
-            z = -16 - i * 15
-            boxes += [Box(-6, 2.5, z, 5, 5, 2.4), Box(6, 2.5, z - 7, 5, 5, 2.4), Box(0, 10, z, 18, 0.8, 0.8)]
-    elif kind == "FLOODED WING":
-        boxes.append(Box(0, 0.25, -60, 18, 0.5, 120))
-        for i in range(5):
-            boxes.append(Box(rng.choice([-6.5, 6.5]), 5.5, -18 - i * 20, 1.6, 11, 1.6))
-        opts = dict(floor_tint=(0.2, 0.5, 1.0))
-    elif kind == "WARD":
-        for i in range(6):
-            z = -14 - i * 16
-            boxes += [Box(-7, 1.4, z, 3.6, 2.8, 7.2), Box(7, 1.4, z - 6, 3.6, 2.8, 7.2), Box(0, 8, z - 4, 0.3, 6, 0.3)]
-    elif kind == "CAVE":
-        for i in range(22):
-            boxes.append(Box(rng.uniform(-7.5, 7.5), rng.uniform(0.5, 10), -rng.uniform(10, 110), rng.uniform(1.5, 4), rng.uniform(3, 9), rng.uniform(1.5, 4)))
-        opts = dict(wall_tint=(0.82, 0.78, 0.7), floor_tint=(0.85, 0.8, 0.7))
-    elif kind == "GARAGE":
-        for i in range(7):
-            z = -12 - i * 16
-            boxes += [Box(-7.5, 5.5, z, 1.8, 11, 1.8), Box(7.5, 5.5, z, 1.8, 11, 1.8)]
-            if i % 2 == 0:
-                boxes.append(Box(-3.2, 1.3, z - 6, 3.4, 2.6, 7.5))
-    return fp(
-        size, boxes, seed, count=420_000, first_person=(20, 52), lines=(-12, -5, 2, 9, 16),
-        first_person_cone=(0.0, -3.0, 26.0), fov=78, eye=(1.2, 6.0, 3.0), dot=0.9, **opts,
-    )
+# The scanner skins in src/shared/data/Skins.luau on claude/skins-monetization (PR #15): a plain
+# Classic, four earned by playtime (minutes in the dark), three bought with Robux. Colours are
+# each skin's dot colour. Keep in step with that file. The earned skins are drawn muted on
+# purpose (quiet, a little greyed) so the premium ones, drawn vivid with a halo, stand out.
+LOOKS_EARNED = [
+    ("CLASSIC", (196, 200, 210), "DEFAULT"),
+    ("TUNGSTEN", (214, 196, 160), "15 MIN"),
+    ("GLACIER", (170, 196, 208), "45 MIN"),
+    ("ORCHID", (196, 176, 208), "90 MIN"),
+    ("BLUEPRINT", (150, 166, 204), "180 MIN"),
+]
+LOOKS_ROBUX = [
+    ("ROSE QUARTZ", (255, 80, 170)),
+    ("AURORA", (40, 225, 255)),
+    ("NIGHTBLOOM", (120, 85, 255)),
+]
 
 
-def variety(path):
-    """Thumbnail 7: one panel each of office, flooded wing, ward, cave and garage."""
-    names = ["OFFICE", "FLOODED WING", "WARD", "CAVE", "GARAGE"]
-    sheet = Image.new("RGB", (1920, 1080), (2, 3, 5))
-    for index, name in enumerate(names):
-        panel = vignette(variety_panel(name, 30 + index), 0.9)
-        sheet.paste(panel, (index * 384, 0))
-        plain_text(sheet, name, (index * 384 + 192, 1030), 28, (226, 232, 245), anchor="ma", bold=True, spacing=4)
-    draw = ImageDraw.Draw(sheet)
-    for index in range(1, 5):
-        draw.line((index * 384, 40, index * 384, 1040), fill=(40, 46, 58), width=2)
-    sheet.save(path)
+def muted(color, amount=0.55, dim=0.62):
+    """Pulls a colour towards grey and darkens it: the standard looks stay quiet."""
+    grey = sum(color) / 3.0
+    return tuple(int((grey + (c - grey) * amount) * dim) for c in color)
 
 
-def icon(path, side):
-    """The icon: one corridor of white dots vanishing to a point, one small red cluster far
-    down it. High contrast and one focal point so it survives at 150x150."""
-    boxes = corridor_scene(red_at=(1.0, -104), exit_door=False)
-    boxes += figure(-0.5, -108, 6.5, "red", 0.9)
+def vivid(color, boost=1.35):
+    """Pushes a colour away from grey to full strength: the premium looks pop."""
+    grey = sum(color) / 3.0
+    return tuple(int(np.clip(grey + (c - grey) * boost, 0, 255)) for c in color)
+
+
+def burst_items(cx, cy, color, rng, radius=118, sparkle=0):
+    """A scan burst: rings of dots with a bright core, in a dot colour. `sparkle` adds a
+    scatter of large bright dots and an outer halo ring for premium looks."""
+    items = []
+    for ring, r in enumerate(np.linspace(radius * 0.18, radius, 7)):
+        n = int(14 + ring * 11 * radius / 118)
+        for k in range(n):
+            ang = (k / n) * 2 * np.pi + rng.uniform(-0.03, 0.03)
+            fade = 1.0 - ring / 9.0
+            items.append((cx + np.cos(ang) * r, cy + np.sin(ang) * r, max(2.4 - ring * 0.12, 1.2), tuple(c * fade for c in color)))
+    items.append((cx, cy, 5, color))
+    if sparkle:
+        for k in range(70):
+            ang = rng.uniform(0, 2 * np.pi)
+            r = radius * rng.uniform(1.05, 1.5)
+            items.append((cx + np.cos(ang) * r, cy + np.sin(ang) * r, rng.uniform(1.6, 3.4), color))
+        for k in range(130):
+            ang = (k / 130) * 2 * np.pi
+            items.append((cx + np.cos(ang) * radius * 1.22, cy + np.sin(ang) * radius * 1.22, 2.2, color))
+    return items
+
+
+def looks(path):
+    """Thumbnail 7: make the dark yours. Scanner skins earned by playing, and a few to buy.
+    Looks only, never power."""
+    size = (1920, 1080)
+    base = Image.new("RGB", size, (2, 3, 5))
+    rng = np.random.default_rng(9)
+    items = []
+    row1_y, row2_y = 415, 850
+    xs1 = [260 + i * 350 for i in range(5)]
+    xs2 = [610 + i * 350 for i in range(3)]
+    # a progress line through the earned row, with a bright head at the last unlock
+    for x in np.arange(xs1[0], xs1[-1], 9):
+        items.append((x, row1_y + 128, 1.6, (70, 78, 96)))
+    for (name, color, tag), x in zip(LOOKS_EARNED, xs1):
+        quiet = color
+        items += burst_items(x, row1_y, quiet, rng, 92)
+        items.append((x, row1_y + 128, 6, quiet))
+    premium = []
+    for (name, color), x in zip(LOOKS_ROBUX, xs2):
+        premium += burst_items(x, row2_y, color, rng, 92, sparkle=1)
+    # standard looks glow softly; premium looks get a stronger glow of their own
+    img = glow_compose(base, soft_dot_layer(size, items), 0.55)
+    img = glow_compose(img, soft_dot_layer(size, premium), 1.9)
+    plain_text(img, "EARNED BY PLAYING", (960, row1_y - 125), 24, (150, 160, 178), anchor="ma", bold=True, spacing=5)
+    plain_text(img, "PREMIUM", (960, row2_y - 172), 24, (255, 214, 110), anchor="ma", bold=True, spacing=5)
+    for (name, color, tag), x in zip(LOOKS_EARNED, xs1):
+        plain_text(img, name, (x, row1_y + 158), 26, color, anchor="ma", bold=True, spacing=4)
+        plain_text(img, tag, (x, row1_y + 196), 20, (150, 160, 178) if tag != "DEFAULT" else (96, 240, 140), anchor="ma", bold=True, spacing=3)
+    for (name, color), x in zip(LOOKS_ROBUX, xs2):
+        plain_text(img, name, (x, row2_y + 148), 30, tuple(int(c + (255 - c) * 0.3) for c in color), anchor="ma", bold=True, spacing=4)
+    img = vignette(img, 0.8)
+    img = dot_text(img, "MAKE THE DARK YOURS", (960, 60), 110, pitch=8, anchor="ma")
+    plain_text(img, "NEW DOT COLOURS AND SCANNER LOOKS. LOOKS ONLY, NEVER POWER.", (960, 215), 30, (200, 206, 220), anchor="ma", bold=True, spacing=4)
+    img.save(path)
+
+
+# ---- icons ----------------------------------------------------------------------------
+
+
+def icon_corridor(path, side):
+    """Icon A: a white dotted corridor with something tall and red looming in it."""
+    boxes = corridor_scene(red_at=(1.0, -26), exit_door=False)
     img = fp(
-        (side, side), boxes, seed=5, count=800_000 if side >= 1024 else 500_000,
-        eye=(0.0, 5.4, 2.0), target=(0.0, 5.0, -80.0), fov=70, first_person=(46, 46),
-        first_person_cone=(0.0, 0.0, 18.0), lines=(-32, -18, -7, 7, 18, 32), dot=side / 640.0 * 1.15,
-        line_level=0.5,
+        (side, side), boxes, seed=5, count=900_000 if side >= 1024 else 600_000,
+        eye=(0.0, 5.6, 3.0), target=(0.0, 5.0, -60.0), fov=68, first_person=(46, 46),
+        first_person_cone=(0.0, 0.0, 18.0), lines=(-34, -20, -8, 8, 20, 34), dot=side / 640.0 * 1.2,
+        line_level=0.55,
     )
-    img = vignette(img, 0.9)
+    img = tint_edges(vignette(img, 0.9), (255, 30, 30), 0.3, 0.6)
+    img.save(path)
+
+
+def icon_radar(path, side):
+    """Icon B: a radar-style scan burst, a bright sweep wedge, one red blip and one green."""
+    size = (side, side)
+    rng = np.random.default_rng(3)
+    c = side / 2
+    items = []
+    k = side / 1024.0
+    for ring, r in enumerate(np.linspace(70, 470, 11) * k):
+        n = int(26 + ring * 20)
+        for j in range(n):
+            ang = (j / n) * 2 * np.pi + rng.uniform(-0.02, 0.02)
+            # the sweep wedge points up and to the right; rings are brightest there
+            diff = abs((ang - (-np.pi / 3) + np.pi) % (2 * np.pi) - np.pi)
+            level = 0.22 + 0.78 * np.clip(1 - diff / 1.0, 0, 1)
+            fade = (1.0 - ring / 14.0) * level
+            items.append((c + np.cos(ang) * r, c + np.sin(ang) * r, (4.2 - ring * 0.2) * k * 1.5, tuple(v * fade for v in (226, 232, 245))))
+    # wedge edge line
+    for t in np.linspace(40, 480, 90) * k:
+        ang = -np.pi / 3
+        items.append((c + np.cos(ang) * t, c + np.sin(ang) * t, 4 * k, (226, 232, 245)))
+    # blips
+    for _ in range(90):
+        items.append((c + 190 * k + rng.normal(0, 14 * k), c - 250 * k + rng.normal(0, 22 * k), 5 * k, (255, 84, 84)))
+    for _ in range(40):
+        items.append((c - 220 * k + rng.normal(0, 10 * k), c + 160 * k + rng.normal(0, 10 * k), 4.5 * k, (96, 240, 140)))
+    items.append((c, c, 11 * k, (226, 232, 245)))
+    img = glow_compose(Image.new("RGB", size, (2, 3, 5)), soft_dot_layer(size, items))
+    img = vignette(img, 0.8)
+    img.save(path)
+
+
+def icon_letter(path, side):
+    """Icon C: a big dot-matrix L, the last dot of its foot glowing red."""
+    size = (side, side)
+    k = side / 1024.0
+    pitch = 100 * k
+    cols = np.arange(5)
+    items = []
+    cells = [(0, r) for r in range(7)] + [(c, 6) for c in range(1, 5)]
+    ox, oy = (side - 5 * pitch) / 2 + pitch / 2, (side - 7 * pitch) / 2 + pitch / 2
+    for cx, cy in cells:
+        x, y = ox + cx * pitch, oy + cy * pitch
+        red = (cx, cy) == (4, 6)
+        color = (255, 70, 70) if red else (226, 232, 245)
+        items.append((x, y, pitch * 0.4, color))
+    # faint ghost grid so it reads as a dot display
+    for gx in range(5):
+        for gy in range(7):
+            if (gx, gy) not in cells:
+                items.append((ox + gx * pitch, oy + gy * pitch, pitch * 0.09, (60, 66, 80)))
+    img = glow_compose(Image.new("RGB", size, (2, 3, 5)), soft_dot_layer(size, items))
     img.save(path)
 
 
 def main():
     os.makedirs(OUT, exist_ok=True)
+    def icons():
+        for side in (512, 1024):
+            icon_corridor(os.path.join(OUT, f"icon-a-corridor-{side}.png"), side)
+            icon_radar(os.path.join(OUT, f"icon-b-radar-{side}.png"), side)
+            icon_letter(os.path.join(OUT, f"icon-c-letter-{side}.png"), side)
+
     jobs = {
-        "icon": lambda: (icon(os.path.join(OUT, "icon-512.png"), 512), icon(os.path.join(OUT, "icon-1024.png"), 1024)),
+        "icon": icons,
         "hero": lambda: hero(os.path.join(OUT, "thumbnail-1-hero.png")),
         "scan": lambda: scan_view(os.path.join(OUT, "thumbnail-2-scan.png")),
         "aura": lambda: aura(os.path.join(OUT, "thumbnail-3-aura.png")),
         "together": lambda: together(os.path.join(OUT, "thumbnail-4-together.png")),
         "camp": lambda: camp(os.path.join(OUT, "thumbnail-5-camp.png")),
-        "reveal": lambda: reveal(os.path.join(OUT, "thumbnail-6-reveal.png")),
-        "variety": lambda: variety(os.path.join(OUT, "thumbnail-7-variety.png")),
+        "lore": lambda: lore(os.path.join(OUT, "thumbnail-6-lore.png")),
+        "looks": lambda: looks(os.path.join(OUT, "thumbnail-7-looks.png")),
     }
     which = sys.argv[1:] or list(jobs)
     for name in which:
