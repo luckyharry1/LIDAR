@@ -5,8 +5,8 @@ Icon and thumbnails for the Roblox experience page. Generated, not captured: see
 
 | File | Use |
 | --- | --- |
-| `icon-512.png`, `icon-1024.png` | The icon (a copy of option A). Roblox takes 512x512; the 1024 copy is for sharper previews |
-| `icon-a-corridor-*`, `icon-b-radar-*`, `icon-c-letter-*` | Three icon options: A a dotted corridor with something red looming in it (recommended, it shows the whole game at 150x150), B a radar-style scan burst with a red and a green blip, C a dot-matrix L with a red last dot |
+| `icon-512.png`, `icon-1024.png` | The icon (a copy of option B, Vasco's pick). Roblox takes 512x512; the 1024 copy is for sharper previews |
+| `icon-a-corridor-*`, `icon-b-radar-*`, `icon-c-letter-*` | Three icon options: A a dotted corridor with something red looming in it, B a radar-style scan burst with a red and a green blip (the one in use), C a dot-matrix L with a red last dot |
 | `thumbnail-1-hero.png` | First thumbnail, the one shown in search: "The dark is full. Your scanner is all you have." |
 | `thumbnail-2-scan.png` | "You are not alone": a scanned room with red presences in the dark around it |
 | `thumbnail-3-aura.png` | "Listen.": red screen edges and a heartbeat |
