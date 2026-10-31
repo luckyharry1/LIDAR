@@ -2098,6 +2098,9 @@ function Director.dev.skins(minutes: number)
 			member.passes[key] = true
 		end
 		sendProfile(member)
+		sendStateAll()
+		Data.touch(member.player)
+		task.spawn(Data.save, member.player) -- save now: a tester may stop play straight after
 	end
 end
 
@@ -2111,6 +2114,7 @@ function Director.dev.skinsReset()
 		member.passes = {}
 		member.playClock = 0
 		Data.touch(player)
+		task.spawn(Data.save, player) -- save now: a tester may stop play straight after
 		sendProfile(member)
 		sendStateAll()
 	end

@@ -717,3 +717,11 @@ on the start screen and at the workbench, plus a brainstorm of other monetizatio
   `Dots.add(..., tint)` colours permanent terrain dots (and their beam) with it. Only `wall` dots wear
   it. Before this a teammate's terrain dots were drawn in the viewer's own colour. Robux colours
   were made vivid and the playtime ones muted; Chrome became Aurora (pass key `aurora`).
+- Save on shutdown (31 Oct, from the PC build's Studio check: "skins reset" came back after restarting
+  play). `Data.release` drops the session before its final write, so `BindToClose` (which loops over
+  `sessions`) never waited for a player who left just before the server closed, and the Studio shortcut
+  (`#Players == 0` returns at once) skipped it completely. Every save now goes through `write`, which
+  counts `pendingWrites`; `BindToClose` waits (up to 25 s) until none are in flight, and the Studio
+  shortcut applies only when nothing is saving. The `skins` and `skins reset` dev commands save at
+  once. Not confirmed in Studio: stopping play may still cut the wait short there, so run a dev
+  command, wait a second, then stop.

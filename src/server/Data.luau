@@ -27,11 +27,13 @@ type Session = {
 
 local LOCK_KEY = "sessionLock"
 local SAVE_RETRIES = 3
+local SHUTDOWN_WAIT_SECONDS = 25
 
 local Data = {}
 
 local sessions: { [Player]: Session } = {}
 local store: DataStore? = nil
+local pendingWrites = 0 -- saves started and not yet finished, so shutdown can wait for them
 local storeChecked = false
 
 local function getStore(): DataStore?
@@ -139,7 +141,7 @@ function Data.touch(player: Player)
 	end
 end
 
-local function write(player: Player, session: Session, releaseLock: boolean): boolean
+local function writeNow(player: Player, session: Session, releaseLock: boolean): boolean
 	local dataStore = getStore()
 	if dataStore == nil or not session.persistent then
 		return false
@@ -174,6 +176,20 @@ local function write(player: Player, session: Session, releaseLock: boolean): bo
 	return true
 end
 
+-- Every save goes through here so that `pendingWrites` is exact: a player who leaves moments
+-- before the server closes has a save in flight that is no longer in `sessions`, and BindToClose
+-- must still wait for it.
+local function write(player: Player, session: Session, releaseLock: boolean): boolean
+	pendingWrites += 1
+	local ok, result = pcall(writeNow, player, session, releaseLock)
+	pendingWrites -= 1
+	if not ok then
+		warn(`[Data] Save errored for {player.Name}: {result}`)
+		return false
+	end
+	return result
+end
+
 -- Saves now if anything changed (used at lore rooms and by the autosave loop).
 function Data.save(player: Player): boolean
 	local session = sessions[player]
@@ -204,7 +220,9 @@ function Data.start()
 	end)
 
 	game:BindToClose(function()
-		if RunService:IsStudio() and #Players:GetPlayers() == 0 then
+		-- Stopping play in Studio removes the player first: only skip the wait if nothing is
+		-- being saved, or that player's final save is cut off.
+		if RunService:IsStudio() and #Players:GetPlayers() == 0 and pendingWrites == 0 then
 			return
 		end
 		local pending = 0
@@ -215,7 +233,10 @@ function Data.start()
 				pending -= 1
 			end)
 		end
-		while pending > 0 do
+		-- Also wait for saves already in flight (players who left a moment ago). Roblox allows
+		-- about 30 seconds in total, so stop waiting a little before that.
+		local deadline = os.clock() + SHUTDOWN_WAIT_SECONDS
+		while (pending > 0 or pendingWrites > 0) and os.clock() < deadline do
 			task.wait()
 		end
 	end)
