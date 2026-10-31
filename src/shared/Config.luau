@@ -333,7 +333,7 @@ Config.Monetization = {
 	skinPassIds = {
 		pack = 0, -- "Phosphor Pack": every Robux skin, now and added later
 		rose = 0, -- Rose Quartz
-		chrome = 0, -- Chrome
+		aurora = 0, -- Aurora
 		nightbloom = 0, -- Nightbloom
 	} :: { [string]: number },
 	promptAfterLevels = 2, -- never show a buy button before this many levels are cleared

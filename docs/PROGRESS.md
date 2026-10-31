@@ -591,7 +591,7 @@ progression between runs and room for monetization; then a faint pull towards un
 ## Scanner skins and monetization (31 Oct, cloud thread, branch `claude/skins-monetization`; nothing seen in Studio)
 Vasco asked for a simple skin system, partly earned by playtime and partly bought with Robux,
 on the start screen and at the workbench, plus a brainstorm of other monetization.
-- `data/Skins` (new): 4 playtime skins (15, 45, 90, 180 min) and 3 Robux skins (Rose Quartz, Chrome,
+- `data/Skins` (new): 4 playtime skins (15, 45, 90, 180 min) and 3 Robux skins (Rose Quartz, Aurora,
   Nightbloom). A skin recolours the terrain dots (the wall tint) and the gun housing, nothing else.
   `pure/SkinRules` (new, pure, tested) decides status, equip and enforce.
 - Save: `profile.skin` and `stats.playSeconds` (no version bump; `SaveData.load` defaults both).
@@ -606,7 +606,7 @@ on the start screen and at the workbench, plus a brainstorm of other monetizatio
   R$ price from `GetProductInfo`), an "ALL ROBUX SKINS" pack button, BACK returns to the title or
   bench. Skin tint overrides the Static dot tint (`Menus.applyCosmetics`) and housing
   (`Viewmodel`). The title scene wears the skin, which doubles as the preview.
-- `Config.Monetization`: `skinPassIds` {pack, rose, chrome, nightbloom} (all 0 = coming soon);
+- `Config.Monetization`: `skinPassIds` {pack, rose, aurora, nightbloom} (all 0 = coming soon);
   `cosmeticPackProductId` removed (nothing used it). Ids to create are listed in `docs/PUBLISHING.md`.
 - Docs: `docs/MONETIZATION.md` gained "Skins" and a 17-item brainstorm; `docs/TESTING.md` has
   the Studio checks.

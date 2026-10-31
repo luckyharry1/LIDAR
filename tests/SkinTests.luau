@@ -37,7 +37,7 @@ tests["playtime skins unlock on time alone, robux skins need a pass"] = function
 	assert(SkinRules.status(rose, 1e9, {}) == "robux", "playtime unlocked a robux skin")
 	assert(SkinRules.status(rose, 0, { rose = true }) == "owned", "its own pass did not unlock it")
 	assert(
-		SkinRules.status(rose, 0, { chrome = true }) == "robux",
+		SkinRules.status(rose, 0, { aurora = true }) == "robux",
 		"another skin's pass unlocked it"
 	)
 	assert(SkinRules.status(rose, 0, { pack = true }) == "owned", "the pack did not unlock it")
@@ -63,11 +63,11 @@ end
 
 tests["enforce takes off a skin the player no longer qualifies for"] = function()
 	local profile = SaveData.default()
-	profile.skin = "chrome"
+	profile.skin = "aurora"
 	assert(SkinRules.enforce(profile, {}) and profile.skin == "", "kept an unowned skin")
-	profile.skin = "chrome"
+	profile.skin = "aurora"
 	assert(
-		not SkinRules.enforce(profile, { pack = true }) and profile.skin == "chrome",
+		not SkinRules.enforce(profile, { pack = true }) and profile.skin == "aurora",
 		"dropped an owned skin"
 	)
 	profile.skin = ""
