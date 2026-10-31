@@ -603,3 +603,27 @@ progression between runs and room for monetization; then a faint pull towards un
 - Lamp-bags light up but say nothing (the same lamp over and over is not a story).
 - A lit patch of wall and floor now differs per floor (carpet and wallpaper, wet tile, planks, concrete) with seams so it reads as material, and flooded floor shows larger, brighter cyan dots.
 - Not run in Studio yet: check the tape rooms and the opening for brightness and cue timing.
+
+## Fewer, different points of interest and no spawn camping (31 Oct, cloud thread; not seen in Studio)
+
+Vasco's playtest: nearly every POI was "this was here but unfinished, what happened?", with the
+same walls, floor and text, and checkpoints sometimes put you next to a monster. Stacked on
+`claude/cutscenes` (PR #14: silent lamp-bags and per-floor patch looks).
+- One hidden object per level, never the same twice (`Places.tiers`): whiteboard (T1), the guard's
+  coat (T2), Tobi's headphones (T3), the dinghy (T4), the tap-code plate (T5), the stretcher
+  (T6), the glowing vein (T7), the cornerstone (T8). They were two per tier before, with repeats.
+  Posters are down to the plaque that opens a floor, the colour key on T1 and one hazard sign per
+  trap level. The handbook rule posters no longer hang on walls (they are still the manual plates).
+- A found hidden object or tape now lights its whole cell: every closed wall and the open floor
+  beside it, in the floor's look (`World.buildPatch` `area`), with its light range x1.5
+  (`PLACE_RANGE_BOOST`). Lamp-bags and posters still light one wall.
+- Spawn camping: enemy posts keep 4 path steps and 2.5 cells from the checkpoint beacon as well as
+  the start (`Config.Enemy.checkpointClearCells`; relaxed before the start distance on tiny
+  mazes), and roaming monsters never pick a cell within 2 steps of the beacon to idle in
+  (`Config.Enemy.beaconSafeCells`, `EnemyBrain.keepClear`, set in `Enemies.spawn`). The level start
+  already had this.
+- Tests: one hidden object per tier and none repeated, no notice hung twice, no enemy post within
+  3 steps of the beacon over 40 seeds x 14 tiers, a roamer with `keepClear` does not linger there.
+- Check in Studio: the lit cell around each found object reads as that floor; whether the 1.5x
+  light looks too bright; that tiers 7 and 8 still share one patch look (PR #14 has four looks for
+  five floors); the story text of the eight objects is the story thread's to sharpen.

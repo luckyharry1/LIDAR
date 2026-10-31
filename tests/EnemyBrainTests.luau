@@ -57,6 +57,29 @@ local function distanceTo(enemy: EnemyBrain.Enemy, s: EnemyBrain.Source): number
 	return math.sqrt((enemy.x - s.x) ^ 2 + (enemy.z - s.z) ^ 2)
 end
 
+tests["roaming monsters never idle round a cell they keep clear of"] = function()
+	for _, kind in { "wanderer", "listener" } do
+		local maze = Maze.generate(11, 6, 6, { loopChance = 0.1, pruneChance = 0.5, rooms = 1 })
+		local beacon = { x = 3, y = 3 }
+		local steps = Maze.distances(maze, beacon)
+		local enemy = EnemyBrain.new(1, kind, { x = 6, y = 6 }, 1, 1)
+		enemy.keepClear = { beacon }
+		local player = source(0.05, 0.05)
+		player.crouching = true -- silent, in a corner: it roams on its own
+		local pauses = 0
+		run(enemy, maze, { player }, 600, function()
+			if #enemy.path == 0 and not enemy.moving then
+				local cell = Maze.cellOf(maze, enemy.x, enemy.z)
+				if steps[Maze.index(maze, cell.x, cell.y)] <= Config.Enemy.beaconSafeCells then
+					pauses += 1
+				end
+			end
+		end)
+		-- It may cross the cell on its way elsewhere, never stop to linger there.
+		assert(pauses < 20, `{kind} lingered {pauses} ticks beside the beacon`)
+	end
+end
+
 tests["roaming monsters cover the level and only pause briefly"] = function()
 	for _, kind in { "wanderer", "listener" } do
 		local maze = Maze.generate(11, 6, 6, { loopChance = 0.1, pruneChance = 0.5, rooms = 1 })

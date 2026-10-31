@@ -174,7 +174,48 @@ tests["every sign and hidden object in the places data exists in the story"] = f
 		end
 	end
 	for variant = 1, Places.nookCount do
-		assert(#Places.nookLines(variant) > 0, "a lamp-bag says nothing")
+		assert(#Places.nookLines(variant) > 0, "a lamp-bag has no tag text")
+	end
+end
+
+tests["each level has one hidden object and no two levels share one"] = function()
+	local ids: { [string]: number } = {}
+	local kits: { [string]: number } = {}
+	for tier, places in Places.tiers do
+		assert(#places.reveals <= 1, `tier {tier} has more than one hidden object`)
+		for _, id in places.reveals do
+			assert(ids[id] == nil, `{id} is hidden on tier {ids[id]} and tier {tier}`)
+			ids[id] = tier
+			local kit = Places.reveal(id).kit
+			assert(kits[kit] == nil, `{id} is drawn like the object on tier {kits[kit]}`)
+			kits[kit] = tier
+		end
+	end
+end
+
+tests["no notice is hung twice in a run"] = function()
+	local seen: { [string]: number } = {}
+	for tier, places in Places.tiers do
+		for _, sign in places.signs do
+			assert(seen[sign.id] == nil, `{sign.id} is hung on tier {seen[sign.id]} and {tier}`)
+			seen[sign.id] = tier
+		end
+	end
+end
+
+tests["enemy posts keep clear of the checkpoint beacon"] = function()
+	for tier = 1, LAST_TIER_TESTED do
+		for seed = 1, 40 do
+			local plan = LevelPlan.build(tier, seed * 977, OPTIONS)
+			local beaconDist = Maze.distances(plan.maze, plan.beaconCell)
+			for _, enemy in plan.enemies do
+				local steps = beaconDist[Maze.index(plan.maze, enemy.cell.x, enemy.cell.y)]
+				assert(
+					steps >= 3,
+					`{enemy.kind} starts {steps} steps from the beacon at tier {tier} seed {seed}`
+				)
+			end
+		end
 	end
 end
 
