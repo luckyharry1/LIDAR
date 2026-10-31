@@ -80,8 +80,8 @@ local SIGN_SLOTS = { 0, -4.3, 4.3 } -- where along a wall a second and third sig
 local MARKER_OFFSET = CFrame.new(0, 4, -2.2) -- a hidden object's light hangs this far into the room
 local LAMP_COLOR = Color3.fromRGB(255, 226, 170)
 local PATCH_PIXELS_PER_STUD = 6
--- What a lit corner of each floor looks like, so no two floors share a wall or a floor: office
--- carpet and wallpaper, wet green tile, clinic lino, rock, concrete. Two tiers share a floor.
+-- What a lit corner of each Level looks like, so no two Levels share a wall or a floor: office
+-- carpet and wallpaper, wet green tile, clinic lino, cave rock, garage concrete.
 type PatchLook = { floor: Color3, wall: Color3, floorPattern: string, wallPattern: string }
 local PATCH_LOOKS: { PatchLook } = {
 	{
@@ -97,21 +97,29 @@ local PATCH_LOOKS: { PatchLook } = {
 		wallPattern = "tiles",
 	},
 	{
-		floor = Color3.fromRGB(94, 132, 76),
-		wall = Color3.fromRGB(130, 156, 98),
-		floorPattern = "boards",
+		floor = Color3.fromRGB(150, 172, 160),
+		wall = Color3.fromRGB(176, 200, 180),
+		floorPattern = "tiles",
 		wallPattern = "stripes",
 	},
 	{
-		floor = Color3.fromRGB(104, 100, 98),
-		wall = Color3.fromRGB(160, 140, 112),
-		floorPattern = "tiles",
+		floor = Color3.fromRGB(104, 84, 68),
+		wall = Color3.fromRGB(132, 106, 84),
+		floorPattern = "boards",
 		wallPattern = "boards",
 	},
+	{
+		floor = Color3.fromRGB(104, 106, 112),
+		wall = Color3.fromRGB(160, 138, 96),
+		floorPattern = "squares",
+		wallPattern = "tiles",
+	},
 }
+local LOOK_OF_TIER = { 1, 1, 2, 2, 3, 3, 4, 5 } -- the authored tiers, two to a Level but the last two
 
 local function patchLook(tier: number): PatchLook
-	return PATCH_LOOKS[(math.ceil(tier / 2) - 1) % #PATCH_LOOKS + 1]
+	local index = LOOK_OF_TIER[tier] or (tier - 1) % #PATCH_LOOKS + 1
+	return PATCH_LOOKS[index]
 end
 -- Solid in the middle, nothing at both edges; the wall is solid at the floor, gone at the top.
 local PATCH_EDGE_FADE = NumberSequence.new({
