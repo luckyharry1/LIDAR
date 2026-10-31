@@ -49,17 +49,17 @@ end
 function SkinRules.equip(profile: SaveData.Profile, id: string, passes: Passes): (boolean, string)
 	if id == "" then
 		profile.skin = ""
-		return true, "Standard scanner restored."
+		return true, "Back to the classic look!"
 	end
 	local def = Skins.byId[id]
 	if def == nil then
-		return false, "Unknown skin."
+		return false, "Hmm, we do not know that skin."
 	end
 	if SkinRules.status(def, profile.stats.playSeconds, passes) ~= "owned" then
-		return false, "That skin is still locked."
+		return false, "Not unlocked yet. Keep exploring!"
 	end
 	profile.skin = id
-	return true, def.name .. " equipped."
+	return true, def.name .. " is on!"
 end
 
 -- Drops an equipped skin the player no longer qualifies for (a pass that could not be

@@ -33,7 +33,7 @@ Skins.list = {
 	{
 		id = "tungsten",
 		name = "Tungsten",
-		blurb = "Warm, like an old bulb.",
+		blurb = "Cozy and glowy, like a night light.",
 		wall = { 255, 226, 170 },
 		gun = { 150, 118, 72 },
 		kind = "playtime",
@@ -42,7 +42,7 @@ Skins.list = {
 	{
 		id = "glacier",
 		name = "Glacier",
-		blurb = "Pale and cold.",
+		blurb = "Chilly ice-blue dots!",
 		wall = { 160, 235, 255 },
 		gun = { 70, 112, 150 },
 		kind = "playtime",
@@ -51,7 +51,7 @@ Skins.list = {
 	{
 		id = "orchid",
 		name = "Orchid",
-		blurb = "A soft pink-violet glow.",
+		blurb = "A dreamy pink-purple glow.",
 		wall = { 222, 170, 255 },
 		gun = { 112, 72, 150 },
 		kind = "playtime",
@@ -60,7 +60,7 @@ Skins.list = {
 	{
 		id = "blueprint",
 		name = "Blueprint",
-		blurb = "The colour of the old survey plans.",
+		blurb = "Blue like a secret treasure map.",
 		wall = { 112, 152, 255 },
 		gun = { 52, 78, 150 },
 		kind = "playtime",
@@ -69,7 +69,7 @@ Skins.list = {
 	{
 		id = "rose",
 		name = "Rose Quartz",
-		blurb = "Pink dots, a rose-gold gun.",
+		blurb = "Sparkly pink dots and a rose-gold gun.",
 		wall = { 255, 165, 205 },
 		gun = { 196, 112, 130 },
 		kind = "robux",
@@ -78,7 +78,7 @@ Skins.list = {
 	{
 		id = "chrome",
 		name = "Chrome",
-		blurb = "Bright white dots, a mirror gun.",
+		blurb = "Super shiny, with a mirror gun!",
 		wall = { 245, 248, 255 },
 		gun = { 205, 210, 222 },
 		kind = "robux",
@@ -87,7 +87,7 @@ Skins.list = {
 	{
 		id = "nightbloom",
 		name = "Nightbloom",
-		blurb = "Deep violet dots, a midnight gun.",
+		blurb = "Deep purple dots and a midnight gun.",
 		wall = { 150, 124, 255 },
 		gun = { 58, 44, 112 },
 		kind = "robux",

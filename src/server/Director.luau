@@ -1428,12 +1428,12 @@ local function onPassPurchased(player: Player, passId: number, purchased: boolea
 			member.passes[key] = true
 			Telemetry.custom(player, "SkinPassBought", 1)
 			if key == Skins.packKey then
-				toast(player, "Phosphor Pack unlocked: every Robux skin is yours.", "good")
+				toast(player, "You got the Phosphor Pack! Every Robux skin is yours.", "good")
 			else
 				for _, def in Skins.list do
 					if def.pass == key then
 						SkinRules.equip(profileOf(member), def.id, member.passes)
-						toast(player, def.name .. " unlocked and equipped.", "good")
+						toast(player, def.name .. " is yours, and it is on!", "good")
 					end
 				end
 			end
@@ -1862,7 +1862,7 @@ local function creditPlaytime(member: Member, seconds: number)
 	for _, def in earned do
 		toast(
 			member.player,
-			`New skin: {def.name}. Wear it from the start screen or workbench.`,
+			`You unlocked a new skin: {def.name}! Try it on from the start screen or the workbench.`,
 			"good"
 		)
 	end
