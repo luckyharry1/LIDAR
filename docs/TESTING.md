@@ -104,6 +104,12 @@ says so.
       "Take the lamp" lets the door lead into a Relay floor.
 - [ ] Settings: dot colours, teammates' scans, scan button mode, volume, DOT DETAIL (watch the
       frame rate on high), freeze dots.
+- [ ] Skins: the SKINS button on the title and at the workbench opens the list and BACK returns
+      to where you were. With `workspace:SetAttribute("DevCommand", "skins 200")` in the
+      command bar every skin unlocks; USE changes the title scene's dots at once and the gun's
+      housing colour in the next level. IN USE shows on the worn skin, Standard restores the
+      plain look, and the choice survives leaving and rejoining. Without the command, Robux
+      skins read COMING SOON (ids still zero) and playtime skins read "PLAY nM MORE".
 - [ ] Workbench: buying each upgrade does what it says (Pulse Radar pulses on its own, Wide
       Lens widens the spread, Wayfinder shows the needle then the map).
 
@@ -131,3 +137,7 @@ says so.
 - [ ] The daily leaderboard with more than one entry.
 - [ ] The lobby and reserved-server party flow (`Config.Places.runPlaceId`).
 - [ ] Game pass prompt for the Surveyor's Kit (`Config.Monetization`).
+- [ ] Skin passes: with real ids set, the SKINS screen shows GET with the pass's price after two
+      cleared levels (and AFTER 2 LEVELS before). Buying a skin equips it at once; the Phosphor
+      Pack unlocks all three; rejoining keeps them (`UserOwnsGamePassAsync`). Playtime skins
+      unlock while walking (toast "New skin") and not while idling in a haven.

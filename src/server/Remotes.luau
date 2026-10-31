@@ -112,6 +112,9 @@ local VALIDATORS: { [string]: Validator } = {
 	EquipCosmetic = function(slot, id)
 		return isShortString(slot) and isShortString(id)
 	end,
+	EquipSkin = function(id)
+		return isShortString(id)
+	end,
 	ToggleUpgrade = function(id, on)
 		return isShortString(id) and type(on) == "boolean"
 	end,

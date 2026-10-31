@@ -271,6 +271,7 @@ Config.Net = {
 		Reveal = 2,
 		BuyUpgrade = 4,
 		EquipCosmetic = 4,
+		EquipSkin = 4,
 		SetSetting = 6,
 		Start = 2,
 		Funnel = 4,
@@ -321,12 +322,22 @@ Config.Audio = {
 	stingRearmSeconds = 14,
 }
 
--- Monetisation placeholders. Zero means "not configured"; the game runs fine without them.
--- The plan for what could be sold, and what never should be, is in docs/MONETIZATION.md.
+-- Monetisation placeholders. Zero means "not configured": the game runs fine without them, and
+-- a skin or button whose id is zero shows "soon" and cannot be bought. Paste the real ids in here
+-- from the Creator Dashboard (Monetization > Passes). What may be sold, and what never should
+-- be, is in docs/MONETIZATION.md; the list of ids to create is in docs/PUBLISHING.md.
 Config.Monetization = {
 	surveyorKitPassId = 0, -- convenience pass: a mid-level checkpoint beacon
-	cosmeticPackProductId = 0,
-	promptAfterLevels = 2, -- never prompt a purchase before this many levels are cleared
+	-- One game pass per Robux skin (keys match `pass` in data/Skins), plus a pack that unlocks all
+	-- of them. Looks only: no pass here ever changes how the scanner works.
+	skinPassIds = {
+		pack = 0, -- "Phosphor Pack": every Robux skin, now and added later
+		rose = 0, -- Rose Quartz
+		chrome = 0, -- Chrome
+		nightbloom = 0, -- Nightbloom
+	} :: { [string]: number },
+	promptAfterLevels = 2, -- never show a buy button before this many levels are cleared
+	playSecondsMoving = 60, -- playtime only counts while the player moved within this window
 }
 
 -- Place IDs for the reserved-server flow. Zero keeps everything in a single place.

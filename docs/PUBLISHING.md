@@ -42,14 +42,27 @@ add a migration in `src/shared/pure/SaveData.luau` instead when the profile shap
 
 ## 5. Optional: monetisation
 
-All off while the ids are zero; the game runs fine without them.
+All off while the ids are zero; the game runs fine without them. A zero id shows "coming soon"
+on the skins screen and hides the Surveyor's Kit button. For each pass below: Creator Hub >
+the experience > Monetization > Passes > Create a pass, then paste the number from its URL into
+`src/shared/Config.luau` under `Config.Monetization` and publish again. The buy buttons read the
+price from the pass, so set it there.
 
-| Config | What it does |
-| --- | --- |
-| `Config.Monetization.surveyorKitPassId` | A game pass id for the Surveyor's Kit: a mid-level checkpoint beacon placed in each level for owners. The workbench shows a purchase button, but never before the player has cleared `promptAfterLevels` (2) levels. |
-| `Config.Monetization.cosmeticPackProductId` | A placeholder. Nothing reads it yet. |
+| Config key | Pass to create | Suggested name and price | What it does |
+| --- | --- | --- | --- |
+| `surveyorKitPassId` | Surveyor's Kit | "Surveyor's Kit", 99 Robux | A checkpoint beacon placed in each level for owners. The workbench shows a purchase button, but never before the player has cleared `promptAfterLevels` (2) levels. |
+| `skinPassIds.rose` | Rose Quartz skin | "Rose Quartz Scanner", 75 Robux | Pink dots and a rose-gold gun |
+| `skinPassIds.chrome` | Chrome skin | "Chrome Scanner", 75 Robux | Bright white dots and a mirror gun |
+| `skinPassIds.nightbloom` | Nightbloom skin | "Nightbloom Scanner", 75 Robux | Deep violet dots and a midnight gun |
+| `skinPassIds.pack` | Phosphor Pack | "Phosphor Pack: every skin", 199 Robux | Unlocks every Robux skin, including ones added later (your call whether to promise that on the pass page) |
 
-Create the pass in the Creator Hub, then put its id in `Config.luau` and publish again.
+The pass icon can be a screenshot of the title corridor in that skin: equip the skin, press the
+SKINS button from the title and take the picture from there (the dots on the title scene wear
+the skin). Prices are suggestions; the code never assumes them.
+
+Playtime skins (Tungsten, Glacier, Orchid, Blueprint) need nothing created. Developer products
+and the `ProcessReceipt` handler are not used yet; the brainstorm in `docs/MONETIZATION.md`
+lists what would need them.
 
 ## 6. Optional: private party servers
 

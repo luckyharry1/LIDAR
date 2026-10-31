@@ -18,6 +18,8 @@ local Input = require(script.Parent.Input)
 local Lore = require(ReplicatedStorage.Shared.data.Lore)
 local Net = require(ReplicatedStorage.Shared.Net)
 local Progression = require(ReplicatedStorage.Shared.pure.Progression)
+local SkinRules = require(ReplicatedStorage.Shared.pure.SkinRules)
+local Skins = require(ReplicatedStorage.Shared.data.Skins)
 local State = require(script.Parent.State)
 local Ui = require(script.Parent.Ui)
 local Upgrades = require(ReplicatedStorage.Shared.data.Upgrades)
@@ -48,6 +50,10 @@ local refreshParty: () -> () -- defined with the Play Together screen below
 local benchList: Frame
 local benchBalance: TextLabel
 local benchCosmetics: Frame
+local skinsList: Frame
+local skinsPlayed: TextLabel
+local skinsPack: TextButton
+local refreshSkins: () -> () -- defined with the skins screen below
 local noteTitle: TextLabel
 local noteBody: TextLabel
 local clearBody: TextLabel
@@ -103,6 +109,7 @@ function Menus.open(name: string)
 	backdrop.BackgroundTransparency = if name == "title"
 		then 1
 		elseif name == "descend" then 0.9
+		elseif name == "skins" then 0.7 -- the title scene stays visible behind it, wearing the skin
 		else 0.45
 	State.menuOpen = true
 	Input.menuChanged()
@@ -332,6 +339,10 @@ local function refreshTitle()
 		titleStatus.Text =
 			`Visit {profile.streak.count}.  Best tier {profile.bestTier}.  {profile.static} Static.`
 	end
+	add("SKINS", 32, function()
+		refreshSkins()
+		Menus.open("skins")
+	end, Ui.colors.gold)
 	add("SETTINGS", 32, function()
 		Menus.open("settings")
 	end, Ui.colors.dim)
@@ -691,7 +702,11 @@ end
 function Menus.applyCosmetics()
 	local profile = State.profile
 	local tint = Upgrades.cosmeticById[profile.cosmetics.dots]
-	Dots.setPalette(profile.settings.palette, if tint then tint.color else nil)
+	local skin = Skins.byId[profile.skin]
+	Dots.setPalette(
+		profile.settings.palette,
+		if skin then skin.wall elseif tint then tint.color else nil
+	)
 	Dots.setBudget(DotRules.budget(Menus.dotQuality(), State.effects.phosphorLevel))
 end
 
@@ -904,7 +919,7 @@ local function buildBench()
 		Text = "SURVEY REPORT",
 		AnchorPoint = Vector2.new(0, 1),
 		Position = UDim2.fromScale(0, 1),
-		Size = UDim2.fromOffset(190, 38),
+		Size = UDim2.fromOffset(170, 38),
 		Parent = frame,
 	}, function()
 		Menus.showReport()
@@ -912,18 +927,28 @@ local function buildBench()
 	Ui.button({
 		Text = "FIELD GUIDE",
 		AnchorPoint = Vector2.new(0, 1),
-		Position = UDim2.new(0, 200, 1, 0),
-		Size = UDim2.fromOffset(160, 38),
+		Position = UDim2.new(0, 178, 1, 0),
+		Size = UDim2.fromOffset(140, 38),
 		Parent = frame,
 	}, function()
 		refreshGuide()
 		Menus.open("guide")
 	end)
+	Ui.button({
+		Text = "SKINS",
+		AnchorPoint = Vector2.new(0, 1),
+		Position = UDim2.new(0, 326, 1, 0),
+		Size = UDim2.fromOffset(100, 38),
+		Parent = frame,
+	}, function()
+		refreshSkins()
+		Menus.open("skins")
+	end, Ui.colors.gold)
 	local kitButton = Ui.button({
 		Text = "SURVEYOR'S KIT",
 		AnchorPoint = Vector2.new(0, 1),
-		Position = UDim2.new(0, 370, 1, 0),
-		Size = UDim2.fromOffset(180, 38),
+		Position = UDim2.new(0, 434, 1, 0),
+		Size = UDim2.fromOffset(160, 38),
 		Visible = false,
 		Parent = frame,
 	}, function()
@@ -941,6 +966,244 @@ local function buildBench()
 		TextSize = Ui.text.small,
 	})
 	closeButton(guide, "guide", "CLOSE")
+end
+
+--------------------------------------------------------------------------------------------
+-- Scanner skins: a colour for the dots and the gun. Some are earned by time in the dark, some
+-- are bought with Robux; none change how the scanner works. Reached from the start screen and
+-- the workbench; the choice is made by the server (SkinRules), this screen only asks.
+
+local passPrices: { [number]: number } = {}
+local passPriceAsked: { [number]: boolean } = {}
+
+-- The Robux price of a game pass, fetched once and remembered; nil until Roblox has answered.
+local function passPrice(passId: number): number?
+	if passPrices[passId] == nil and not passPriceAsked[passId] then
+		passPriceAsked[passId] = true
+		task.spawn(function()
+			local ok, info = pcall(function()
+				return MarketplaceService:GetProductInfo(passId, Enum.InfoType.GamePass)
+			end)
+			if ok and type(info.PriceInRobux) == "number" then
+				passPrices[passId] = info.PriceInRobux
+				if current == "skins" then
+					refreshSkins()
+				end
+			end
+		end)
+	end
+	return passPrices[passId]
+end
+
+local function duration(seconds: number): string
+	local minutes = math.ceil(seconds / 60)
+	if minutes >= 60 then
+		return `{minutes // 60}H {minutes % 60}M`
+	end
+	return `{minutes}M`
+end
+
+local function rgbColor(triple: { number }): Color3
+	return Color3.fromRGB(triple[1], triple[2], triple[3])
+end
+
+local function buyLabel(passId: number): string
+	local price = passPrice(passId)
+	return if price then `GET  R$ {price}` else "GET"
+end
+
+refreshSkins = function()
+	local profile = State.profile
+	local meta = State.meta
+	skinsPlayed.Text = "TIME IN THE DARK  " .. duration(profile.stats.playSeconds)
+	for _, child in skinsList:GetChildren() do
+		if child:IsA("Frame") then
+			child:Destroy()
+		end
+	end
+	local order = 0
+	local function row(
+		id: string,
+		name: string,
+		blurb: string,
+		wall: { number }?,
+		gun: { number }?,
+		def: Skins.SkinDef?
+	)
+		order += 1
+		local line = Ui.new("Frame", {
+			Size = UDim2.new(1, -8, 0, 44),
+			BackgroundTransparency = 1,
+			LayoutOrder = order,
+			Parent = skinsList,
+		})
+		Ui.new("Frame", {
+			AnchorPoint = Vector2.new(0, 0.5),
+			Position = UDim2.fromScale(0, 0.5),
+			Size = UDim2.fromOffset(14, 14),
+			BackgroundColor3 = if wall then rgbColor(wall) else Ui.colors.line,
+			BorderSizePixel = 0,
+			Parent = line,
+		}, { Ui.new("UICorner", { CornerRadius = UDim.new(1, 0) }) })
+		Ui.new("Frame", {
+			AnchorPoint = Vector2.new(0, 0.5),
+			Position = UDim2.new(0, 20, 0.5, 0),
+			Size = UDim2.fromOffset(14, 14),
+			BackgroundColor3 = if gun then rgbColor(gun) else Color3.fromRGB(96, 100, 108),
+			BorderSizePixel = 0,
+			Parent = line,
+		}, { Ui.new("UICorner", { CornerRadius = UDim.new(0, 3) }) })
+		Ui.label({
+			Text = string.upper(name),
+			FontFace = Ui.fontBold,
+			TextSize = Ui.text.small,
+			Position = UDim2.fromOffset(46, 3),
+			Size = UDim2.new(0.55, -46, 0, 18),
+			Parent = line,
+		})
+		Ui.label({
+			Text = blurb,
+			TextSize = 11,
+			TextColor3 = Ui.colors.dim,
+			TextTruncate = Enum.TextTruncate.AtEnd,
+			Position = UDim2.fromOffset(46, 22),
+			Size = UDim2.new(0.55, -46, 0, 16),
+			Parent = line,
+		})
+		local function status(text: string, color: Color3)
+			Ui.label({
+				Text = text,
+				TextSize = Ui.text.small,
+				TextColor3 = color,
+				TextXAlignment = Enum.TextXAlignment.Right,
+				AnchorPoint = Vector2.new(1, 0),
+				Position = UDim2.fromScale(1, 0),
+				Size = UDim2.new(0.43, 0, 1, 0),
+				Parent = line,
+			})
+		end
+		local function action(text: string, onPress: () -> (), color: Color3)
+			Ui.button({
+				Text = text,
+				TextSize = Ui.text.small,
+				AnchorPoint = Vector2.new(1, 0.5),
+				Position = UDim2.fromScale(1, 0.5),
+				Size = UDim2.new(0.4, 0, 0, 30),
+				Parent = line,
+			}, onPress, color)
+		end
+		if profile.skin == id then
+			status("IN USE", Ui.colors.good)
+		elseif def == nil then
+			action("USE", function()
+				send("EquipSkin", "")
+			end, Ui.colors.gold)
+		else
+			local owned = SkinRules.status(def, profile.stats.playSeconds, meta.passes)
+			if owned == "owned" then
+				action("USE", function()
+					send("EquipSkin", id)
+				end, Ui.colors.gold)
+			elseif owned == "playtime" then
+				status(
+					`PLAY {duration(SkinRules.secondsLeft(def, profile.stats.playSeconds))} MORE`,
+					Ui.colors.dim
+				)
+			else
+				local passId = meta.skinPassIds[def.pass :: string] or 0
+				if passId == 0 then
+					status("COMING SOON", Ui.colors.dim)
+				elseif not meta.canPromptPurchase then
+					status(`AFTER {Config.Monetization.promptAfterLevels} LEVELS`, Ui.colors.dim)
+				else
+					action(buyLabel(passId), function()
+						MarketplaceService:PromptGamePassPurchase(player, passId)
+					end, Ui.colors.good)
+				end
+			end
+		end
+	end
+	row("", "Standard scanner", "Plain white dots. Always yours.", nil, nil, nil)
+	for _, def in Skins.list do
+		local blurb = if def.kind == "playtime"
+			then `{def.blurb} Earned after {duration((def.minutes or 0) * 60)} in the dark.`
+			else def.blurb
+		row(def.id, def.name, blurb, def.wall, def.gun, def)
+	end
+
+	-- The pack: every Robux skin in one purchase. Only while there is something left to buy.
+	local packId = meta.skinPassIds[Skins.packKey] or 0
+	local lockedRobux = false
+	for _, def in Skins.list do
+		if
+			def.kind == "robux"
+			and SkinRules.status(def, profile.stats.playSeconds, meta.passes) ~= "owned"
+		then
+			lockedRobux = true
+		end
+	end
+	skinsPack.Visible = packId ~= 0 and lockedRobux and meta.canPromptPurchase
+	if skinsPack.Visible then
+		skinsPack.Text = "ALL ROBUX SKINS"
+			.. (if passPrice(packId) then `  R$ {passPrice(packId)}` else "")
+	end
+end
+
+local function buildSkins()
+	local frame = window("skins", 620, 380)
+	heading(frame, "SCANNER SKINS")
+	skinsPlayed = Ui.label({
+		TextSize = Ui.text.small,
+		TextColor3 = Ui.colors.dim,
+		TextXAlignment = Enum.TextXAlignment.Right,
+		AnchorPoint = Vector2.new(1, 0),
+		Position = UDim2.fromScale(1, 0),
+		Size = UDim2.fromOffset(260, 28),
+		Parent = frame,
+	})
+	Ui.label({
+		Text = "A look for your dots and your gun. Every skin is the same scanner.",
+		TextSize = Ui.text.small,
+		TextColor3 = Ui.colors.dim,
+		Position = UDim2.fromOffset(0, 28),
+		Size = UDim2.new(1, 0, 0, 18),
+		Parent = frame,
+	})
+	skinsList = Ui.new("ScrollingFrame", {
+		Position = UDim2.fromOffset(0, 52),
+		Size = UDim2.new(1, 0, 1, -108),
+		BackgroundTransparency = 1,
+		BorderSizePixel = 0,
+		ScrollBarThickness = 4,
+		AutomaticCanvasSize = Enum.AutomaticSize.Y,
+		CanvasSize = UDim2.new(),
+		Parent = frame,
+	}, { Ui.list(Enum.FillDirection.Vertical, 4) })
+	skinsPack = Ui.button({
+		Text = "ALL ROBUX SKINS",
+		AnchorPoint = Vector2.new(0, 1),
+		Position = UDim2.fromScale(0, 1),
+		Size = UDim2.fromOffset(260, 38),
+		Visible = false,
+		Parent = frame,
+	}, function()
+		local packId = State.meta.skinPassIds[Skins.packKey] or 0
+		if packId ~= 0 then
+			MarketplaceService:PromptGamePassPurchase(player, packId)
+		end
+	end, Ui.colors.good)
+	closeButton(frame, "skins", "BACK")
+	windows.skins.onClose = function()
+		-- Back to where the player came from: the start screen, or the workbench.
+		if State.server.stage == "title" then
+			task.defer(Menus.open, "title")
+		elseif State.server.stage == "lore" then
+			task.defer(function()
+				refreshBench()
+				Menus.open("bench")
+			end)
+		end
+	end
 end
 
 --------------------------------------------------------------------------------------------
@@ -1332,6 +1595,7 @@ function Menus.start()
 	buildSettings()
 	buildParty()
 	buildBench()
+	buildSkins()
 	buildNote()
 	buildClear()
 	buildReport()
@@ -1344,12 +1608,18 @@ function Menus.start()
 		Menus.applyCosmetics()
 		refreshTitle()
 		refreshBench()
+		refreshSkins()
 		refreshSettings()
 	end)
 	State.onState(function(server, previous)
 		if server.stage ~= "title" and previous.stage == "title" then
 			startRequested = false
-			if current == "title" or current == "settings" or current == "party" then
+			if
+				current == "title"
+				or current == "settings"
+				or current == "party"
+				or current == "skins"
+			then
 				Menus.close()
 			end
 		elseif server.stage == "title" then
@@ -1370,6 +1640,9 @@ function Menus.start()
 			server.stage ~= "lore"
 			and (current == "bench" or current == "guide" or current == "report")
 		then
+			Menus.close()
+		end
+		if current == "skins" and server.stage ~= "title" and server.stage ~= "lore" then
 			Menus.close()
 		end
 	end)

@@ -55,6 +55,8 @@ export type Meta = {
 	kitPassId: number,
 	ownsKit: boolean,
 	canPromptPurchase: boolean,
+	passes: { [string]: boolean }, -- Robux skin passes owned, by key
+	skinPassIds: { [string]: number }, -- the pass id behind each key; zero means not on sale yet
 }
 
 local State = {}
@@ -95,8 +97,14 @@ State.server = {
 
 State.profile = SaveData.default()
 State.effects = Progression.effects(State.profile)
-State.meta =
-	{ persistent = true, kitPassId = 0, ownsKit = false, canPromptPurchase = false } :: Meta
+State.meta = {
+	persistent = true,
+	kitPassId = 0,
+	ownsKit = false,
+	canPromptPurchase = false,
+	passes = {},
+	skinPassIds = {},
+} :: Meta
 State.profileLoaded = false
 State.plan = nil :: LevelPlan.LevelPlan?
 State.menuOpen = false -- true while a full-screen menu has the player's attention
