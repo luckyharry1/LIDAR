@@ -106,7 +106,8 @@ says so.
       frame rate on high), freeze dots.
 - [ ] Skins: the SKINS button on the title and at the workbench opens the list and BACK returns
       to where you were. With `workspace:SetAttribute("DevCommand", "skins 200")` in the
-      command bar every skin unlocks; USE changes the title scene's dots at once and the gun's
+      command bar every skin unlocks (the playtime is saved to the profile and so is a skin you put on, so
+      run `"skins reset"` when you are done or a later fresh session will start wearing it); USE changes the title scene's dots at once and the gun's
       housing colour in the next level. IN USE shows on the worn skin, Standard restores the
       plain look, and the choice survives leaving and rejoining. Without the command, Robux
       skins read COMING SOON (ids still zero) and playtime skins read "PLAY nM MORE".

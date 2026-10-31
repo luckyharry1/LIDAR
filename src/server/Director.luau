@@ -2101,6 +2101,21 @@ function Director.dev.skins(minutes: number)
 	end
 end
 
+-- Undoes "skins N": playtime back to zero, the plain scanner, and no passes. The playtime and the
+-- worn skin live in the real save, so a tester who used "skins N" should run this afterwards.
+function Director.dev.skinsReset()
+	for player, member in members do
+		local profile = profileOf(member)
+		profile.stats.playSeconds = 0
+		profile.skin = ""
+		member.passes = {}
+		member.playClock = 0
+		Data.touch(player)
+		sendProfile(member)
+		sendStateAll()
+	end
+end
+
 function Director.start()
 	Players.CharacterAutoLoads = false
 

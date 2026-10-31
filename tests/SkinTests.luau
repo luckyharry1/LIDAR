@@ -118,6 +118,7 @@ tests["no skin colour is close to a meaning colour or to the plain dots"] = func
 		Config.Palettes.default.enemy,
 		Config.Palettes.default.objective,
 		Config.Palettes.default.hazard,
+		Config.Palettes.default.water, -- water is a safety signal: no skin may look like it
 	}
 	local function distance(a: { number }, b: { number }): number
 		return math.sqrt((a[1] - b[1]) ^ 2 + (a[2] - b[2]) ^ 2 + (a[3] - b[3]) ^ 2)
