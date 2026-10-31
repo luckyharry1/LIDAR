@@ -642,3 +642,20 @@ progression between runs and room for monetization; then a faint pull towards un
   studs of corridor with no light; arriving 7 studs past the doorway ends the walk. Check in
   Studio: blocks flush with the wall, the lit-ahead pace, darkness past the doorway, the fade to
   black firing inside the dark.
+
+## Studio playtest, 31 Oct (local branch with PR #13 and #14 merged; one player, PC)
+
+Verified: BEGIN plays the 3D opening (office set with a speaking figure, letterbox bars,
+captions, a SKIP button) without a hang, at the same ~14 fps Studio gives with nothing running;
+SKIP lands in the intake room with the one-line "Scan." hint; the level exit asks "GO DOWN /
+NOT YET" on a pop-up; the stairwell is drawn with warm wall light blocks and the dark below;
+the level-cleared card shows at the top of the stairs (CONTINUE closes it, then you can walk);
+the HUD shows the goal line ("Find the surveyors. Start with Joss.").
+Earlier Studio freezes after BEGIN (22 and 24 Oct) did not recur: most likely Studio itself.
+
+Seen but not fixed: in the opening's first shot a pillar sits in front of the camera, hiding
+the middle of the frame.
+
+Still untested: two players, real saves, phone and gamepad hardware, sound by ear, the wall
+melt and CRT tape screens, the lamp wake rule (10 dots with line of sight), the Mimic after a
+rescue, a full run to the finale.
