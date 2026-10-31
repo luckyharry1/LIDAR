@@ -82,9 +82,9 @@ price from the pass, so set it there.
 | Config key | Pass to create | Suggested name and price | What it does |
 | --- | --- | --- | --- |
 | `surveyorKitPassId` | Surveyor's Kit | "Surveyor's Kit", 99 Robux | A checkpoint beacon placed in each level for owners. The workbench shows a purchase button, but never before the player has cleared `promptAfterLevels` (2) levels. |
-| `skinPassIds.rose` | Rose Quartz skin | "Rose Quartz Scanner", 75 Robux | Pink dots and a rose-gold gun |
-| `skinPassIds.chrome` | Chrome skin | "Chrome Scanner", 75 Robux | Bright white dots and a mirror gun |
-| `skinPassIds.nightbloom` | Nightbloom skin | "Nightbloom Scanner", 75 Robux | Deep violet dots and a midnight gun |
+| `skinPassIds.rose` | Rose Quartz skin | "Rose Quartz Scanner", 75 Robux | Hot pink dots and a pink gun |
+| `skinPassIds.aurora` | Aurora skin | "Aurora Scanner", 75 Robux | Electric cyan dots and a glowing gun |
+| `skinPassIds.nightbloom` | Nightbloom skin | "Nightbloom Scanner", 75 Robux | Bright indigo dots and a glowing gun |
 | `skinPassIds.pack` | Phosphor Pack | "Phosphor Pack: every skin", 199 Robux | Unlocks every Robux skin, including ones added later (your call whether to promise that on the pass page) |
 
 The pass icon can be a screenshot of the title corridor in that skin: equip the skin, press the

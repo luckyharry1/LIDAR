@@ -50,14 +50,17 @@ as everyone else.
 
 | Skin | How you get it | Dots / gun |
 | --- | --- | --- |
-| Standard scanner | Always | white / graphite |
-| Tungsten | 15 min in the dark | warm / brass |
-| Glacier | 45 min | pale cyan / steel blue |
-| Orchid | 90 min | pink-violet / plum |
-| Blueprint | 180 min | survey blue / navy |
-| Rose Quartz | Game pass | pink / rose gold |
-| Chrome | Game pass | bright white / mirror |
-| Nightbloom | Game pass | deep violet / midnight |
+| Standard scanner | Always | cool white (196, 200, 210) / graphite |
+| Tungsten | 15 min in the dark | muted warm / dim brass |
+| Glacier | 45 min | muted ice grey-blue / slate |
+| Orchid | 90 min | muted lilac / plum |
+| Blueprint | 180 min | muted survey blue / navy |
+| Rose Quartz | Game pass | hot pink (255, 80, 170) / bright pink |
+| Aurora | Game pass | electric cyan (40, 225, 255) / glowing teal |
+| Nightbloom | Game pass | bright indigo (120, 85, 255) / glowing indigo |
+
+The earned skins are deliberately quiet, a faint tint close to the standard dots, and the
+Robux skins are fully saturated so they are obvious at a glance, to you and to teammates.
 
 - **Playtime** is `profile.stats.playSeconds`, counted by the server once a second while a player
   is past the title and has walked within the last minute (`Config.Monetization.playSecondsMoving`).
