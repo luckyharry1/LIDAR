@@ -753,12 +753,12 @@ LOOKS_EARNED = [
     ("TUNGSTEN", (214, 196, 160), "15 MIN"),
     ("GLACIER", (150, 214, 196), "45 MIN"),
     ("ORCHID", (196, 176, 208), "90 MIN"),
-    ("BLUEPRINT", (92, 140, 245), "180 MIN"),
+    ("BLUEPRINT", (5, 60, 205), "180 MIN"),
 ]
 LOOKS_ROBUX = [
     ("ROSE QUARTZ", (255, 80, 170)),
     ("AURORA", (40, 225, 255)),
-    ("NIGHTBLOOM", (105, 70, 255)),
+    ("NIGHTBLOOM", (95, 45, 235)),
 ]
 
 
@@ -829,7 +829,7 @@ def looks(path):
     plain_text(img, "EARNED BY PLAYING", (960, row1_y - 125), 24, (150, 160, 178), anchor="ma", bold=True, spacing=5)
     plain_text(img, "PREMIUM", (960, row2_y - 172), 24, (255, 214, 110), anchor="ma", bold=True, spacing=5)
     for (name, color, tag), x in zip(LOOKS_EARNED, xs1):
-        plain_text(img, name, (x, row1_y + 158), 26, color, anchor="ma", bold=True, spacing=4)
+        plain_text(img, name, (x, row1_y + 158), 26, tuple(int(c + (255 - c) * 0.4) for c in color) if name == "BLUEPRINT" else color, anchor="ma", bold=True, spacing=4)
         plain_text(img, tag, (x, row1_y + 196), 20, (150, 160, 178) if tag != "DEFAULT" else (96, 240, 140), anchor="ma", bold=True, spacing=3)
     for (name, color), x in zip(LOOKS_ROBUX, xs2):
         plain_text(img, name, (x, row2_y + 148), 30, tuple(int(c + (255 - c) * 0.3) for c in color), anchor="ma", bold=True, spacing=4)
@@ -909,6 +909,161 @@ def icon_letter(path, side):
     img.save(path)
 
 
+# ---- game pass icons and badges (512x512) -----------------------------------------------
+
+
+def line_items(p0, p1, color, step=11.0, r=2.6):
+    """Dots along a straight line."""
+    (x0, y0), (x1, y1) = p0, p1
+    n = max(int(np.hypot(x1 - x0, y1 - y0) / step), 1)
+    return [(x0 + (x1 - x0) * t / n, y0 + (y1 - y0) * t / n, r, color) for t in range(n + 1)]
+
+
+def arc_items(cx, cy, radius, a0, a1, color, step=10.0, r=2.6):
+    """Dots along a circular arc (angles in radians, y down)."""
+    n = max(int(abs(a1 - a0) * radius / step), 2)
+    return [(cx + np.cos(a0 + (a1 - a0) * t / n) * radius, cy + np.sin(a0 + (a1 - a0) * t / n) * radius, r, color) for t in range(n + 1)]
+
+
+def tile(items, glow=1.0, vig=0.75, bg=(2, 3, 5)):
+    size = (512, 512)
+    img = glow_compose(Image.new("RGB", size, bg), soft_dot_layer(size, items), glow)
+    return vignette(img, vig)
+
+
+def scaled(color, f):
+    return tuple(int(c * f) for c in color)
+
+
+def pass_icon(path, colors, sweep=True, seed=11):
+    """A dot burst in one colour (or three overlapping bursts), in the style of icon B."""
+    rng = np.random.default_rng(seed)
+    items = []
+    if len(colors) == 1:
+        col = colors[0]
+        items += burst_items(256, 256, col, rng, 170, sparkle=1)
+        for t in np.linspace(30, 190, 30):
+            items.append((256 + np.cos(-np.pi / 3) * t, 256 + np.sin(-np.pi / 3) * t, 2.8, col))
+    else:
+        for col, (dx, dy) in zip(colors, [(-62, 44), (62, 44), (0, -66)]):
+            items += burst_items(256 + dx, 256 + dy, col, rng, 100, sparkle=0)
+    img = tile(items, glow=1.4)
+    img.save(path)
+
+
+def lamp_icon(path):
+    """The Surveyor's Kit: a warm lamp dot with rings and a few rays, in the lamp gold."""
+    lamp = (255, 190, 90)
+    rng = np.random.default_rng(5)
+    items = []
+    for ring, r in enumerate(np.linspace(34, 170, 6)):
+        n = int(16 + ring * 10)
+        for k in range(n):
+            a = k / n * 2 * np.pi
+            items.append((256 + np.cos(a) * r, 256 + np.sin(a) * r, max(3.4 - ring * 0.3, 1.5), scaled(lamp, 1.0 - ring / 8.0)))
+    for k in range(16):
+        a = k / 16 * 2 * np.pi
+        for t in (190, 205, 222):
+            items.append((256 + np.cos(a) * t, 256 + np.sin(a) * t, 2.2, scaled(lamp, 0.85)))
+    items.append((256, 256, 17, (255, 232, 170)))
+    items.append((256, 256, 9, (255, 250, 230)))
+    tile(items, glow=1.8).save(path)
+
+
+def badge_scan(path):
+    """First scan: a ping, white rings with one bright quarter sweep."""
+    rng = np.random.default_rng(2)
+    items = []
+    for ring, r in enumerate(np.linspace(40, 190, 6)):
+        n = int(18 + ring * 12)
+        for k in range(n):
+            a = k / n * 2 * np.pi
+            diff = abs((a + np.pi / 3 + np.pi) % (2 * np.pi) - np.pi)
+            level = 0.25 + 0.75 * np.clip(1 - diff / 0.9, 0, 1)
+            items.append((256 + np.cos(a) * r, 256 + np.sin(a) * r, max(3.2 - ring * 0.25, 1.5), scaled((226, 232, 245), level)))
+    items.append((256, 256, 9, (226, 232, 245)))
+    tile(items).save(path)
+
+
+def badge_haven(path):
+    """First haven: a dark archway with a warm lamp lit inside."""
+    warm = (255, 190, 90)
+    items = arc_items(256, 215, 112, np.pi, 2 * np.pi, (226, 232, 245), 9.5, 3.0)
+    items += line_items((144, 215), (144, 420), (226, 232, 245), 10, 3.0)
+    items += line_items((368, 215), (368, 420), (226, 232, 245), 10, 3.0)
+    items += line_items((120, 420), (392, 420), (150, 158, 176), 10, 2.6)
+    rng = np.random.default_rng(4)
+    for _ in range(220):  # warm spill on the floor and inside
+        a = rng.uniform(0, 2 * np.pi)
+        r = abs(rng.normal(0, 52))
+        items.append((256 + np.cos(a) * r, 330 + np.sin(a) * r * 0.55, rng.uniform(1.4, 2.8), scaled(warm, rng.uniform(0.4, 1.0))))
+    items.append((256, 300, 15, (255, 232, 170)))
+    items.append((256, 300, 8, (255, 250, 230)))
+    tile(items, glow=1.4).save(path)
+
+
+def badge_cleared(path):
+    """First level cleared: the gold exit door with light pouring out."""
+    gold = (255, 214, 110)
+    items = line_items((176, 410), (176, 150), gold, 10, 3.0) + line_items((336, 410), (336, 150), gold, 10, 3.0)
+    items += line_items((176, 150), (336, 150), gold, 10, 3.0) + line_items((150, 410), (362, 410), (226, 232, 245), 10, 2.6)
+    rng = np.random.default_rng(6)
+    for _ in range(420):
+        items.append((rng.uniform(190, 322), rng.uniform(165, 405), rng.uniform(1.2, 2.4), scaled(gold, rng.uniform(0.3, 0.9))))
+    for k in range(9):  # rays from the door into the dark
+        a = -np.pi / 2 + (k - 4) * 0.2
+        for t in np.linspace(90, 205, 10):
+            items.append((256 + np.cos(a) * t * 1.1, 410 - 130 + np.sin(a) * t * 1.1 + 70, 2.0, scaled(gold, 0.7)))
+    tile(items, glow=1.6).save(path)
+
+
+def badge_hidden(path):
+    """Found a hidden object: a gem of dots, with a green glint."""
+    col = (226, 232, 245)
+    green = (96, 240, 140)
+    top, mid_l, mid_r, bot = (256, 110), (136, 230), (376, 230), (256, 420)
+    gl, gr = (186, 230), (326, 230)
+    items = []
+    for a, b in [(top, mid_l), (top, mid_r), (mid_l, bot), (mid_r, bot), (mid_l, mid_r), (top, gl), (top, gr), (gl, bot), (gr, bot), (gl, (256, 230)), (gr, (256, 230))]:
+        items += line_items(a, b, col, 10, 2.8)
+    rng = np.random.default_rng(8)
+    for k in range(40):
+        a = rng.uniform(0, 2 * np.pi)
+        r = rng.uniform(150, 220)
+        items.append((256 + np.cos(a) * r, 260 + np.sin(a) * r * 0.9, rng.uniform(1.6, 3.2), scaled(green, rng.uniform(0.5, 1.0))))
+    items.append((256, 230, 8, green))
+    tile(items, glow=1.4).save(path)
+
+
+PASS_ICONS = {
+    "rose-quartz": [(255, 80, 170)],
+    "aurora": [(40, 225, 255)],
+    "nightbloom": [(95, 45, 235)],
+    "phosphor-pack": [(255, 80, 170), (40, 225, 255), (95, 45, 235)],
+}
+BADGES = {
+    "first-scan": badge_scan,
+    "first-haven": badge_haven,
+    "level-cleared": badge_cleared,
+    "hidden-object": badge_hidden,
+}
+
+
+def passes():
+    out = os.path.join(OUT, "passes")
+    os.makedirs(out, exist_ok=True)
+    for name, cols in PASS_ICONS.items():
+        pass_icon(os.path.join(out, f"{name}.png"), cols)
+    lamp_icon(os.path.join(out, "surveyors-kit.png"))
+
+
+def badges():
+    out = os.path.join(OUT, "badges")
+    os.makedirs(out, exist_ok=True)
+    for name, fn in BADGES.items():
+        fn(os.path.join(out, f"badge-{name}.png"))
+
+
 def main():
     os.makedirs(OUT, exist_ok=True)
     def icons():
@@ -928,6 +1083,8 @@ def main():
         "camp": lambda: camp(os.path.join(OUT, "thumbnail-5-camp.png")),
         "lore": lambda: lore(os.path.join(OUT, "thumbnail-6-lore.png")),
         "looks": lambda: looks(os.path.join(OUT, "thumbnail-7-looks.png")),
+        "passes": passes,
+        "badges": badges,
     }
     which = sys.argv[1:] or list(jobs)
     for name in which:

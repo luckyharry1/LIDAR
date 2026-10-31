@@ -19,3 +19,10 @@ Thumbnails are 1920x1080. Upload them in this order in Creator Hub > Experience 
 Replace any of them with a real Studio capture (HUD hidden) when there is one. The looks
 panel mirrors `src/shared/data/Skins.luau` (names, wall colours, playtime minutes); if skins
 change, edit `LOOKS_EARNED` and `LOOKS_ROBUX` in the script and re-render.
+
+## Game pass icons and badges
+
+`passes/` has 512x512 icons for the Robux game passes (`rose-quartz`, `aurora`, `nightbloom`,
+`phosphor-pack`, `surveyors-kit`). `badges/` has 512x512 badge icons (`badge-first-scan`,
+`badge-first-haven`, `badge-level-cleared`, `badge-hidden-object`). Render with
+`python3 scripts/art/store_art.py passes badges`. Pass colours follow the skin dot colours.
