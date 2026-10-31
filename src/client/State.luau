@@ -16,7 +16,13 @@ export type Session = {
 	lore: number,
 	distance: number,
 }
-export type LobbyEntry = { userId: number, name: string, stage: string, ready: boolean }
+export type LobbyEntry = {
+	userId: number,
+	name: string,
+	stage: string,
+	ready: boolean,
+	tint: { number }?, -- RGB of the player's terrain dots (their skin), nil for the plain palette
+}
 export type ServerState = {
 	stage: string,
 	phase: string,

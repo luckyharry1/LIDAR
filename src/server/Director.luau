@@ -224,7 +224,13 @@ local function countFinds(level: World.Level): number
 end
 
 -- Everyone on this server, for the title's Play Together screen.
-type LobbyEntry = { userId: number, name: string, stage: string, ready: boolean }
+type LobbyEntry = {
+	userId: number,
+	name: string,
+	stage: string,
+	ready: boolean,
+	tint: { number }?, -- the colour of this player's terrain dots, so teammates see their skin
+}
 
 local function lobbyList(): { LobbyEntry }
 	local list: { LobbyEntry } = {}
@@ -235,6 +241,7 @@ local function lobbyList(): { LobbyEntry }
 			name = player.DisplayName,
 			stage = stage,
 			ready = member.ready and stage == "title",
+			tint = SkinRules.wallTint(profileOf(member)),
 		})
 	end
 	table.sort(list, function(a, b)
@@ -1407,6 +1414,7 @@ local function checkPasses(member: Member)
 	end
 	if changed then
 		sendProfile(member)
+		sendStateAll() -- an equipped skin may have been taken off
 	end
 end
 
@@ -1439,6 +1447,7 @@ local function onPassPurchased(player: Player, passId: number, purchased: boolea
 			end
 			Data.touch(player)
 			sendProfile(member)
+			sendStateAll()
 			return
 		end
 	end
@@ -1768,6 +1777,7 @@ local function onEquipCosmetic(player: Player, slot: string, id: string)
 			Telemetry.spent(player, before - profile.static, profile.static, id)
 		end
 		sendProfile(member)
+		sendStateAll() -- a new dot tint shows to teammates too
 	end
 	toast(player, message, if ok then "good" else "warn")
 end
@@ -1782,6 +1792,7 @@ local function onEquipSkin(player: Player, id: string)
 	if ok then
 		Data.touch(player)
 		sendProfile(member)
+		sendStateAll() -- teammates draw this player's dots in the new colour
 	end
 	toast(player, message, if ok then "good" else "warn")
 end

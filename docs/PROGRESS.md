@@ -711,3 +711,9 @@ on the start screen and at the workbench, plus a brainstorm of other monetizatio
   the Studio checks.
 - Check in Studio: the SKINS button fits on the title and the bench (button row was narrowed to fit
   it), the skins window at 705x338, rows readable, colours distinct on the title scene.
+- Skins in co-op (31 Oct, Vasco): teammates now see each other's skin. `LobbyEntry.tint` (RGB from
+  `SkinRules.wallTint`) goes out with the state the server already sends (re-sent when a skin, pass or
+  Static tint changes); `Lidar.stepTeammates` sets `mateTint` while a teammate's rays are drawn and
+  `Dots.add(..., tint)` colours permanent terrain dots (and their beam) with it. Only `wall` dots wear
+  it. Before this a teammate's terrain dots were drawn in the viewer's own colour. Robux colours
+  were made vivid and the playtime ones muted; Chrome became Aurora (pass key `aurora`).

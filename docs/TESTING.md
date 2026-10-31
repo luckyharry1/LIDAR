@@ -110,6 +110,9 @@ says so.
       housing colour in the next level. IN USE shows on the worn skin, Standard restores the
       plain look, and the choice survives leaving and rejoining. Without the command, Robux
       skins read COMING SOON (ids still zero) and playtime skins read "PLAY nM MORE".
+- [ ] Skins in co-op: two players, one wearing a skin. Each sees the other's scanned walls in
+      the other's colour (a plain player shows in the standard colour); friends still draw
+      green, and changing skin at a haven updates what the other sees.
 - [ ] Workbench: buying each upgrade does what it says (Pulse Radar pulses on its own, Wide
       Lens widens the spread, Wayfinder shows the needle then the map).
 
