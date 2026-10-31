@@ -57,11 +57,17 @@ as everyone else.
 | Blueprint | 180 min | muted survey blue / navy |
 | Rose Quartz | Game pass | hot pink (255, 80, 170) / bright pink |
 | Aurora | Game pass | electric cyan (40, 225, 255) / glowing teal |
-| Nightbloom | Game pass | bright indigo (120, 85, 255) / glowing indigo |
+| Nightbloom | Game pass | bright indigo (105, 70, 255) / glowing indigo |
 
 The earned skins are deliberately quiet, a faint tint close to the standard dots, and the
 Robux skins are fully saturated so they are obvious at a glance, to you and to teammates.
 
+- **Teammates see your skin.** Each player's terrain dot colour (`SkinRules.wallTint`: skin, else
+  Static dot tint) rides along in the lobby list the server already sends, and a teammate's relayed
+  scans are drawn in that colour (`Lidar.stepTeammates`, `Dots.add` tint). Only plain terrain wears
+  a skin: friends stay green, monsters red, objectives gold and hazards purple, so a look can never
+  be mistaken for one of those. A player with no skin shows in the standard colour, so a skinned
+  and a plain player can be told apart at a glance. The gun housing is not shown to others yet.
 - **Playtime** is `profile.stats.playSeconds`, counted by the server once a second while a player
   is past the title and has walked within the last minute (`Config.Monetization.playSecondsMoving`).
   The client sees it a minute at a time, and a toast announces each unlock.
@@ -99,9 +105,8 @@ fair the dark is. Roughly in the order worth doing.
 **Cosmetics that others see (these sell best in co-op)**
 5. **More skins on a rhythm** (one a month): seasonal ones (an ember skin in autumn, a frost one
    in winter) that return later, not "gone forever", which pressures younger players.
-6. **Signature scan colour for teammates.** Today teammates' scans are drawn in friend green so
-   they always read as a friend. A thin tint of a skin's colour on top of green would let friends
-   see your look without costing legibility. Needs a small relay change.
+6. **Teammates see your skin** (built, see "Skins"). Next step: show the gun housing on the
+   teammate's avatar, and let a skin colour the laser beam too.
 7. **Footstep trails, ping markers and emote lines** in skin colours (green trails stay for
    friends), and **gun charms** on the view-model.
 8. **Title-screen backdrops** and **a name colour or rank title** on the daily board and in the

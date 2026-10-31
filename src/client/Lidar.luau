@@ -112,6 +112,8 @@ local radarTimer = 0
 local radarRemaining = 0
 local radarYaw = 0
 local teammates: { [number]: Teammate } = {}
+-- While a teammate's rays are drawn, this is the colour of their terrain dots (their skin).
+local mateTint: Color3? = nil
 local batchListeners: { BatchListener } = {}
 local poiListeners: { (position: Vector3) -> () } = {}
 local hitListeners: { (position: Vector3) -> () } = {}
@@ -390,10 +392,13 @@ local function castRay(
 	end
 	local position = result.Position + result.Normal * SURFACE_OFFSET
 	local distance = (result.Position - origin).Magnitude
+	-- Only plain terrain wears a skin. Friends, monsters, objectives and hazards keep their
+	-- meaning colours, so a teammate's look can never be mistaken for one of them.
+	local tint = if kind == "wall" then mateTint else nil
 	if late then
 		Dots.addLate(position, kind, distance, lidar.mimicDotDelay)
 	else
-		Dots.add(position, kind, distance)
+		Dots.add(position, kind, distance, tint)
 	end
 	stats.hits += 1
 	stats.distance += distance
@@ -421,7 +426,7 @@ local function castRay(
 		listener(result.Instance)
 	end
 	if beams ~= nil and muzzle ~= nil then
-		showBeam(beams, muzzle, position, Dots.color(kind), now)
+		showBeam(beams, muzzle, position, tint or Dots.color(kind), now)
 	end
 end
 
@@ -675,6 +680,19 @@ local function stepOwn(camera: Camera, dt: number, now: number)
 	end
 end
 
+-- The colour a teammate's terrain dots should wear on this screen: their skin or dot tint, or the
+-- plain palette when they have none (so a skinned player and a plain one look different).
+local function tintFor(userId: number): Color3
+	for _, entry in State.server.lobby do
+		if entry.userId == userId and entry.tint ~= nil then
+			local rgb = entry.tint
+			return Color3.fromRGB(rgb[1], rgb[2], rgb[3])
+		end
+	end
+	local palette = Config.Palettes[State.profile.settings.palette] or Config.Palettes.default
+	return Color3.fromRGB(palette.wall[1], palette.wall[2], palette.wall[3])
+end
+
 -- Teammates' guns, redrawn from what the server relays about them.
 local function stepTeammates(dt: number, now: number)
 	local spectating = State.server.stage == "downed"
@@ -683,11 +701,12 @@ local function stepTeammates(dt: number, now: number)
 	end
 	local share = if spectating then 1 else lidar.teammateShare
 	local stats = newStats()
-	for _, mate in teammates do
+	for userId, mate in teammates do
 		if now - mate.at >= RELAY_STALE_SECONDS then
 			mate.run = nil
 			continue
 		end
+		mateTint = tintFor(userId)
 		local look = CFrame.lookAt(mate.origin, mate.origin + mate.look)
 		local muzzle = (look * TEAMMATE_MUZZLE).Position
 		if mate.firing then
@@ -703,6 +722,7 @@ local function stepTeammates(dt: number, now: number)
 			end
 		end
 	end
+	mateTint = nil
 end
 
 local function step(dt: number)

@@ -4,6 +4,7 @@
 
 local SaveData = require("./SaveData")
 local Skins = require("../data/Skins")
+local Upgrades = require("../data/Upgrades")
 
 export type Passes = { [string]: boolean } -- Config.Monetization.skinPassIds keys the player owns
 
@@ -42,6 +43,17 @@ function SkinRules.newlyEarned(before: number, after: number): { Skins.SkinDef }
 		end
 	end
 	return earned
+end
+
+-- The colour a player's terrain dots wear, as RGB: their skin if they have one, else a Static dot
+-- tint, else nil (the plain palette). Shared by the player's own screen and what teammates see.
+function SkinRules.wallTint(profile: SaveData.Profile): { number }?
+	local skin = Skins.byId[profile.skin]
+	if skin ~= nil then
+		return skin.wall
+	end
+	local tint = Upgrades.cosmeticById[profile.cosmetics.dots]
+	return if tint ~= nil then tint.color else nil
 end
 
 -- Puts a skin on, or takes it off with an empty id. The server calls this; it refuses a skin the

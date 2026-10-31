@@ -100,4 +100,39 @@ tests["skin and playtime survive a save; a bad skin id is dropped"] = function()
 	assert(hostile.stats.playSeconds == 0, "negative playtime accepted")
 end
 
+tests["wallTint is the skin, else the Static dot tint, else nothing"] = function()
+	local profile = SaveData.default()
+	assert(SkinRules.wallTint(profile) == nil, "plain scanner has a tint")
+	profile.cosmetics.owned.dots_mint = true
+	profile.cosmetics.dots = "dots_mint"
+	local mint = SkinRules.wallTint(profile)
+	assert(mint ~= nil and mint[2] == 230, "Static dot tint not shared")
+	profile.skin = "rose"
+	local rose = SkinRules.wallTint(profile)
+	assert(rose ~= nil and rose[1] == 255 and rose[2] == 80, "skin does not win over the tint")
+end
+
+tests["no skin colour is close to a meaning colour or to the plain dots"] = function()
+	local meaning = {
+		Config.Palettes.default.friend,
+		Config.Palettes.default.enemy,
+		Config.Palettes.default.objective,
+		Config.Palettes.default.hazard,
+	}
+	local function distance(a: { number }, b: { number }): number
+		return math.sqrt((a[1] - b[1]) ^ 2 + (a[2] - b[2]) ^ 2 + (a[3] - b[3]) ^ 2)
+	end
+	for _, def in Skins.list do
+		for _, color in meaning do
+			assert(distance(def.wall, color) > 90, def.id .. " looks like a meaning colour")
+		end
+		if def.kind == "robux" then
+			assert(
+				distance(def.wall, Config.Palettes.default.wall) > 120,
+				def.id .. " is too close to the standard dots to stand out"
+			)
+		end
+	end
+end
+
 return tests

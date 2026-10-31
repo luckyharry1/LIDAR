@@ -132,7 +132,12 @@ local function packingKey(position: Vector3, level: number): number
 	return ((x * KEY_SPAN + y) * KEY_SPAN + z) * GRID_LEVELS + (level - 1)
 end
 
-local function addWorld(position: Vector3, kind: DotRules.DotKind, distance: number): boolean
+local function addWorld(
+	position: Vector3,
+	kind: DotRules.DotKind,
+	distance: number,
+	tint: Color3?
+): boolean
 	local key = packingKey(position, DotRules.gridLevel(kind, distance))
 	if occupied[key] then
 		return false
@@ -144,14 +149,14 @@ local function addWorld(position: Vector3, kind: DotRules.DotKind, distance: num
 	if part == nil then
 		part = template:Clone()
 		part.Size = Vector3.one * size
-		part.Color = colors[kind]
+		part.Color = tint or colors[kind]
 		part.Position = position
 		part.Parent = world
 		worldParts[slot] = part
 	else
 		occupied[worldKeys[slot]] = nil
 		part.Size = Vector3.one * size
-		part.Color = colors[kind]
+		part.Color = tint or colors[kind]
 		part.Position = position
 	end
 	worldKeys[slot] = key
@@ -186,10 +191,16 @@ end
 
 -- Lands a dot. `distance` is how far the surface was from the scanner. World kinds are
 -- permanent and packed one per grid cell: returns false when that cell already has a dot.
--- People and monsters get a mark that fades on its own.
-function Dots.add(position: Vector3, kind: DotRules.DotKind, distance: number): boolean
+-- People and monsters get a mark that fades on its own. `tint` recolours a permanent dot (a
+-- teammate's skin); meaning colours (friend, enemy, objective) never pass one.
+function Dots.add(
+	position: Vector3,
+	kind: DotRules.DotKind,
+	distance: number,
+	tint: Color3?
+): boolean
 	if DotRules.isPermanent(kind) then
-		return addWorld(position, kind, distance)
+		return addWorld(position, kind, distance, tint)
 	end
 	Dots.mark(position, kind, DotRules.size(kind, distance), DotRules.lifetime(kind))
 	return true
