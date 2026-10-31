@@ -13,6 +13,7 @@
 --   workspace:SetAttribute("DevCommand", "clear")        finish the current level
 --   workspace:SetAttribute("DevCommand", "static 500")   give everyone Static
 --   workspace:SetAttribute("DevCommand", "charges 3")    set everyone's sweep charges
+--   workspace:SetAttribute("DevCommand", "skins 60")     add 60 minutes of playtime and unlock every Robux skin for this session
 --   workspace:SetAttribute("DevCommand", "lights on")    light the maze to inspect it ("lights off")
 
 local RunService = game:GetService("RunService")
@@ -39,6 +40,8 @@ local function run(text: string)
 		Director.dev.grant(math.floor(tonumber(argument) :: number))
 	elseif command == "charges" and tonumber(argument) then
 		Director.dev.charges(math.floor(tonumber(argument) :: number))
+	elseif command == "skins" then
+		Director.dev.skins(math.floor(tonumber(argument) or 0))
 	elseif command == "lights" then
 		workspace:SetAttribute(LIGHTS_ATTRIBUTE, argument == "on")
 	else

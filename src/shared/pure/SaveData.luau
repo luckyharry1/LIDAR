@@ -3,6 +3,7 @@
 -- then rebuilds the profile field by field, so corrupt or hostile data can never reach the game.
 
 local Config = require("../Config")
+local Skins = require("../data/Skins")
 local Upgrades = require("../data/Upgrades")
 
 export type Profile = {
@@ -11,6 +12,7 @@ export type Profile = {
 	upgrades: { [string]: number },
 	toggles: { [string]: boolean },
 	cosmetics: { owned: { [string]: boolean }, dots: string, gun: string },
+	skin: string, -- equipped scanner skin (data/Skins); empty is the plain scanner
 	settings: {
 		palette: string,
 		sharedScans: boolean,
@@ -25,7 +27,14 @@ export type Profile = {
 	plates: { [string]: boolean },
 	echoes: number, -- recorder lines heard so far; the next recorder plays the next line
 	met: { [string]: boolean },
-	stats: { levels: number, deaths: number, rescues: number, runs: number, distance: number },
+	stats: {
+		levels: number,
+		deaths: number,
+		rescues: number,
+		runs: number,
+		distance: number,
+		playSeconds: number, -- time spent in the dark, which unlocks the playtime skins
+	},
 	streak: { day: number, count: number },
 	daily: { day: number, bestMs: number },
 	invitePrompted: boolean,
@@ -48,6 +57,7 @@ function SaveData.default(): Profile
 		upgrades = {},
 		toggles = {},
 		cosmetics = { owned = {}, dots = "", gun = "" },
+		skin = "",
 		settings = {
 			palette = "default",
 			sharedScans = true,
@@ -62,7 +72,7 @@ function SaveData.default(): Profile
 		plates = {},
 		echoes = 0,
 		met = {},
-		stats = { levels = 0, deaths = 0, rescues = 0, runs = 0, distance = 0 },
+		stats = { levels = 0, deaths = 0, rescues = 0, runs = 0, distance = 0, playSeconds = 0 },
 		streak = { day = 0, count = 0 },
 		daily = { day = 0, bestMs = 0 },
 		invitePrompted = false,
@@ -147,6 +157,9 @@ function SaveData.load(raw: any): Profile
 			(profile.cosmetics :: { [string]: any })[slot] = id
 		end
 	end
+	profile.skin = if type(data.skin) == "string" and Skins.byId[data.skin] ~= nil
+		then data.skin
+		else ""
 	local settings = tableOf(data.settings)
 	profile.settings.palette = if PALETTES[settings.palette] then settings.palette else "default"
 	profile.settings.sharedScans = boolean(settings.sharedScans, true)

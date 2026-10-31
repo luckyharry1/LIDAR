@@ -17,6 +17,7 @@ Net.clientToServer = {
 	"Emote", -- (index: number)
 	"BuyUpgrade", -- (upgradeId: string)
 	"EquipCosmetic", -- (slot: string, cosmeticId: string)
+	"EquipSkin", -- (skinId: string) a scanner skin; an empty id restores the plain scanner
 	"ToggleUpgrade", -- (upgradeId: string, on: boolean)
 	"SetSetting", -- (key: string, value: any)
 	"Start", -- (mode: "continue" | "new" | "daily")

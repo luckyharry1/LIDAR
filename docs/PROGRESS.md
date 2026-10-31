@@ -659,3 +659,28 @@ the middle of the frame.
 Still untested: two players, real saves, phone and gamepad hardware, sound by ear, the wall
 melt and CRT tape screens, the lamp wake rule (10 dots with line of sight), the Mimic after a
 rescue, a full run to the finale.
+
+## Scanner skins and monetization (31 Oct, cloud thread, branch `claude/skins-monetization`; nothing seen in Studio)
+Vasco asked for a simple skin system, partly earned by playtime and partly bought with Robux,
+on the start screen and at the workbench, plus a brainstorm of other monetization.
+- `data/Skins` (new): 4 playtime skins (15, 45, 90, 180 min) and 3 Robux skins (Rose Quartz, Chrome,
+  Nightbloom). A skin recolours the terrain dots (the wall tint) and the gun housing, nothing else.
+  `pure/SkinRules` (new, pure, tested) decides status, equip and enforce.
+- Save: `profile.skin` and `stats.playSeconds` (no version bump; `SaveData.load` defaults both).
+- Server (`Director`): `EquipSkin` remote (title or workbench only; validated and rate limited);
+  playtime counted once a second while past the title and moving within a minute (`Dev`
+  command `skins N` adds N minutes and unlocks every Robux skin for the session); game pass
+  ownership checked on join (`checkPasses`, now also covers the Surveyor's Kit, a failed lookup
+  never removes anything) and granted live from `PromptGamePassPurchaseFinished`. Newly earned skins
+  toast; profile is re-sent each minute so the screen shows progress.
+- Client: new `skins` window in `Menus` (SKINS on the title, and next to the workbench's buttons),
+  rows with swatches and status (IN USE / USE / PLAY n M MORE / COMING SOON / AFTER 2 LEVELS / GET
+  R$ price from `GetProductInfo`), an "ALL ROBUX SKINS" pack button, BACK returns to the title or
+  bench. Skin tint overrides the Static dot tint (`Menus.applyCosmetics`) and housing
+  (`Viewmodel`). The title scene wears the skin, which doubles as the preview.
+- `Config.Monetization`: `skinPassIds` {pack, rose, chrome, nightbloom} (all 0 = coming soon);
+  `cosmeticPackProductId` removed (nothing used it). Ids to create are listed in `docs/PUBLISHING.md`.
+- Docs: `docs/MONETIZATION.md` gained "Skins" and a 17-item brainstorm; `docs/TESTING.md` has
+  the Studio checks.
+- Check in Studio: the SKINS button fits on the title and the bench (button row was narrowed to fit
+  it), the skins window at 705x338, rows readable, colours distinct on the title scene.

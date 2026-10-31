@@ -10,6 +10,7 @@ local suites: { { name: string, tests: { [string]: () -> () } } } = {
 	{ name = "EnemyBrain", tests = require("./EnemyBrainTests") },
 	{ name = "Progression", tests = require("./ProgressionTests") },
 	{ name = "SaveData", tests = require("./SaveDataTests") },
+	{ name = "Skins", tests = require("./SkinTests") },
 	{ name = "Daily", tests = require("./DailyTests") },
 	{ name = "Simulation", tests = require("./SimTests") },
 	{ name = "Lore", tests = require("./LoreTests") },

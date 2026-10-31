@@ -12,6 +12,7 @@ local Atmosphere = require(script.Parent.Atmosphere)
 local Avatar = require(script.Parent.Avatar)
 local Config = require(ReplicatedStorage.Shared.Config)
 local Lidar = require(script.Parent.Lidar)
+local Skins = require(ReplicatedStorage.Shared.data.Skins)
 local State = require(script.Parent.State)
 local Upgrades = require(ReplicatedStorage.Shared.data.Upgrades)
 
@@ -170,8 +171,11 @@ local function update(dt: number)
 end
 
 local function applySkin()
+	-- A scanner skin (start screen or workbench) wins over a Static housing.
+	local scannerSkin = Skins.byId[State.profile.skin]
 	local skin = Upgrades.cosmeticById[State.profile.cosmetics.gun]
-	local color = rgb(if skin then skin.color else DEFAULT_HOUSING)
+	local color =
+		rgb(if scannerSkin then scannerSkin.gun elseif skin then skin.color else DEFAULT_HOUSING)
 	for _, part in housing do
 		part.Color = color
 	end

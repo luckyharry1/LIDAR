@@ -26,6 +26,8 @@ local Noise = require(ReplicatedStorage.Shared.pure.Noise)
 local Party = require(script.Parent.Party)
 local Progression = require(ReplicatedStorage.Shared.pure.Progression)
 local Remotes = require(script.Parent.Remotes)
+local SkinRules = require(ReplicatedStorage.Shared.pure.SkinRules)
+local Skins = require(ReplicatedStorage.Shared.data.Skins)
 local Telemetry = require(script.Parent.Telemetry)
 local TutorialRoom = require(script.Parent.TutorialRoom)
 local Upgrades = require(ReplicatedStorage.Shared.data.Upgrades)
@@ -52,6 +54,9 @@ type Member = {
 	lastPosition: Vector3?,
 	lastPingAt: number,
 	ownsKit: boolean,
+	passes: SkinRules.Passes, -- Robux skin passes owned (keys of Config.Monetization.skinPassIds)
+	playClock: number, -- seconds of play not yet added to stats.playSeconds
+	lastMovedAt: number, -- os.clock() when the player last walked; standing still earns no playtime
 	effects: Progression.Effects,
 	charges: number, -- sweep charges in the gun; a sweep in a level spends one
 	trickle: number, -- 0..1 progress of the Trickle Charger towards the next charge
@@ -180,6 +185,8 @@ local function sendProfile(member: Member)
 		kitPassId = Config.Monetization.surveyorKitPassId,
 		ownsKit = member.ownsKit,
 		canPromptPurchase = profile.stats.levels >= Config.Monetization.promptAfterLevels,
+		passes = member.passes,
+		skinPassIds = Config.Monetization.skinPassIds,
 	})
 end
 
@@ -1353,6 +1360,90 @@ local function freeSlot(): number
 	return 1
 end
 
+-- Asks Roblox whether the player owns a game pass. nil means the lookup failed, which is not the
+-- same as "no": a failed lookup must never take a skin away.
+local function ownsPass(player: Player, passId: number): boolean?
+	local ok, owns = pcall(function()
+		return MarketplaceService:UserOwnsGamePassAsync(player.UserId, passId)
+	end)
+	if ok then
+		return owns
+	end
+	return nil
+end
+
+-- Runs once per join: finds the passes the player already owns (the Surveyor's Kit and every
+-- skin pass), then drops an equipped skin they cannot be shown to own.
+local function checkPasses(member: Member)
+	local player = member.player
+	local changed, lookupsOk = false, true
+	local kitId = Config.Monetization.surveyorKitPassId
+	if kitId ~= 0 then
+		local owns = ownsPass(player, kitId)
+		if owns == nil then
+			lookupsOk = false
+		elseif owns and not member.ownsKit then
+			member.ownsKit = true
+			changed = true
+		end
+	end
+	for key, passId in Config.Monetization.skinPassIds do
+		if passId ~= 0 then
+			local owns = ownsPass(player, passId)
+			if owns == nil then
+				lookupsOk = false
+			elseif owns and not member.passes[key] then
+				member.passes[key] = true
+				changed = true
+			end
+		end
+	end
+	if members[player] ~= member then
+		return
+	end
+	if lookupsOk and SkinRules.enforce(profileOf(member), member.passes) then
+		Data.touch(player)
+		changed = true
+	end
+	if changed then
+		sendProfile(member)
+	end
+end
+
+-- Roblox tells the server when a pass prompt finishes. This is the live grant; checkPasses
+-- (which asks Roblox directly) is what restores the pass on every later visit.
+local function onPassPurchased(player: Player, passId: number, purchased: boolean)
+	local member = members[player]
+	if member == nil or not purchased or passId == 0 then
+		return
+	end
+	if passId == Config.Monetization.surveyorKitPassId then
+		member.ownsKit = true
+		toast(player, "Surveyor's Kit unlocked: a checkpoint beacon in every level.", "good")
+		sendProfile(member)
+		return
+	end
+	for key, id in Config.Monetization.skinPassIds do
+		if id == passId then
+			member.passes[key] = true
+			Telemetry.custom(player, "SkinPassBought", 1)
+			if key == Skins.packKey then
+				toast(player, "Phosphor Pack unlocked: every Robux skin is yours.", "good")
+			else
+				for _, def in Skins.list do
+					if def.pass == key then
+						SkinRules.equip(profileOf(member), def.id, member.passes)
+						toast(player, def.name .. " unlocked and equipped.", "good")
+					end
+				end
+			end
+			Data.touch(player)
+			sendProfile(member)
+			return
+		end
+	end
+end
+
 local function onPlayerAdded(player: Player)
 	local profile, persistent = Data.load(player)
 	if not player:IsDescendantOf(Players) then
@@ -1377,6 +1468,9 @@ local function onPlayerAdded(player: Player)
 		lastPosition = nil,
 		lastPingAt = 0,
 		ownsKit = false,
+		passes = {},
+		playClock = 0,
+		lastMovedAt = os.clock(),
 		effects = Progression.effects(profile),
 		charges = 0,
 		trickle = 0,
@@ -1408,20 +1502,7 @@ local function onPlayerAdded(player: Player)
 		)
 	end
 
-	if Config.Monetization.surveyorKitPassId ~= 0 then
-		task.spawn(function()
-			local ok, owns = pcall(function()
-				return MarketplaceService:UserOwnsGamePassAsync(
-					player.UserId,
-					Config.Monetization.surveyorKitPassId
-				)
-			end)
-			if ok and owns and members[player] == member then
-				member.ownsKit = true
-				sendProfile(member)
-			end
-		end)
-	end
+	task.spawn(checkPasses, member)
 end
 
 local function endRunIfEmpty()
@@ -1691,6 +1772,20 @@ local function onEquipCosmetic(player: Player, slot: string, id: string)
 	toast(player, message, if ok then "good" else "warn")
 end
 
+-- Scanner skins are chosen on the start screen or at the workbench, never in the middle of a level.
+local function onEquipSkin(player: Player, id: string)
+	local member = members[player]
+	if member == nil or (member.stage ~= "title" and member.stage ~= "lore") then
+		return
+	end
+	local ok, message = SkinRules.equip(profileOf(member), id, member.passes)
+	if ok then
+		Data.touch(player)
+		sendProfile(member)
+	end
+	toast(player, message, if ok then "good" else "warn")
+end
+
 local function onToggleUpgrade(player: Player, id: string, on: boolean)
 	local member = members[player]
 	if
@@ -1759,6 +1854,25 @@ end
 --------------------------------------------------------------------------------------------
 -- Periodic logic
 
+local function creditPlaytime(member: Member, seconds: number)
+	local profile = profileOf(member)
+	local before = profile.stats.playSeconds
+	profile.stats.playSeconds = before + seconds
+	local earned = SkinRules.newlyEarned(before, profile.stats.playSeconds)
+	for _, def in earned do
+		toast(
+			member.player,
+			`New skin: {def.name}. Wear it from the start screen or workbench.`,
+			"good"
+		)
+	end
+	-- Once a minute (or on an unlock) save and tell the client, so the skins screen shows progress.
+	if #earned > 0 or math.floor(profile.stats.playSeconds / 60) > math.floor(before / 60) then
+		Data.touch(member.player)
+		sendProfile(member)
+	end
+end
+
 local function tickMembers(dt: number)
 	local level = run.level
 	for player, member in members do
@@ -1783,6 +1897,9 @@ local function tickMembers(dt: number)
 			if last ~= nil then
 				local moved = (root.Position - last) * Vector3.new(1, 0, 1)
 				if moved.Magnitude <= MAX_STEP_DISTANCE then
+					if moved.Magnitude > 0.05 then
+						member.lastMovedAt = os.clock()
+					end
 					member.sessionDistance += moved.Magnitude
 					local stats = profileOf(member).stats
 					stats.distance = math.floor(stats.distance + moved.Magnitude)
@@ -1798,6 +1915,18 @@ local function tickMembers(dt: number)
 			then
 				member.respawnCFrame = CFrame.new(level.beaconPosition)
 				toast(player, "Checkpoint beacon set.", "good")
+			end
+		end
+		-- Playtime skins: time in the dark counts, time standing at the title or away does not.
+		if
+			member.stage ~= "title"
+			and os.clock() - member.lastMovedAt < Config.Monetization.playSecondsMoving
+		then
+			member.playClock += dt
+			if member.playClock >= 1 then
+				local seconds = math.floor(member.playClock)
+				member.playClock -= seconds
+				creditPlaytime(member, seconds)
 			end
 		end
 	end
@@ -1950,6 +2079,17 @@ function Director.dev.charges(count: number)
 	end
 end
 
+-- Adds minutes of playtime and grants every skin pass for this session (nothing is bought).
+function Director.dev.skins(minutes: number)
+	for _, member in members do
+		creditPlaytime(member, minutes * 60)
+		for key in Config.Monetization.skinPassIds do
+			member.passes[key] = true
+		end
+		sendProfile(member)
+	end
+end
+
 function Director.start()
 	Players.CharacterAutoLoads = false
 
@@ -1960,6 +2100,8 @@ function Director.start()
 	Remotes.on("Emote", onEmote)
 	Remotes.on("BuyUpgrade", onBuyUpgrade)
 	Remotes.on("EquipCosmetic", onEquipCosmetic)
+	Remotes.on("EquipSkin", onEquipSkin)
+	MarketplaceService.PromptGamePassPurchaseFinished:Connect(onPassPurchased)
 	Remotes.on("ToggleUpgrade", onToggleUpgrade)
 	Remotes.on("SetSetting", onSetSetting)
 	Remotes.on("Funnel", onFunnel)
