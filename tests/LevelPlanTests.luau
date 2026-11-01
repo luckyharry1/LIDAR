@@ -124,6 +124,13 @@ tests["every tier places valid, non-overlapping contents"] = function()
 				)
 			end
 			assert(#plan.nooks == #plan.lamps, "every lamp-bag needs a variant")
+			local lit = 0
+			for _, variant in plan.nooks do
+				if variant ~= Places.deadNook then
+					lit += 1
+				end
+			end
+			assert(lit >= math.min(2, def.lamps), `fewer than two lit lamp-bags at tier {tier}`)
 			assert(
 				#plan.lamps >= math.min(2, def.lamps) and #plan.lamps <= def.lamps,
 				`wrong lamp count at tier {tier} seed {seed}`

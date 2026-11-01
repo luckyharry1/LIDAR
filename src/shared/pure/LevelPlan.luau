@@ -323,6 +323,7 @@ function LevelPlan.build(tier: number, seed: number, options: BuildOptions): Lev
 	-- never fewer than two where the tier has them (the second goes off the route if it must).
 	local lampCount =
 		math.clamp(math.floor(#route / LAMP_ROUTE_STEPS), math.min(2, def.lamps), def.lamps)
+	local deadCount = 0
 	for i = 1, lampCount do
 		if i == 1 then
 			table.insert(lamps, takeNearStep(FIRST_LAMP_STEP))
@@ -332,8 +333,14 @@ function LevelPlan.build(tier: number, seed: number, options: BuildOptions): Lev
 		local placed = lamps[#lamps]
 		table.insert(lampDistances, Maze.distances(maze, placed))
 		-- The first bag always burns; a burnt-out one is a small secret, never on the first floor.
-		local top = if i > 1 and deadNookAllowed then Places.nookCount else Places.nookCount - 1
-		table.insert(nooks, rng:int(1, top))
+		-- At least two bags always burn, so no level is left with a single light.
+		local mayBurnOut = i > 1 and deadNookAllowed and lampCount - (deadCount + 1) >= 2
+		local top = if mayBurnOut then Places.nookCount else Places.nookCount - 1
+		local variant = rng:int(1, top)
+		if variant == Places.deadNook then
+			deadCount += 1
+		end
+		table.insert(nooks, variant)
 	end
 	local echoes: { Cell } = {}
 	for _ = 1, def.echoes do
