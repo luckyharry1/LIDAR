@@ -96,7 +96,7 @@ tests["every tier places valid, non-overlapping contents"] = function()
 				table.insert(revealCells, reveal.cell)
 			end
 			local extras = {
-				{ name = "lamp", cells = plan.lamps, count = def.lamps },
+				{ name = "lamp", cells = plan.lamps, count = #plan.lamps },
 				{
 					name = "reveal",
 					cells = revealCells,
@@ -125,6 +125,17 @@ tests["every tier places valid, non-overlapping contents"] = function()
 				)
 			end
 			assert(#plan.nooks == #plan.lamps, "every lamp-bag needs a variant")
+			local lit = 0
+			for _, variant in plan.nooks do
+				if variant ~= Places.deadNook then
+					lit += 1
+				end
+			end
+			assert(lit >= math.min(2, def.lamps), `fewer than two lit lamp-bags at tier {tier}`)
+			assert(
+				#plan.lamps >= math.min(2, def.lamps) and #plan.lamps <= def.lamps,
+				`wrong lamp count at tier {tier} seed {seed}`
+			)
 			for index, variant in plan.nooks do
 				assert(
 					variant >= 1 and variant <= Places.nookCount,
@@ -200,6 +211,22 @@ tests["no notice is hung twice in a run"] = function()
 		for _, sign in places.signs do
 			assert(seen[sign.id] == nil, `{sign.id} is hung on tier {seen[sign.id]} and {tier}`)
 			seen[sign.id] = tier
+		end
+	end
+end
+
+tests["lamp-bags are never bunched together"] = function()
+	for tier = 1, LAST_TIER_TESTED do
+		for seed = 1, 100 do
+			local plan = LevelPlan.build(tier, seed * 977, OPTIONS)
+			for i = 1, #plan.lamps do
+				local distances = Maze.distances(plan.maze, plan.lamps[i])
+				for j = i + 1, #plan.lamps do
+					local cell = plan.lamps[j]
+					local steps = distances[Maze.index(plan.maze, cell.x, cell.y)]
+					assert(steps >= 3, `lamp-bags {steps} steps apart at tier {tier} seed {seed}`)
+				end
+			end
 		end
 	end
 end

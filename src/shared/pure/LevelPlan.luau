@@ -64,14 +64,12 @@ local FIRST_CELL_RULE = {
 	clearOfStart = false,
 	bypassable = false,
 }
--- The first lantern sits close to the start: a fixed point to navigate back to.
-local FIRST_LAMP_RULE = {
-	minDistance = 1,
-	preferDeadEnd = false,
-	spacing = 0,
-	clearOfStart = false,
-	bypassable = false,
-}
+-- The first lamp-bag sits a little way along the route, close to the start: a fixed point to
+-- navigate back to. Later ones keep at least this many path steps from every other lamp-bag.
+local FIRST_LAMP_STEP = 0.12
+local LAMP_SPACING_CELLS = 5
+local LAMP_MIN_SPACING_CELLS = 3 -- never closer than this unless the maze leaves no room
+local LAMP_ROUTE_STEPS = 5 -- a short way through holds one lamp-bag per this many cells, at most
 local SCATTER_RULE = {
 	minDistance = 3,
 	preferDeadEnd = false,
@@ -273,41 +271,79 @@ function LevelPlan.build(tier: number, seed: number, options: BuildOptions): Lev
 	-- Lamp-bags, recorders, pits and alarm plates. Each takes its own cell.
 	-- The first lamp-bag sits close to the start. The rest are spread along the shortest way
 	-- through at even steps, so a player walking it meets one about every minute: a place to
-	-- see the walls, take stock and hear a line of story. A bag the route cannot offer (every
-	-- cell near that step is taken) goes anywhere instead.
+	-- see the walls, take stock and hear a line of story. Two bags are never close together:
+	-- a cell too near a lamp already placed is passed over (the gap is relaxed only when the
+	-- route cannot offer anything wider). A bag the route cannot offer at all goes anywhere.
+	local lampDistances: { { [number]: number } } = {}
+	local function clearOfLamps(index: number, gap: number): boolean
+		for _, distances in lampDistances do
+			if distances[index] < gap then
+				return false
+			end
+		end
+		return true
+	end
 	local function takeNearStep(step: number): Cell
 		local target = math.clamp(math.floor(#route * step + 0.5), 1, #route)
-		local function tryStep(position: number): Cell?
+		local function tryStep(position: number, gap: number): Cell?
 			local cell = route[position]
 			if cell == nil then
 				return nil
 			end
 			local index = Maze.index(maze, cell.x, cell.y)
-			if taken[index] or startDist[index] < 1 then
+			if taken[index] or startDist[index] < 1 or not clearOfLamps(index, gap) then
 				return nil
 			end
 			taken[index] = true
 			return cell
 		end
-		-- The step itself first, then outward from it, before and after, one cell at a time.
-		local found = tryStep(target)
-		for offset = 1, #route do
-			found = found or tryStep(target + offset) or tryStep(target - offset)
+		for gap = LAMP_SPACING_CELLS, 0, -1 do
+			-- The step itself first, then outward from it, before and after, one cell at a time.
+			local found = tryStep(target, gap)
+			for offset = 1, #route do
+				found = found or tryStep(target + offset, gap) or tryStep(target - offset, gap)
+			end
+			if found ~= nil then
+				return found
+			end
+			if gap == LAMP_MIN_SPACING_CELLS then
+				-- Nothing on the route is far enough from the others: any cell that is.
+				for _, cell in allCells do
+					local index = Maze.index(maze, cell.x, cell.y)
+					if not taken[index] and startDist[index] >= 1 and clearOfLamps(index, gap) then
+						taken[index] = true
+						return cell
+					end
+				end
+			end
 		end
-		return found or take(SCATTER_RULE)
+		return take(SCATTER_RULE)
 	end
 	local lamps: { Cell } = {}
 	local nooks: { number } = {}
 	local deadNookAllowed = tier >= LAST_FORGIVING_TIER + 1
-	for i = 1, def.lamps do
+	-- A short route cannot hold the tier's full count without bunching them up: fewer, then, but
+	-- never fewer than two where the tier has them (the second goes off the route if it must).
+	local lampCount =
+		math.clamp(math.floor(#route / LAMP_ROUTE_STEPS), math.min(2, def.lamps), def.lamps)
+	local deadCount = 0
+	for i = 1, lampCount do
 		if i == 1 then
-			table.insert(lamps, take(FIRST_LAMP_RULE))
+			table.insert(lamps, takeNearStep(FIRST_LAMP_STEP))
 		else
-			table.insert(lamps, takeNearStep((i - 1) / (def.lamps - 1) * 0.8 + 0.1))
+			table.insert(lamps, takeNearStep((i - 1) / (lampCount - 1) * 0.8 + 0.1))
 		end
+		local placed = lamps[#lamps]
+		table.insert(lampDistances, Maze.distances(maze, placed))
 		-- The first bag always burns; a burnt-out one is a small secret, never on the first floor.
-		local top = if i > 1 and deadNookAllowed then Places.nookCount else Places.nookCount - 1
-		table.insert(nooks, rng:int(1, top))
+		-- At least two bags always burn, so no level is left with a single light.
+		local mayBurnOut = i > 1 and deadNookAllowed and lampCount - (deadCount + 1) >= 2
+		local top = if mayBurnOut then Places.nookCount else Places.nookCount - 1
+		local variant = rng:int(1, top)
+		if variant == Places.deadNook then
+			deadCount += 1
+		end
+		table.insert(nooks, variant)
 	end
 	local echoes: { Cell } = {}
 	for _ = 1, def.echoes do

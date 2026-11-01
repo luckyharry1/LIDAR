@@ -81,6 +81,9 @@ local SIGN_SLOTS = { 0, -4.3, 4.3 } -- where along a wall a second and third sig
 local MARKER_OFFSET = CFrame.new(0, 4, -2.2) -- a hidden object's light hangs this far into the room
 local LAMP_COLOR = Color3.fromRGB(255, 226, 170)
 local PATCH_PIXELS_PER_STUD = 6
+local WATER_COLOR = Color3.fromRGB(34, 118, 168) -- a lit pool: the cyan dots of water, as paint
+local WATER_GLINT = Color3.fromRGB(150, 220, 255)
+local WATER_RIPPLES = 5
 -- What a lit corner of each Level looks like, so no two Levels share a wall or a floor: office
 -- carpet and wallpaper, wet green tile, clinic lino, cave rock, garage concrete.
 type PatchLook = { floor: Color3, wall: Color3, floorPattern: string, wallPattern: string }
@@ -522,6 +525,45 @@ local function fadeSurface(
 	downGradient.Rotation = 90
 	downGradient.Transparency = down
 	downGradient.Parent = fill
+	if pattern == "water" then
+		-- Open water: a lighter surface with rings spreading out and a few glints, so a lit pool
+		-- reads as water and not as a patch of dry floor.
+		fill.BackgroundTransparency = 0.12
+		local ripples = Random.new(math.floor(color.R * 255) * 31 + math.floor(color.B * 255))
+		for _ = 1, WATER_RIPPLES do
+			local size = 0.18 + ripples:NextNumber() * 0.3
+			local ring = Instance.new("Frame")
+			ring.AnchorPoint = Vector2.new(0.5, 0.5)
+			ring.Position = UDim2.fromScale(
+				0.15 + ripples:NextNumber() * 0.7,
+				0.15 + ripples:NextNumber() * 0.7
+			)
+			ring.Size = UDim2.fromScale(size, size)
+			ring.BackgroundTransparency = 1
+			ring.BorderSizePixel = 0
+			ring.Parent = group
+			local corner = Instance.new("UICorner")
+			corner.CornerRadius = UDim.new(0.5, 0)
+			corner.Parent = ring
+			local stroke = Instance.new("UIStroke")
+			stroke.Thickness = 2
+			stroke.Color = WATER_GLINT
+			stroke.Transparency = 0.35 + ripples:NextNumber() * 0.3
+			stroke.Parent = ring
+		end
+		for _ = 1, 3 do
+			local glint = Instance.new("Frame")
+			glint.AnchorPoint = Vector2.new(0.5, 0.5)
+			glint.Position = UDim2.fromScale(ripples:NextNumber(), ripples:NextNumber())
+			glint.Size = UDim2.fromScale(0.16, 0.018)
+			glint.Rotation = ripples:NextNumber() * 30 - 15
+			glint.BackgroundColor3 = WATER_GLINT
+			glint.BackgroundTransparency = 0.4
+			glint.BorderSizePixel = 0
+			glint.Parent = group
+		end
+		return
+	end
 	-- Seams, so a wall reads as wallpaper, tile or planks and not a flat colour.
 	local seam = color:Lerp(Color3.new(0, 0, 0), 0.4)
 	local count = if pattern == "tiles" then 5 else 9
@@ -557,17 +599,22 @@ local function buildPatch(
 	parent: Instance,
 	toward: Vector3?,
 	tier: number,
-	area: boolean
+	area: boolean,
+	flooded: { [number]: boolean }
 )
 	local look = patchLook(tier)
 	local center = World.cellCenter(origin, cell)
 	local span = CELL - THICK
 	local patch = Build.model("Patch", parent)
 	local function floorAt(at: Maze.Cell)
+		-- A flooded cell keeps its water: the patch there is the pool's surface, not dry floor.
+		local wet = flooded[Maze.index(maze, at.x, at.y)] == true
 		local floor = Build.part({
-			name = "Floor",
+			name = if wet then "Water" else "Floor",
 			size = Vector3.new(span, PATCH_THICKNESS, span),
-			cframe = CFrame.new(World.cellCenter(origin, at)),
+			cframe = CFrame.new(
+				World.cellCenter(origin, at) + Vector3.new(0, if wet then WATER_DEPTH else 0, 0)
+			),
 			transparency = 1,
 			collide = false,
 			parent = patch,
@@ -575,16 +622,17 @@ local function buildPatch(
 		fadeSurface(
 			floor,
 			Enum.NormalId.Top,
-			look.floor,
+			if wet then WATER_COLOR else look.floor,
 			PATCH_EDGE_FADE,
 			PATCH_EDGE_FADE,
-			look.floorPattern
+			if wet then "water" else look.floorPattern
 		)
 	end
 	floorAt(cell)
-	if area then
-		-- The open floor beside it too, so the lit patch reads as a stretch of the place.
-		for _, neighbor in Maze.neighbors(maze, cell.x, cell.y) do
+	-- The open floor beside it too, so the lit patch reads as a stretch of the place. Water
+	-- next to any light shows as water, whatever kind of light it is.
+	for _, neighbor in Maze.neighbors(maze, cell.x, cell.y) do
+		if area or flooded[Maze.index(maze, neighbor.x, neighbor.y)] then
 			floorAt(neighbor)
 		end
 	end
@@ -704,7 +752,16 @@ local function buildLamps(
 		else
 			local range = Config.World.lampRange * glow.radius / LAMP_RADIUS
 			Build.pointLight(bulb, LAMP_COLOR, LAMP_BRIGHTNESS, range)
-			buildPatch(plan.maze, origin, cell, parent, base.Position, plan.tier, false)
+			buildPatch(
+				plan.maze,
+				origin,
+				cell,
+				parent,
+				base.Position,
+				plan.tier,
+				false,
+				plan.flooded
+			)
 		end
 		local echo =
 			newEcho(firstId + index - 1, "nook", cell, lantern, Places.nookLines(variant), glow)
@@ -846,7 +903,8 @@ function World.revealEcho(level: Level, echo: Echo)
 			level.lit,
 			if echo.anchor then echo.anchor.Position else echo.model:GetPivot().Position,
 			level.plan.tier,
-			showsPlace
+			showsPlace,
+			level.plan.flooded
 		)
 	end
 end
