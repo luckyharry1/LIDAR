@@ -140,6 +140,7 @@ Config.Tags = {
 	litZone = "Lidar_LitZone",
 	disguised = "Lidar_Disguised",
 	rescue = "Lidar_Rescue",
+	surveyor = "Lidar_Surveyor", -- a surveyor waiting in a camp: dots until found, then lit
 	anomaly = "Lidar_Anomaly",
 	echo = "Lidar_Echo",
 	water = "Lidar_Water",
@@ -147,6 +148,21 @@ Config.Tags = {
 	sound = "Lidar_Sound", -- server-made sounds the client routes through its volume setting
 	light = "Lidar_Light", -- every server-made light, so clients find them without a scan
 	concealed = "Lidar_Concealed", -- built dark; each client shows it once its scan lands near
+}
+
+-- Surveyors in the camps. They are dots until found; scanning one a few times (or lighting the
+-- room) wakes a lamp on them, they become visible, and their scene begins.
+Config.Surveyor = {
+	wakeHits = 3, -- dots that must land on a surveyor to wake them
+	wakeReach = 4.2, -- studs: a dot this close to the surveyor's middle counts as landing on them
+	lightRange = 20,
+	lightBrightness = 1.7,
+	fadeSeconds = 1.1, -- from dots to a lit person
+	sceneDelay = 1.3, -- from waking to the first line
+	roomLitDelay = 2.2, -- the same, when it was the room's lamp that woke them
+	-- Who is found sitting in the dark on these tiers (a key of Lore.surveyors): the level
+	-- before each camp that has a surveyor to walk out. Those tiers always hold one.
+	rescueOfTier = { [3] = "hana", [5] = "ravi", [7] = "pim" } :: { [number]: string },
 }
 
 Config.World = {

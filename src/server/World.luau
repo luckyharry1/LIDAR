@@ -14,6 +14,7 @@ local Build = require(script.Parent.Build)
 local Config = require(ReplicatedStorage.Shared.Config)
 local Figures = require(script.Parent.Figures)
 local LevelPlan = require(ReplicatedStorage.Shared.pure.LevelPlan)
+local Lore = require(ReplicatedStorage.Shared.data.Lore)
 local LoreText = require(ReplicatedStorage.Shared.data.LoreText)
 local Maze = require(ReplicatedStorage.Shared.pure.Maze)
 local Places = require(ReplicatedStorage.Shared.data.Places)
@@ -1096,15 +1097,26 @@ local function buildPickup(
 	gateTitle: string,
 	center: Vector3,
 	face: CFrame,
-	parent: Instance
+	parent: Instance,
+	tier: number
 ): Pickup
 	local model = Build.model("Pickup_" .. objective.kind, parent)
 	local prompt: ProximityPrompt
 	if objective.kind == "rescue" then
-		local figure = Figures.sitting(model, Config.Tags.friend)
+		-- Before a camp that has a surveyor, the one you find here is them: same face in the dark,
+		-- the same name on the prompt, and the same person is waiting in the camp afterwards.
+		local who = Lore.surveyors[Config.Surveyor.rescueOfTier[tier] or ""]
+		local figure = if who
+			then Figures.surveyor(model, who, Config.Tags.friend, true)
+			else Figures.sitting(model, Config.Tags.friend)
 		figure:PivotTo(face * CFrame.new(0, 0, -1.4))
 		CollectionService:AddTag(figure, Config.Tags.rescue)
-		prompt = Build.prompt(figure.PrimaryPart :: BasePart, "Help up", "Surveyor", 1.5)
+		prompt = Build.prompt(
+			figure.PrimaryPart :: BasePart,
+			"Help up",
+			if who then who.name else "Surveyor",
+			1.5
+		)
 	else
 		CollectionService:AddTag(model, Config.Tags.objective)
 		local stand = Build.part({
@@ -1209,7 +1221,10 @@ function World.buildLevel(plan: LevelPlan.LevelPlan, origin: Vector3): Level
 		local center = World.cellCenter(origin, objective.cell)
 		local closed = closedSides(maze, objective.cell)
 		local face = if #closed > 0 then wallBase(center, closed[1]) else CFrame.new(center)
-		table.insert(pickups, buildPickup(objective, gate, gateTitle, center, face, dark))
+		table.insert(
+			pickups,
+			buildPickup(objective, gate, gateTitle, center, face, dark, plan.tier)
+		)
 	end
 	-- Hidden things get ids in this order: recorders, story objects, posters, then lamp-bags.
 	local echoes = buildRecorders(plan, origin, dark, rng, 1)
