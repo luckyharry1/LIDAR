@@ -9,7 +9,7 @@ Placeholders: `{deaths}` `{floor}` `{n}` `{party}`. A `look` names a backdrop in
 
 | id | where | text | Theo thought | look |
 |---|---|---|---|---|
-| `goal.l0` | L0 Office Floor / HUD objective, Level 0 | Find the surveyors. Start with Joss. |  |  |
+| `goal.l0` | L0 Office Floor / HUD objective, Level 0 | You are not alone here. Find the Survey. Start with Joss. |  |  |
 | `goal.l0b` | L0 Office Floor / HUD objective, after Joss | Find the fuse. Go down. |  |  |
 | `goal.l1` | L1 Flooded Wing / HUD objective, Level 1 | Find Hana at the pump house. |  |  |
 | `goal.l1b` | L1 Flooded Wing / HUD objective, after Hana | Follow the water to the Falls. |  |  |
