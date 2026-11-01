@@ -202,15 +202,16 @@ local function closedSides(maze: Maze.Maze, cell: Maze.Cell): { string }
 	return list
 end
 
--- Where something that stands against a wall goes in a cell: a random closed side, slid a
--- little along it. A cell with no walls gets it in the middle.
+-- Where something that stands against a wall goes in a cell: a random closed side, in the
+-- middle of it. It is not slid along the wall: the lit patch round a lamp or a recorder is the
+-- cell's own floor and wall, so a lamp off to one side lit its patch off-centre.
+-- A cell with no walls gets it in the middle.
 local function againstWall(maze: Maze.Maze, center: Vector3, cell: Maze.Cell, rng: Rng.Rng): CFrame
 	local closed = closedSides(maze, cell)
 	if #closed == 0 then
 		return CFrame.new(center)
 	end
-	local slide = (rng:next() * 2 - 1) * PROP_SIDE_REACH
-	return wallBase(center, closed[rng:int(1, #closed)]) * CFrame.new(slide, 0, 0)
+	return wallBase(center, closed[rng:int(1, #closed)])
 end
 
 -- A hole in the floor: four ledges round it, a shaft, a bottom, and a marked rim.
