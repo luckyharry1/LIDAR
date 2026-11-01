@@ -27,9 +27,10 @@ export type Room = {
 	scene: string?, -- a surveyor who talks to you here, first visit (LoreText scene id)
 	surveyor: string?, -- who waits here: a key of Lore.surveyors, matching `scene`
 }
--- A surveyor you can meet. `figure` is the build in src/server/Figures (it also decides the
--- outline of their dots); `scene` is what they say when found in their camp, `rescue` the lines
--- they say when helped up in the maze (only the ones the maze lets you find).
+-- A surveyor you can meet. `gear` picks their build in src/server/Figures (it also decides the
+-- outline of their dots); `scene` is what they say when found in their camp, `rescued` the lines
+-- they say, in order, when helped up in the maze (the story's rescue.* entries; only Hana, Ravi
+-- and Pim are found there).
 export type Surveyor = {
 	name: string,
 	scene: string,
@@ -272,7 +273,7 @@ Lore.rooms = {
 
 -- The surveyors of the Survey who are met in person. Each waits in a camp; Hana, Ravi and Pim
 -- are also found sitting in the dark of the level before theirs (Config.Surveyor.rescueOfTier)
--- and walk you out. Lines avoid pronouns: the story thread owns who they are.
+-- and walk you out.
 Lore.surveyors = {
 	joss = {
 		name = "Joss",
@@ -289,10 +290,7 @@ Lore.surveyors = {
 		gear = "ponytail",
 		coat = { 92, 128, 126 },
 		lamp = { 255, 232, 190 },
-		rescued = {
-			"Water carries. Follow me, and do not run.",
-			"You found me by the pipes. Good ears. This way.",
-		},
+		rescued = linesOf("rescue.hana"),
 	},
 	ravi = {
 		name = "Ravi",
@@ -301,10 +299,7 @@ Lore.surveyors = {
 		gear = "headphones",
 		coat = { 60, 92, 142 },
 		lamp = { 255, 224, 168 },
-		rescued = {
-			"Two taps, a breath, one. You waited. Quietly now.",
-			"Do not answer anything that only knocks twice. Stay behind me.",
-		},
+		rescued = linesOf("rescue.ravi"),
 	},
 	pim = {
 		name = "Pim",
@@ -313,10 +308,7 @@ Lore.surveyors = {
 		gear = "lantern",
 		coat = { 196, 96, 64 },
 		lamp = { 255, 200, 130 },
-		rescued = {
-			"A draft! Told you. Door's this way, keep the light low.",
-			"You came all the way down here for me? Come on, I know a way.",
-		},
+		rescued = linesOf("rescue.pim"),
 	},
 	lena = {
 		name = "Lena",

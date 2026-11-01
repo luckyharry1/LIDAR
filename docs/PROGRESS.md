@@ -829,6 +829,7 @@ same walls, floor and text, and checkpoints sometimes put you next to a monster.
   - Burnt-out lamp-bags (variant 4) are intended, but at least two bags per level always burn now
     (a level with two or three lamp-bags has none or at most one burnt out).
 
+
 ## Surveyors you can see (1 Nov, cloud thread, branch `claude/surveyor-npcs`; not seen in Studio)
 
 Vasco: Pim is someone we "have to find and rescue" but we never see them; the talk plays in an
@@ -844,13 +845,13 @@ empty dark room. Stacked on `claude/poi-varied` (PR #18, which is stacked on PR 
   visit shows the hint "Somebody is knocking" instead. Each client wakes them for itself.
 - Hana (T3), Ravi (T5) and Pim (T7) are also found sitting in the dark of the level before their
   camp. Those tiers always hold the rescue (`Config.Surveyor.rescueOfTier`, `LevelPlan`): the
-  prompt and toast use their name, they say their own line when helped up (`Lore.surveyors[..]
+  prompt and toast use their name, they say their own lines when helped up (`Lore.surveyors[..]
   .rescued`) and walk you out, and the same person is waiting in the camp. Joss (T1) is camp only
   because rescues start at T2. Lena (the Falls) is camp only.
 - Tests: every camp scene has its surveyor, named maze rescues have a camp and lines, and tiers
   3, 5 and 7 hold exactly one rescue over 150 seeds.
-- For the story thread: the helped-up lines in `Lore.surveyors` are mine, short and placeholder;
-  swap in real ones. LoreText calls Pim "he" in places (Pim's Mug); the camp text avoids it.
+- Helped-up lines are the story's own (`rescue.hana`, `rescue.ravi`, `rescue.pim`, PR #14), said in
+  order when you help them up.
 - Check in Studio: the knock carries in a haven; the dot outlines read as people; the lamp and
   fade look right in the dark; the scene starts ~1.3 s after waking (2.2 s when the room lit
   first); the spots are clear of props (Joss by the bench, Hana between the gauge and kettle,
