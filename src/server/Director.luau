@@ -670,7 +670,13 @@ local function wirePickup(level: World.Level, pickup: World.Pickup)
 			run.collected.rescues += 1
 			profileOf(member).stats.rescues += 1
 			Data.touch(player)
-			toastStage("Surveyor found. They lead the way out.", "good", "level", "downed")
+			local who = Lore.surveyors[Config.Surveyor.rescueOfTier[run.tier] or ""]
+			toastStage(
+				`{if who then who.name else "Surveyor"} found. They lead the way out.`,
+				"good",
+				"level",
+				"downed"
+			)
 		else
 			run.collected.plate = true
 			run.plateFound = true

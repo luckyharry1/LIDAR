@@ -1,4 +1,5 @@
 --!strict
+local Config = require("../src/shared/Config")
 local Difficulty = require("../src/shared/pure/Difficulty")
 local Enemies = require("../src/shared/data/Enemies")
 local LevelPlan = require("../src/shared/pure/LevelPlan")
@@ -275,6 +276,21 @@ tests["a forced anomaly appears whenever the level has a room"] = function()
 		end
 	end
 	assert(seen > 0, "no rooms generated in sixty seeds")
+end
+
+tests["the floors that hold a named surveyor always hold a rescue"] = function()
+	for tier in Config.Surveyor.rescueOfTier do
+		for seed = 1, SEEDS_PER_TIER do
+			local plan = LevelPlan.build(tier, seed, OPTIONS)
+			local rescues = 0
+			for _, objective in plan.objectives do
+				if objective.kind == "rescue" then
+					rescues += 1
+				end
+			end
+			assert(rescues == 1, `tier {tier} seed {seed} has {rescues} rescues`)
+		end
+	end
 end
 
 return tests

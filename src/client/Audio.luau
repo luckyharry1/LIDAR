@@ -415,7 +415,7 @@ local function updateVoices(now: number, dt: number)
 			tappers[model] = nil
 			continue
 		end
-		if now >= tapper.nextTap then
+		if now >= tapper.nextTap and model:GetAttribute("Awake") ~= true then -- found: they speak instead
 			tapper.nextTap = now + TAP_PERIOD + math.random()
 			task.spawn(function()
 				local last = 0
@@ -564,12 +564,15 @@ function Audio.start()
 	CollectionService:GetInstanceAddedSignal(Config.Tags.enemy):Connect(function(model)
 		task.spawn(attachVoice, model)
 	end)
-	for _, model in CollectionService:GetTagged(Config.Tags.rescue) do
-		task.spawn(attachTapper, model)
+	-- Stranded surveyors, and the ones waiting in the camps, knock the greeting.
+	for _, tag in { Config.Tags.rescue, Config.Tags.surveyor } do
+		for _, model in CollectionService:GetTagged(tag) do
+			task.spawn(attachTapper, model)
+		end
+		CollectionService:GetInstanceAddedSignal(tag):Connect(function(model)
+			task.spawn(attachTapper, model)
+		end)
 	end
-	CollectionService:GetInstanceAddedSignal(Config.Tags.rescue):Connect(function(model)
-		task.spawn(attachTapper, model)
-	end)
 	for _, sound in CollectionService:GetTagged(Config.Tags.sound) do
 		adoptSound(sound)
 	end

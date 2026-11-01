@@ -25,6 +25,19 @@ export type Room = {
 	light: { number },
 	notes: { string },
 	scene: string?, -- a surveyor who talks to you here, first visit (LoreText scene id)
+	surveyor: string?, -- who waits here: a key of Lore.surveyors, matching `scene`
+}
+-- A surveyor you can meet. `figure` is the build in src/server/Figures (it also decides the
+-- outline of their dots); `scene` is what they say when found in their camp, `rescue` the lines
+-- they say when helped up in the maze (only the ones the maze lets you find).
+export type Surveyor = {
+	name: string,
+	scene: string,
+	sits: boolean,
+	gear: string, -- Figures.surveyor accessories
+	coat: { number },
+	lamp: { number }, -- the colour of the light that wakes on them
+	rescued: { string }?,
 }
 export type Echo = { speaker: string, line: string }
 export type Card = { title: string, subtitle: string }
@@ -149,6 +162,7 @@ Lore.rooms = {
 		light = { 255, 226, 186 },
 		notes = { "haven_copy" },
 		scene = "npc.joss",
+		surveyor = "joss",
 	},
 	drybooth = {
 		id = "drybooth",
@@ -162,6 +176,7 @@ Lore.rooms = {
 		light = { 255, 232, 190 },
 		notes = { "haven_booth" },
 		scene = "npc.hana",
+		surveyor = "hana",
 	},
 	pottingshed = {
 		id = "pottingshed",
@@ -175,6 +190,7 @@ Lore.rooms = {
 		light = { 255, 236, 190 },
 		notes = { "haven_shed" },
 		scene = "npc.ravi",
+		surveyor = "ravi",
 	},
 	archivenook = {
 		id = "archivenook",
@@ -188,6 +204,7 @@ Lore.rooms = {
 		light = { 255, 214, 160 },
 		notes = { "haven_nook" },
 		scene = "npc.pim",
+		surveyor = "pim",
 	},
 	office = {
 		id = "office",
@@ -213,6 +230,7 @@ Lore.rooms = {
 		light = { 235, 248, 250 },
 		notes = { "falls_guestbook", "falls_ines", "falls_lena", "falls_behind" },
 		scene = "npc.lena",
+		surveyor = "lena",
 	},
 	breakroom = {
 		id = "breakroom",
@@ -251,6 +269,64 @@ Lore.rooms = {
 		notes = { "relay_1", "relay_2", "relay_3" },
 	},
 } :: { [string]: Room }
+
+-- The surveyors of the Survey who are met in person. Each waits in a camp; Hana, Ravi and Pim
+-- are also found sitting in the dark of the level before theirs (Config.Surveyor.rescueOfTier)
+-- and walk you out. Lines avoid pronouns: the story thread owns who they are.
+Lore.surveyors = {
+	joss = {
+		name = "Joss",
+		scene = "npc.joss",
+		sits = false,
+		gear = "cap",
+		coat = { 168, 124, 66 },
+		lamp = { 255, 214, 150 },
+	},
+	hana = {
+		name = "Hana",
+		scene = "npc.hana",
+		sits = true,
+		gear = "ponytail",
+		coat = { 92, 128, 126 },
+		lamp = { 255, 232, 190 },
+		rescued = {
+			"Water carries. Follow me, and do not run.",
+			"You found me by the pipes. Good ears. This way.",
+		},
+	},
+	ravi = {
+		name = "Ravi",
+		scene = "npc.ravi",
+		sits = true,
+		gear = "headphones",
+		coat = { 60, 92, 142 },
+		lamp = { 255, 224, 168 },
+		rescued = {
+			"Two taps, a breath, one. You waited. Quietly now.",
+			"Do not answer anything that only knocks twice. Stay behind me.",
+		},
+	},
+	pim = {
+		name = "Pim",
+		scene = "npc.pim",
+		sits = false,
+		gear = "lantern",
+		coat = { 196, 96, 64 },
+		lamp = { 255, 200, 130 },
+		rescued = {
+			"A draft! Told you. Door's this way, keep the light low.",
+			"You came all the way down here for me? Come on, I know a way.",
+		},
+	},
+	lena = {
+		name = "Lena",
+		scene = "npc.lena",
+		sits = false,
+		gear = "scarf",
+		coat = { 86, 140, 96 },
+		lamp = { 244, 252, 240 },
+	},
+} :: { [string]: Surveyor }
 
 -- Field recorders hidden in the maze. Scan one enough and it reveals itself, lights its
 -- corner of the level and plays its tape. Each player hears them in this order, so the story
