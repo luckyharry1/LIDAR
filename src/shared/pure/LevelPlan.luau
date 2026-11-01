@@ -209,6 +209,9 @@ function LevelPlan.build(tier: number, seed: number, options: BuildOptions): Lev
 	-- Objectives.
 	local objectives: { Objective } = {}
 	local count = rng:int(def.objectives.min, def.objectives.max)
+	if Config.Surveyor.rescueOfTier[tier] ~= nil then
+		count = math.max(count, 2) -- the key and the surveyor this floor is known for
+	end
 	local kinds = {}
 	if def.exitLocked then
 		table.insert(kinds, "key")

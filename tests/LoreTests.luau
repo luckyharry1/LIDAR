@@ -1,6 +1,7 @@
 --!strict
 -- The story wiring: every room, tape, page and card the game shows must resolve to real text
 -- from LoreText, and fit the places the builders put it.
+local Config = require("../src/shared/Config")
 local Difficulty = require("../src/shared/pure/Difficulty")
 local Lore = require("../src/shared/data/Lore")
 local LoreText = require("../src/shared/data/LoreText")
@@ -141,6 +142,39 @@ tests["every monster has a manual page"] = function()
 	for _, kind in { "wanderer", "listener", "mimic", "stalker" } do
 		local entity = Lore.entities[kind]
 		assert(entity ~= nil and entity.name ~= "" and entity.page ~= "", `{kind} has no page`)
+	end
+end
+
+tests["every camp scene is spoken by a surveyor who stands in that camp"] = function()
+	for id, room in Lore.rooms do
+		if room.scene ~= nil then
+			assert(room.surveyor ~= nil, `{id} has a scene but no surveyor to stand there`)
+		end
+		if room.surveyor ~= nil then
+			local who = Lore.surveyors[room.surveyor]
+			assert(who ~= nil, `{id} names missing surveyor {room.surveyor}`)
+			assert(who.scene == room.scene, `{id}: {who.name} speaks another scene`)
+			assert(#who.coat == 3 and #who.lamp == 3, `{who.name} needs a coat and lamp colour`)
+		end
+	end
+end
+
+tests["the surveyors found in the maze are named, in a camp, and have something to say"] = function()
+	local campOf: { [string]: boolean } = {}
+	for _, room in Lore.rooms do
+		if room.surveyor ~= nil then
+			campOf[room.surveyor] = true
+		end
+	end
+	for tier, key in Config.Surveyor.rescueOfTier do
+		local who = Lore.surveyors[key]
+		assert(who ~= nil, `tier {tier} finds missing surveyor {key}`)
+		assert(campOf[key], `{who.name} is found in tier {tier} but has no camp`)
+		assert(
+			who.rescued ~= nil and #who.rescued > 0,
+			`{who.name} has nothing to say when helped up`
+		)
+		assert(tier <= #Tiers, `tier {tier} is not an authored tier`)
 	end
 end
 

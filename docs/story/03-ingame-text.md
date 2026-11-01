@@ -9,7 +9,7 @@ Placeholders: `{deaths}` `{floor}` `{n}` `{party}`. A `look` names a backdrop in
 
 | id | where | text | Theo thought | look |
 |---|---|---|---|---|
-| `goal.l0` | L0 Office Floor / HUD objective, Level 0 | Find the surveyors. Start with Joss. |  |  |
+| `goal.l0` | L0 Office Floor / HUD objective, Level 0 | You are not alone here. Find the Survey. Start with Joss. |  |  |
 | `goal.l0b` | L0 Office Floor / HUD objective, after Joss | Find the fuse. Go down. |  |  |
 | `goal.l1` | L1 Flooded Wing / HUD objective, Level 1 | Find Hana at the pump house. |  |  |
 | `goal.l1b` | L1 Flooded Wing / HUD objective, after Hana | Follow the water to the Falls. |  |  |
@@ -238,7 +238,7 @@ Placeholders: `{deaths}` `{floor}` `{n}` `{party}`. A `look` names a backdrop in
 | `item.tea` | Any / Camps and side rooms | Cold Tea: Steadies your hands. Cools the scanner. *Name is before the colon; use text after it.* |  |  |
 | `item.flashbulb` | Any / Level 3, one | Flash Bulb: One bright flash. Stuns the Still for a moment. *Name is before the colon; use text after it.* |  |  |
 | `item.glowstick` | Any / Any, consumable | Glow Stick: Snap it. Twenty seconds of light. *Name is before the colon; use text after it.* |  |  |
-| `item.mug` | Any / Level 3 | Pim's Mug: Chipped. PIM in marker. Proof he made it this far. *Name is before the colon; use text after it.* |  |  |
+| `item.mug` | Any / Level 3 | Pim's Mug: Chipped. PIM in marker. Proof she made it this far. *Name is before the colon; use text after it.* |  |  |
 | `item.scanner41` | Any / Starts with you | Scanner Unit 0041: Your scanner. The real floor is still on it. *Name is before the colon; use text after it.* |  |  |
 
 ## tip

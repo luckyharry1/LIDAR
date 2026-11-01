@@ -253,7 +253,15 @@ local function drawTrail(from: Vector3)
 			drawWalker(Vector3.new(from.X, origin.Y, from.Z))
 			task.wait(TRAIL_STEP_SECONDS)
 		end
-		Hud.dialogue("Surveyor", SURVEYOR_LINES[math.random(#SURVEYOR_LINES)])
+		-- Hana, Ravi and Pim are found by name on the floors before their camps.
+		local who = Lore.surveyors[Config.Surveyor.rescueOfTier[State.server.tier] or ""]
+		if who and who.rescued then
+			for _, line in who.rescued do
+				Hud.dialogue(who.name, line) -- the lines queue, so they are heard in order
+			end
+		else
+			Hud.dialogue("Surveyor", SURVEYOR_LINES[math.random(#SURVEYOR_LINES)])
+		end
 		for _, cell in route do
 			local target = Vector3.new(cell.x - 0.5, 0, cell.y - 0.5)
 			for step = 1, TRAIL_DOTS_PER_CELL do

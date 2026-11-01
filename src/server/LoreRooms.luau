@@ -10,6 +10,7 @@ local CollectionService = game:GetService("CollectionService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Build = require(script.Parent.Build)
+local Figures = require(script.Parent.Figures)
 local Config = require(ReplicatedStorage.Shared.Config)
 local Lore = require(ReplicatedStorage.Shared.data.Lore)
 local Props = require(script.Parent.Props)
@@ -33,6 +34,7 @@ export type LoreRoom = {
 	benchPrompt: ProximityPrompt,
 	notes: { NotePrompt },
 	beacon: Beacon?, -- nil in a room that is lit from the start
+	surveyor: Model?, -- the camp's surveyor, if it has one
 }
 
 type Placement = { kit: string, x: number, z: number, yaw: number }
@@ -40,6 +42,7 @@ type NoteSpot = { x: number, y: number, z: number, yaw: number, flat: boolean }
 type Layout = {
 	props: { Placement },
 	notes: { NoteSpot }, -- in the same order as the room's note list
+	surveyor: { x: number, z: number, yaw: number }?, -- where the room's surveyor waits (floor level)
 	raisedEntrance: boolean?, -- true: players arrive on a landing and walk down stairs
 	flicker: boolean?,
 	stone: boolean?, -- true: slate walls and floor instead of plaster and boards
@@ -436,6 +439,7 @@ local LAYOUTS: { [string]: Layout } = {
 			{ kit = "plant", x = 8.5, z = 8.5, yaw = 0 },
 			{ kit = "rug", x = 0, z = 0, yaw = 0 },
 		},
+		surveyor = { x = 5.5, z = -1.5, yaw = 160 },
 		notes = {
 			{ x = -6.5, y = 2.56, z = -5, yaw = 10, flat = true },
 		},
@@ -456,6 +460,7 @@ local LAYOUTS: { [string]: Layout } = {
 			{ kit = "plant", x = 8, z = 8, yaw = 0 },
 			{ kit = "rug", x = 0, z = 0, yaw = 0 },
 		},
+		surveyor = { x = 1, z = -6.4, yaw = 180 },
 		notes = {
 			{ x = -9.7, y = 4.4, z = -1.5, yaw = -90, flat = false },
 		},
@@ -476,6 +481,7 @@ local LAYOUTS: { [string]: Layout } = {
 			{ kit = "chair", x = 6.5, z = 0, yaw = -90 },
 			{ kit = "rug", x = 0, z = 0, yaw = 0 },
 		},
+		surveyor = { x = -9.4, z = -0.5, yaw = -90 },
 		notes = {
 			{ x = -5.2, y = 3.2, z = -7, yaw = -15, flat = true },
 		},
@@ -495,6 +501,7 @@ local LAYOUTS: { [string]: Layout } = {
 			{ kit = "chair", x = 5.5, z = -2.9, yaw = 0 },
 			{ kit = "lamp", x = 9, z = -8.5, yaw = 180 },
 		},
+		surveyor = { x = -1.5, z = -3.5, yaw = 170 },
 		notes = {
 			{ x = -9, y = 4.68, z = 4.5, yaw = 80, flat = true },
 		},
@@ -560,6 +567,7 @@ local LAYOUTS: { [string]: Layout } = {
 			{ kit = "flowers", x = 20, z = -10, yaw = 90 },
 			{ kit = "flowers", x = 5.5, z = -15, yaw = 180 },
 		},
+		surveyor = { x = 13, z = 1, yaw = 150 },
 		notes = {
 			{ x = -10.3, y = 2.2, z = 3, yaw = -90, flat = false },
 			{ x = -5.4, y = 4.4, z = -14.7, yaw = 180, flat = false },
@@ -1269,6 +1277,23 @@ function LoreRooms.build(roomId: string, origin: Vector3): LoreRoom
 		end
 	end
 
+	-- A camp's surveyor waits in the dark: only dots until a scan finds them (or the room's lamp
+	-- is lit), then a lamp wakes on them and they talk (client/Surveyors). Built after the room
+	-- is darkened so nothing here is hidden or switched off with the rest.
+	local surveyorModel: Model? = nil
+	if room.surveyor ~= nil then
+		local who = Lore.surveyors[room.surveyor]
+		local spot = layout.surveyor
+		assert(who ~= nil and spot ~= nil, "no surveyor or spot for room " .. roomId)
+		local figure = Figures.surveyor(model, who, Config.Tags.friend)
+		figure:PivotTo(at(origin, spot.x, 0, spot.z, spot.yaw))
+		CollectionService:AddTag(figure, Config.Tags.surveyor)
+		figure:SetAttribute("Who", room.surveyor)
+		figure:SetAttribute("Scene", who.scene)
+		figure:SetAttribute("Lamp", Build.rgb(who.lamp))
+		surveyorModel = figure
+	end
+
 	-- The zone marks where the player is. In a lit room it also tells each client to bring the
 	-- lights up while they stand inside it; a dark room only brings the title card.
 	local zone = Build.part({
@@ -1295,6 +1320,7 @@ function LoreRooms.build(roomId: string, origin: Vector3): LoreRoom
 		benchPrompt = benchPrompt :: ProximityPrompt,
 		notes = notes,
 		beacon = beacon,
+		surveyor = surveyorModel,
 	}
 end
 

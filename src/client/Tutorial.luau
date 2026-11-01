@@ -5,7 +5,8 @@
 -- Theo thinks out loud at each first (subtitled), and lines from the Survey manual
 -- (src/shared/data/LoreText) carry the rules, with the control for the device in the player's
 -- hands in brackets underneath, shown only when it is relevant. After the intake, hints
--- appear once each as new things are met, and surveyors in the camps talk when you arrive.
+-- appear once each as new things are met; surveyors in the camps talk once found
+-- (Surveyors.luau).
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -31,7 +32,6 @@ local SPRINT_HINT_AFTER = 35 -- seconds into the first level
 local TV_REACH = 3 -- studs: a dot this close to the television's screen counts as a hit on it
 local THINK_GAP_SECONDS = 40 -- Theo thinks aloud at most this often
 local PROFILE_WAIT_SECONDS = 3 -- how long to wait for a saved profile before assuming a new player
-local SCENE_DELAY = 1.6 -- seconds after arriving at a camp before the surveyor speaks
 
 local Tutorial = {}
 
@@ -42,7 +42,6 @@ local shown: { [string]: boolean } = {}
 local timedHintUntil = 0
 local levelStartedAt = 0
 local thoughts: { [string]: boolean } = {} -- Theo says each of these once per session
-local visited: { [string]: boolean } = {} -- camps whose surveyor has already spoken
 local tvHits = 0
 local tvPlayed = false
 local lastThought = -1000
@@ -254,13 +253,9 @@ function Tutorial.start()
 			think("falls")
 		end
 		local room = Lore.rooms[roomId]
-		if room and room.scene and not visited[roomId] then
-			visited[roomId] = true
-			task.delay(SCENE_DELAY, function()
-				if State.server.stage == "lore" and State.server.loreRoom == roomId then
-					Cutscene.play(room.scene :: string)
-				end
-			end)
+		if room and room.surveyor then
+			-- The surveyor is a person in the dark (client/Surveyors); they talk once found.
+			once("camp." .. roomId, "Somebody is knocking. Follow the sound and scan the dark")
 		end
 	end)
 	State.onLevel(function()
