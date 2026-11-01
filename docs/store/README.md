@@ -13,7 +13,7 @@ Icon and thumbnails for the Roblox experience page. Generated, not captured: see
 | `thumbnail-4-together.png` | "Scan together": friends' green scans over blue water |
 | `thumbnail-5-camp.png` | A lit surveyor camp |
 | `thumbnail-6-lore.png` | "The dark has a story": half-scanned survey bulletins and a tape marker, lines taken from the game's own text |
-| `thumbnail-7-looks.png` | "Make the dark yours": the scanner skins from `Skins.luau` (PR #15: Classic, four earned by playtime, three Robux) |
+| `thumbnail-7-looks.png` | "Make the dark yours": the scanner skins from `Skins.luau` (PR #15: Classic, four earned by playtime, two bought with Static, three Robux, with the scanner models) |
 
 Thumbnails are 1920x1080. Upload them in this order in Creator Hub > Experience > Media.
 Replace any of them with a real Studio capture (HUD hidden) when there is one. The looks
