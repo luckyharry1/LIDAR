@@ -15,7 +15,7 @@ export type Effects = {
 	startCharges: number, -- sweep charges at the start of a run (Spare Cell)
 	trickleSeconds: number, -- seconds to win back one charge in a level; 0 when not owned
 	shutterLevel: number, -- Quiet Shutter levels (each makes the sweep quieter)
-	phosphorLevel: number, -- each level raises the dot budget
+	afterglowLevel: number, -- each level raises the dot budget
 	wideLens: boolean,
 	radarLevel: number, -- 0 when not owned or switched off
 	pingLifetime: number,
@@ -74,35 +74,6 @@ function Progression.buyUpgrade(profile: SaveData.Profile, id: string): (boolean
 	return true, def.name .. " upgraded."
 end
 
--- Buys a cosmetic if needed, then equips it. An empty id restores the default for the slot.
-function Progression.equipCosmetic(
-	profile: SaveData.Profile,
-	slot: string,
-	id: string
-): (boolean, string)
-	if slot ~= "dots" and slot ~= "gun" then
-		return false, "Unknown slot."
-	end
-	local cosmetics = profile.cosmetics :: { [string]: any }
-	if id == "" then
-		cosmetics[slot] = ""
-		return true, "Default restored."
-	end
-	local def = Upgrades.cosmeticById[id]
-	if def == nil or def.slot ~= slot then
-		return false, "Unknown item."
-	end
-	if not profile.cosmetics.owned[id] then
-		if profile.static < def.cost then
-			return false, "Not enough Static."
-		end
-		profile.static -= def.cost
-		profile.cosmetics.owned[id] = true
-	end
-	cosmetics[slot] = id
-	return true, def.name .. " equipped."
-end
-
 function Progression.setToggle(profile: SaveData.Profile, id: string, on: boolean): boolean
 	local def = Upgrades.byId[id]
 	if def == nil or not def.toggle or (profile.upgrades[id] or 0) < 1 then
@@ -132,7 +103,7 @@ function Progression.effects(profile: SaveData.Profile): Effects
 			then battery.trickleSeconds[math.min(trickle, #battery.trickleSeconds)]
 			else 0,
 		shutterLevel = level("cooling"),
-		phosphorLevel = level("persistence"),
+		afterglowLevel = level("persistence"),
 		wideLens = level("lens") > 0,
 		radarLevel = if profile.toggles.radar == true then level("radar") else 0,
 		pingLifetime = Config.Coop.pingLifetime + MARKER_SECONDS * level("marker"),

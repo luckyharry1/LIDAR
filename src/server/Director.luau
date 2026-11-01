@@ -1766,34 +1766,20 @@ local function onBuyUpgrade(player: Player, id: string)
 	toast(player, message, if ok then "good" else "warn")
 end
 
-local function onEquipCosmetic(player: Player, slot: string, id: string)
-	local member = members[player]
-	if member == nil or member.stage ~= "lore" then
-		return
-	end
-	local profile = profileOf(member)
-	local before = profile.static
-	local ok, message = Progression.equipCosmetic(profile, slot, id)
-	if ok then
-		Data.touch(player)
-		if profile.static < before then
-			Telemetry.spent(player, before - profile.static, profile.static, id)
-		end
-		sendProfile(member)
-		sendStateAll() -- a new dot tint shows to teammates too
-	end
-	toast(player, message, if ok then "good" else "warn")
-end
-
--- Scanner skins are chosen on the start screen or at the workbench, never in the middle of a level.
+-- Phosphor skins are chosen on the start screen or at the workbench, never in the middle of a level.
 local function onEquipSkin(player: Player, id: string)
 	local member = members[player]
 	if member == nil or (member.stage ~= "title" and member.stage ~= "lore") then
 		return
 	end
-	local ok, message = SkinRules.equip(profileOf(member), id, member.passes)
+	local profile = profileOf(member)
+	local before = profile.static
+	local ok, message = SkinRules.equip(profile, id, member.passes)
 	if ok then
 		Data.touch(player)
+		if profile.static < before then
+			Telemetry.spent(player, before - profile.static, profile.static, id)
+		end
 		sendProfile(member)
 		sendStateAll() -- teammates draw this player's dots in the new colour
 	end
@@ -2132,7 +2118,6 @@ function Director.start()
 	Remotes.on("Reveal", onReveal)
 	Remotes.on("Emote", onEmote)
 	Remotes.on("BuyUpgrade", onBuyUpgrade)
-	Remotes.on("EquipCosmetic", onEquipCosmetic)
 	Remotes.on("EquipSkin", onEquipSkin)
 	MarketplaceService.PromptGamePassPurchaseFinished:Connect(onPassPurchased)
 	Remotes.on("ToggleUpgrade", onToggleUpgrade)

@@ -3,9 +3,13 @@
 -- workbench. Looks only, never power: every skin gives the same scanner, so a skinned player and
 -- a plain one face the same dark (docs/MONETIZATION.md).
 --
--- A skin is unlocked one of three ways:
+-- Phosphor is the name for all of this in the game: the dots (phosphor) and the scanner that
+-- draws them. A skin is a colour AND a scanner model (the gun's shape, built in client/Viewmodel).
+--
+-- A skin is unlocked one of four ways:
 --   free      always available (only the plain default, which is the empty id)
 --   playtime  earned by time spent in the dark (profile.stats.playSeconds), nothing to buy
+--   static    bought once with Static at the workbench (profile.ownedSkins)
 --   robux     a game pass. `pass` is a key of Config.Monetization.skinPassIds; the "pack" pass
 --             unlocks every robux skin at once
 --
@@ -23,8 +27,10 @@ export type SkinDef = {
 	blurb: string,
 	wall: { number }, -- RGB of the terrain dots
 	gun: { number }, -- RGB of the gun housing
-	kind: "playtime" | "robux",
+	model: string, -- the scanner's shape: one of Skins.models
+	kind: "playtime" | "static" | "robux",
 	minutes: number?, -- playtime skins: minutes in the dark that unlock it
+	cost: number?, -- static skins: Static to buy it
 	pass: string?, -- robux skins: key into Config.Monetization.skinPassIds
 }
 
@@ -32,10 +38,14 @@ local Skins = {}
 
 Skins.packKey = "pack"
 
+-- The scanner shapes client/Viewmodel knows how to build. A new model needs a spec there too.
+Skins.models = { "classic", "lantern", "dish", "prism", "blossom" }
+
 -- Order is the order on screen: earned skins first, in the order they arrive, then bought ones.
 Skins.list = {
 	{
 		id = "tungsten",
+		model = "classic",
 		name = "Tungsten",
 		blurb = "Cozy and glowy, like a night light.",
 		wall = { 214, 196, 160 },
@@ -45,6 +55,7 @@ Skins.list = {
 	},
 	{
 		id = "glacier",
+		model = "classic",
 		name = "Glacier",
 		blurb = "Cool mint-teal, like glowing ice!",
 		wall = { 150, 214, 196 },
@@ -54,8 +65,9 @@ Skins.list = {
 	},
 	{
 		id = "orchid",
+		model = "lantern",
 		name = "Orchid",
-		blurb = "A dreamy pink-purple glow.",
+		blurb = "A little lantern scanner with a dreamy lilac glow!",
 		wall = { 196, 176, 208 },
 		gun = { 98, 84, 110 },
 		kind = "playtime",
@@ -63,6 +75,7 @@ Skins.list = {
 	},
 	{
 		id = "blueprint",
+		model = "classic",
 		name = "Blueprint",
 		blurb = "Deep ultramarine dots with a golden gun. Fancy!",
 		wall = { 5, 60, 205 },
@@ -71,9 +84,30 @@ Skins.list = {
 		minutes = 180,
 	},
 	{
+		id = "ember",
+		name = "Ember",
+		blurb = "Warm coral dots. Bought with Static at the workbench.",
+		model = "classic",
+		wall = { 230, 120, 110 },
+		gun = { 150, 62, 52 },
+		kind = "static",
+		cost = 120,
+	},
+	{
+		id = "plum",
+		name = "Plum",
+		blurb = "Juicy plum dots. Bought with Static at the workbench.",
+		model = "classic",
+		wall = { 170, 100, 170 },
+		gun = { 100, 52, 104 },
+		kind = "static",
+		cost = 120,
+	},
+	{
 		id = "rose",
+		model = "blossom",
 		name = "Rose Quartz",
-		blurb = "Hot pink dots that really pop!",
+		blurb = "Hot pink dots and a flower-petal scanner!",
 		wall = { 255, 80, 170 },
 		gun = { 230, 60, 140 },
 		kind = "robux",
@@ -81,8 +115,9 @@ Skins.list = {
 	},
 	{
 		id = "aurora",
+		model = "dish",
 		name = "Aurora",
-		blurb = "Electric cyan dots and a glowing gun!",
+		blurb = "Electric cyan dots and a radar-dish scanner!",
 		wall = { 40, 225, 255 },
 		gun = { 0, 170, 205 },
 		kind = "robux",
@@ -90,8 +125,9 @@ Skins.list = {
 	},
 	{
 		id = "nightbloom",
+		model = "prism",
 		name = "Nightbloom",
-		blurb = "Bright indigo dots that glow in the dark!",
+		blurb = "Bright violet dots and a crystal-fin scanner!",
 		wall = { 95, 45, 235 },
 		gun = { 70, 30, 200 },
 		kind = "robux",

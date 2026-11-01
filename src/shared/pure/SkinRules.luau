@@ -1,14 +1,15 @@
 --!strict
--- Who may wear which skin. Pure functions, shared by the server (which decides) and the client
--- (which only draws the buttons), so the two can never disagree about what a button should say.
+-- Who may wear which Phosphor skin. Pure functions, shared by the server (which decides) and
+-- the client (which only draws the buttons), so the two can never disagree about what a button
+-- should say.
 
 local SaveData = require("./SaveData")
 local Skins = require("../data/Skins")
-local Upgrades = require("../data/Upgrades")
 
 export type Passes = { [string]: boolean } -- Config.Monetization.skinPassIds keys the player owns
 
-export type Status = "owned" | "playtime" | "robux"
+-- "owned" when the player may wear it; otherwise what is still needed.
+export type Status = "owned" | "playtime" | "static" | "robux"
 
 local SkinRules = {}
 
@@ -16,10 +17,17 @@ function SkinRules.requiredSeconds(def: Skins.SkinDef): number
 	return (def.minutes or 0) * 60
 end
 
--- "owned" when the player may wear it; otherwise what is still needed ("playtime" or "robux").
-function SkinRules.status(def: Skins.SkinDef, playSeconds: number, passes: Passes): Status
+function SkinRules.status(
+	def: Skins.SkinDef,
+	playSeconds: number,
+	passes: Passes,
+	ownedSkins: { [string]: boolean }
+): Status
 	if def.kind == "playtime" then
 		return if playSeconds >= SkinRules.requiredSeconds(def) then "owned" else "playtime"
+	end
+	if def.kind == "static" then
+		return if ownedSkins[def.id] then "owned" else "static"
 	end
 	if passes[Skins.packKey] or (def.pass ~= nil and passes[def.pass]) then
 		return "owned"
@@ -45,19 +53,16 @@ function SkinRules.newlyEarned(before: number, after: number): { Skins.SkinDef }
 	return earned
 end
 
--- The colour a player's terrain dots wear, as RGB: their skin if they have one, else a Static dot
--- tint, else nil (the plain palette). Shared by the player's own screen and what teammates see.
+-- The colour a player's terrain dots wear, as RGB: their skin's, else nil (the plain palette).
+-- Shared by the player's own screen and what teammates see.
 function SkinRules.wallTint(profile: SaveData.Profile): { number }?
 	local skin = Skins.byId[profile.skin]
-	if skin ~= nil then
-		return skin.wall
-	end
-	local tint = Upgrades.cosmeticById[profile.cosmetics.dots]
-	return if tint ~= nil then tint.color else nil
+	return if skin ~= nil then skin.wall else nil
 end
 
 -- Puts a skin on, or takes it off with an empty id. The server calls this; it refuses a skin the
--- player has not unlocked, so a client cannot wear what it did not earn or buy.
+-- player has not earned or bought, so a client cannot wear what it did not earn or buy. A Static
+-- skin that is not owned yet is bought here (once) when the player can afford it, then worn.
 function SkinRules.equip(profile: SaveData.Profile, id: string, passes: Passes): (boolean, string)
 	if id == "" then
 		profile.skin = ""
@@ -67,7 +72,15 @@ function SkinRules.equip(profile: SaveData.Profile, id: string, passes: Passes):
 	if def == nil then
 		return false, "Hmm, we do not know that skin."
 	end
-	if SkinRules.status(def, profile.stats.playSeconds, passes) ~= "owned" then
+	local status = SkinRules.status(def, profile.stats.playSeconds, passes, profile.ownedSkins)
+	if status == "static" then
+		local cost = def.cost or 0
+		if profile.static < cost then
+			return false, "Not enough Static yet!"
+		end
+		profile.static -= cost
+		profile.ownedSkins[id] = true
+	elseif status ~= "owned" then
 		return false, "Not unlocked yet. Keep exploring!"
 	end
 	profile.skin = id
@@ -78,7 +91,11 @@ end
 -- confirmed after a restore, say). Returns true if it changed anything.
 function SkinRules.enforce(profile: SaveData.Profile, passes: Passes): boolean
 	local def = Skins.byId[profile.skin]
-	if def ~= nil and SkinRules.status(def, profile.stats.playSeconds, passes) ~= "owned" then
+	if
+		def ~= nil
+		and SkinRules.status(def, profile.stats.playSeconds, passes, profile.ownedSkins)
+			~= "owned"
+	then
 		profile.skin = ""
 		return true
 	end

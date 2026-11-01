@@ -28,7 +28,7 @@ modules may not touch Roblox globals.
 | LevelPlan | 6 | Turning a tier and a seed into a level: valid, non-overlapping contents on every tier, determinism, the difficulty ramp, lore rooms every two to three tiers, forced anomalies. |
 | DotRules | 9 | What a ray hit becomes: classification by tags and surface normal, the Mimic's disguise, which dots are permanent, sizes, packing grids, fading, the dot budget, the sweep's recharge. |
 | EnemyBrain | 21 | The four monster state machines: roaming, hearing and sight (crouched players are not seen), chasing and giving up, the Listener and decoys, the Mimic's disguise and reveal, the Stalker pinned by scans and withdrawing, sleeping when far away, stuns, plus a fuzz test that no monster walks through walls or produces bad numbers. |
-| Progression | 8 | Buying upgrades and cosmetics with Static, costs, upgrade effects, level rewards, the daily streak, how much noise each action makes. |
+| Progression | 8 | Buying upgrades with Static, costs, upgrade effects, level rewards, the daily streak, how much noise each action makes. |
 | SaveData | 7 | Loading saves: defaults, migration from version 1, newer versions, hostile or corrupt values clamped or dropped, round trips. |
 | Daily | 4 | Daily seeds and calendar keys, week boundaries, the weekly featured anomaly. |
 | Simulation | 3 | A headless bot that plays every tier against the real enemy state machines (`tests/Sim.luau`): every tier is completable without deadlock, the run is deterministic, tier one is forgiving. |
@@ -104,13 +104,19 @@ says so.
       "Take the lamp" lets the door lead into a Relay floor.
 - [ ] Settings: dot colours, teammates' scans, scan button mode, volume, DOT DETAIL (watch the
       frame rate on high), freeze dots.
-- [ ] Skins: the SKINS button on the title and at the workbench opens the list and BACK returns
-      to where you were. With `workspace:SetAttribute("DevCommand", "skins 200")` in the
-      command bar every skin unlocks (the playtime is saved to the profile and so is a skin you put on, so
-      run `"skins reset"` when you are done or a later fresh session will start wearing it); USE changes the title scene's dots at once and the gun's
-      housing colour in the next level. IN USE shows on the worn skin, Standard restores the
-      plain look, and the choice survives leaving and rejoining. Without the command, Robux
-      skins read COMING SOON (ids still zero) and playtime skins read "PLAY nM MORE".
+- [ ] Phosphor skins: the PHOSPHOR SKINS button on the title opens the list and BACK returns to the
+      title. The workbench's right-hand panel lists the same skins (compact). With
+      `workspace:SetAttribute("DevCommand", "skins 200")` in the command bar every skin unlocks (the
+      playtime is saved to the profile and so is a skin you put on, so run `"skins reset"` when you
+      are done). USE changes the title scene's dots at once and the gun's colour and SHAPE in the
+      next level: Orchid is a lantern, Rose Quartz a blossom, Aurora a dish, Nightbloom a crystal
+      prism; look at each from the first-person view and check the glowing part reads in the dark.
+      WEARING! shows on the worn skin, Classic restores the plain look and the classic gun, Ember and
+      Plum cost 120 Static the first time (then free) and the choice survives leaving and rejoining.
+      Without the command, locked playtime skins read "nM TO GO!".
+- [ ] The weaker scanner: the start (150 dots a second, 42 studs) should feel clearly weak and each
+      Emitter, Range Coil and Sweep Grid level a visible step up; tell the build thread if the very
+      start is too hard to play, the numbers are in `Config.Lidar`.
 - [ ] Skins in co-op: two players, one wearing a skin. Each sees the other's scanned walls in
       the other's colour (a plain player shows in the standard colour); friends still draw
       green, and changing skin at a haven updates what the other sees.

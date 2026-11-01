@@ -733,3 +733,20 @@ on the start screen and at the workbench, plus a brainstorm of other monetizatio
 - Lamp-bags light up but say nothing (the same lamp over and over is not a story).
 - A lit patch of wall and floor now differs per floor (carpet and wallpaper, wet tile, planks, concrete) with seams so it reads as material, and flooded floor shows larger, brighter cyan dots.
 - Not run in Studio yet: check the tape rooms and the opening for brightness and cue timing.
+## Phosphor skins, scanner models and a weaker scanner (31 Oct, same branch; Vasco's asks from the build thread)
+- "Phosphor" is now the skins. The old Static finishes (dot tints, gun housings; `Upgrades.cosmetics`,
+  the `EquipCosmetic` remote, `Progression.equipCosmetic`, `profile.cosmetics`) are gone: the two Static
+  skins Ember and Plum (120 Static, bought on first wear, `profile.ownedSkins`) replace them. Save
+  version 3 migrates by dropping `cosmetics` (a PC save with Static finishes loses them). The old
+  Phosphor upgrade (dot budget) is renamed Afterglow (id `persistence` kept; `afterglowLevel`).
+- The workbench's right-hand panel is the skin list (compact rows); the start screen has PHOSPHOR
+  SKINS; both share `fillSkins` in `Menus`.
+- Scanner models: each skin has a `model` (classic, lantern, dish, prism, blossom). `Viewmodel` builds
+  the gun from a spec list per model and rebuilds on skin change; each model has a dim neon part in
+  the skin's dot colour so its shape reads in the dark. Orchid (90 min) is the lantern, the one
+  different model earned by playing; Rose Quartz, Aurora and Nightbloom bring blossom, dish, prism.
+  Not seen in Studio: sizes and positions are my best guess.
+- Weaker scanner at every level: scatter 150 dots/s + 75 per Emitter level (was 260 + 120), reach 42 +
+  16 per Range Coil level (was 65 + 21; max 106), sweep grid 30x40 to 66x88 (was 44x56 to 90x114), dot
+  budget 60% of the DOT DETAIL figure at the start, +20% per Afterglow level (was 100% to 200%).
+  `maxRange` stays 150 as the server's cap for pings and reveals.

@@ -16,8 +16,7 @@ Net.clientToServer = {
 	"Ping", -- (position: Vector3)
 	"Emote", -- (index: number)
 	"BuyUpgrade", -- (upgradeId: string)
-	"EquipCosmetic", -- (slot: string, cosmeticId: string)
-	"EquipSkin", -- (skinId: string) a scanner skin; an empty id restores the plain scanner
+	"EquipSkin", -- (skinId: string) a Phosphor skin (bought with Static first if need be); empty restores the classic
 	"ToggleUpgrade", -- (upgradeId: string, on: boolean)
 	"SetSetting", -- (key: string, value: any)
 	"Start", -- (mode: "continue" | "new" | "daily")

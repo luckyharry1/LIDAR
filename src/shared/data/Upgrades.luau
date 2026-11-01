@@ -1,5 +1,6 @@
 --!strict
--- Permanent upgrades bought with Static at the workbench, plus cosmetics. The list order is the
+-- Permanent upgrades bought with Static at the workbench (the look of the dots and the gun is a
+-- skin: data/Skins). The list order is the
 -- order on the bench: scanner first, then battery, then tools.
 -- Cost of the next level = round(baseCost * costGrowth ^ currentLevel).
 
@@ -11,14 +12,6 @@ export type UpgradeDef = {
 	baseCost: number,
 	costGrowth: number,
 	toggle: boolean?, -- true when the player can switch the effect on and off
-}
-
-export type CosmeticDef = {
-	id: string,
-	name: string,
-	slot: "dots" | "gun",
-	cost: number,
-	color: { number }, -- RGB
 }
 
 local Upgrades = {}
@@ -52,8 +45,8 @@ Upgrades.list = {
 	},
 	{
 		id = "persistence",
-		name = "Phosphor",
-		description = "The world holds more dots before the oldest ones fade.",
+		name = "Afterglow",
+		description = "The world remembers more dots before the oldest ones fade.",
 		maxLevel = 4,
 		baseCost = 45,
 		costGrowth = 1.6,
@@ -135,52 +128,9 @@ Upgrades.list = {
 	},
 } :: { UpgradeDef }
 
-Upgrades.cosmetics = {
-	{
-		id = "dots_amber",
-		name = "Amber Phosphor",
-		slot = "dots",
-		cost = 80,
-		color = { 235, 180, 110 },
-	},
-	{
-		id = "dots_violet",
-		name = "Violet Phosphor",
-		slot = "dots",
-		cost = 80,
-		color = { 180, 150, 235 },
-	},
-	{
-		id = "dots_mint",
-		name = "Mint Phosphor",
-		slot = "dots",
-		cost = 80,
-		color = { 150, 230, 205 },
-	},
-	{
-		id = "gun_brass",
-		name = "Brass Housing",
-		slot = "gun",
-		cost = 100,
-		color = { 190, 150, 70 },
-	},
-	{
-		id = "gun_signal",
-		name = "Signal Housing",
-		slot = "gun",
-		cost = 100,
-		color = { 220, 70, 50 },
-	},
-} :: { CosmeticDef }
-
 Upgrades.byId = {} :: { [string]: UpgradeDef }
 for _, def in Upgrades.list do
 	Upgrades.byId[def.id] = def
-end
-
-Upgrades.cosmeticById = {} :: { [string]: CosmeticDef }
-for _, def in Upgrades.cosmetics do
-	Upgrades.cosmeticById[def.id] = def
 end
 
 return Upgrades

@@ -52,7 +52,7 @@ local partyStart: TextButton
 local refreshParty: () -> () -- defined with the Play Together screen below
 local benchList: Frame
 local benchBalance: TextLabel
-local benchCosmetics: Frame
+local benchSkins: Frame
 local skinsList: Frame
 local skinsPlayed: TextLabel
 local skinsPack: TextButton
@@ -347,7 +347,7 @@ local function refreshTitle()
 		titleStatus.Text =
 			`Visit {profile.streak.count}.  Best tier {profile.bestTier}.  {profile.static} Static.`
 	end
-	add("SKINS", 32, function()
+	add("PHOSPHOR SKINS", 32, function()
 		refreshSkins()
 		Menus.open("skins")
 	end, Ui.colors.gold)
@@ -832,17 +832,13 @@ function Menus.dotQuality(): string
 		else "medium"
 end
 
--- Applies the palette, equipped cosmetics and the dot budget (detail setting plus the
--- Phosphor upgrade) to the dot renderer.
+-- Applies the palette, the equipped Phosphor skin's dot colour and the dot budget (detail setting
+-- plus the Afterglow upgrade) to the dot renderer.
 function Menus.applyCosmetics()
 	local profile = State.profile
-	local tint = Upgrades.cosmeticById[profile.cosmetics.dots]
 	local skin = Skins.byId[profile.skin]
-	Dots.setPalette(
-		profile.settings.palette,
-		if skin then skin.wall elseif tint then tint.color else nil
-	)
-	Dots.setBudget(DotRules.budget(Menus.dotQuality(), State.effects.phosphorLevel))
+	Dots.setPalette(profile.settings.palette, if skin then skin.wall else nil)
+	Dots.setBudget(DotRules.budget(Menus.dotQuality(), State.effects.afterglowLevel))
 end
 
 local function refreshBench()
@@ -851,11 +847,9 @@ local function refreshBench()
 	end
 	local profile = State.profile
 	benchBalance.Text = "STATIC " .. profile.static
-	for _, list in { benchList, benchCosmetics } do
-		for _, child in list:GetChildren() do
-			if child:IsA("Frame") then
-				child:Destroy()
-			end
+	for _, child in benchList:GetChildren() do
+		if child:IsA("Frame") then
+			child:Destroy()
 		end
 	end
 	for order, def in Upgrades.list do
@@ -924,69 +918,6 @@ local function refreshBench()
 			})
 		end
 	end
-	local order = 0
-	local function cosmeticRow(
-		slot: string,
-		id: string,
-		name: string,
-		cost: number,
-		color: { number }?
-	)
-		order += 1
-		local owned = id == "" or profile.cosmetics.owned[id] == true
-		local equipped = (profile.cosmetics :: { [string]: any })[slot] == id
-		local row = Ui.new("Frame", {
-			Size = UDim2.new(1, -8, 0, 34),
-			BackgroundTransparency = 1,
-			LayoutOrder = order,
-			Parent = benchCosmetics,
-		})
-		Ui.new("Frame", {
-			AnchorPoint = Vector2.new(0, 0.5),
-			Position = UDim2.fromScale(0, 0.5),
-			Size = UDim2.fromOffset(12, 12),
-			BackgroundColor3 = if color
-				then Color3.fromRGB(color[1], color[2], color[3])
-				else Ui.colors.line,
-			BorderSizePixel = 0,
-			Parent = row,
-		}, { Ui.new("UICorner", { CornerRadius = UDim.new(1, 0) }) })
-		Ui.label({
-			Text = string.upper(name),
-			TextSize = Ui.text.small,
-			Position = UDim2.fromOffset(22, 0),
-			Size = UDim2.new(0.55, -22, 1, 0),
-			Parent = row,
-		})
-		if equipped then
-			Ui.label({
-				Text = "IN USE",
-				TextSize = Ui.text.small,
-				TextColor3 = Ui.colors.good,
-				TextXAlignment = Enum.TextXAlignment.Right,
-				AnchorPoint = Vector2.new(1, 0),
-				Position = UDim2.fromScale(1, 0),
-				Size = UDim2.new(0.4, 0, 1, 0),
-				Parent = row,
-			})
-		else
-			Ui.button({
-				Text = if owned then "USE" else cost .. " STATIC",
-				TextSize = Ui.text.small,
-				AnchorPoint = Vector2.new(1, 0.5),
-				Position = UDim2.fromScale(1, 0.5),
-				Size = UDim2.new(0.4, 0, 0, 28),
-				Parent = row,
-			}, function()
-				send("EquipCosmetic", slot, id)
-			end, if owned or profile.static >= cost then Ui.colors.gold else Ui.colors.dim)
-		end
-	end
-	cosmeticRow("dots", "", "Standard phosphor", 0, nil)
-	cosmeticRow("gun", "", "Standard housing", 0, { 60, 62, 68 })
-	for _, def in Upgrades.cosmetics do
-		cosmeticRow(def.slot, def.id, def.name, def.cost, def.color)
-	end
 end
 
 local function refreshGuide()
@@ -1033,7 +964,7 @@ local function buildBench()
 		Parent = frame,
 	}, { Ui.list(Enum.FillDirection.Vertical, 6) })
 	Ui.label({
-		Text = "FINISHES",
+		Text = "PHOSPHOR SKINS",
 		FontFace = Ui.fontBold,
 		TextSize = Ui.text.small,
 		TextColor3 = Ui.colors.dim,
@@ -1041,7 +972,7 @@ local function buildBench()
 		Size = UDim2.new(0.4, -10, 0, 18),
 		Parent = frame,
 	})
-	benchCosmetics = Ui.new("ScrollingFrame", {
+	benchSkins = Ui.new("ScrollingFrame", {
 		Position = UDim2.new(0.6, 10, 0, 66),
 		Size = UDim2.new(0.4, -10, 1, -122),
 		BackgroundTransparency = 1,
@@ -1070,16 +1001,6 @@ local function buildBench()
 		refreshGuide()
 		Menus.open("guide")
 	end)
-	Ui.button({
-		Text = "SKINS",
-		AnchorPoint = Vector2.new(0, 1),
-		Position = UDim2.new(0, 326, 1, 0),
-		Size = UDim2.fromOffset(100, 38),
-		Parent = frame,
-	}, function()
-		refreshSkins()
-		Menus.open("skins")
-	end, Ui.colors.gold)
 	local kitButton = Ui.button({
 		Text = "SURVEYOR'S KIT",
 		AnchorPoint = Vector2.new(0, 1),
@@ -1148,15 +1069,13 @@ local function buyLabel(passId: number): string
 	return if price then `GET IT!  R$ {price}` else "GET IT!"
 end
 
-refreshSkins = function()
+-- Draws every skin into `list`: the full-size rows of the skins screen, or the compact ones in
+-- the workbench's side panel.
+local function fillSkins(list: Frame, compact: boolean)
 	local profile = State.profile
 	local meta = State.meta
-	skinsPlayed.Text = "EXPLORED FOR  " .. duration(profile.stats.playSeconds)
-	for _, child in skinsList:GetChildren() do
-		if child:IsA("Frame") then
-			child:Destroy()
-		end
-	end
+	local nameWidth = if compact then 0.5 else 0.6
+	local rightWidth = if compact then 0.46 else 0.38
 	local order = 0
 	local function row(
 		id: string,
@@ -1168,10 +1087,10 @@ refreshSkins = function()
 	)
 		order += 1
 		local line = Ui.new("Frame", {
-			Size = UDim2.new(1, -8, 0, 52),
+			Size = UDim2.new(1, -8, 0, if compact then 38 else 52),
 			BackgroundTransparency = 1,
 			LayoutOrder = order,
-			Parent = skinsList,
+			Parent = list,
 		})
 		Ui.new("Frame", {
 			AnchorPoint = Vector2.new(0, 0.5),
@@ -1193,20 +1112,22 @@ refreshSkins = function()
 			Text = string.upper(name),
 			FontFace = Ui.fontBold,
 			TextSize = Ui.text.small,
-			Position = UDim2.fromOffset(46, 3),
-			Size = UDim2.new(0.6, -46, 0, 18),
+			Position = if compact then UDim2.fromOffset(46, 0) else UDim2.fromOffset(46, 3),
+			Size = UDim2.new(nameWidth, -46, 0, if compact then 38 else 18),
 			Parent = line,
 		})
-		-- Up to two lines, so a long description is never cut off.
-		Ui.label({
-			Text = blurb,
-			TextSize = 11,
-			TextColor3 = Ui.colors.dim,
-			TextYAlignment = Enum.TextYAlignment.Top,
-			Position = UDim2.fromOffset(46, 21),
-			Size = UDim2.new(0.6, -46, 0, 28),
-			Parent = line,
-		})
+		if not compact then
+			-- Up to two lines, so a long description is never cut off.
+			Ui.label({
+				Text = blurb,
+				TextSize = 11,
+				TextColor3 = Ui.colors.dim,
+				TextYAlignment = Enum.TextYAlignment.Top,
+				Position = UDim2.fromOffset(46, 21),
+				Size = UDim2.new(nameWidth, -46, 0, 28),
+				Parent = line,
+			})
+		end
 		local function status(text: string, color: Color3)
 			Ui.label({
 				Text = text,
@@ -1215,7 +1136,7 @@ refreshSkins = function()
 				TextXAlignment = Enum.TextXAlignment.Right,
 				AnchorPoint = Vector2.new(1, 0),
 				Position = UDim2.fromScale(1, 0),
-				Size = UDim2.new(0.38, 0, 1, 0),
+				Size = UDim2.new(rightWidth, 0, 1, 0),
 				Parent = line,
 			})
 		end
@@ -1225,7 +1146,7 @@ refreshSkins = function()
 				TextSize = Ui.text.small,
 				AnchorPoint = Vector2.new(1, 0.5),
 				Position = UDim2.fromScale(1, 0.5),
-				Size = UDim2.new(0.36, 0, 0, 30),
+				Size = UDim2.new(rightWidth - 0.02, 0, 0, 28),
 				Parent = line,
 			}, onPress, color)
 		end
@@ -1236,11 +1157,18 @@ refreshSkins = function()
 				send("EquipSkin", "")
 			end, Ui.colors.gold)
 		else
-			local owned = SkinRules.status(def, profile.stats.playSeconds, meta.passes)
+			local owned =
+				SkinRules.status(def, profile.stats.playSeconds, meta.passes, profile.ownedSkins)
 			if owned == "owned" then
 				action("USE", function()
 					send("EquipSkin", id)
 				end, Ui.colors.gold)
+			elseif owned == "static" then
+				-- Bought with Static the first time it is put on.
+				local cost = def.cost or 0
+				action(`{cost} STATIC`, function()
+					send("EquipSkin", id)
+				end, if profile.static >= cost then Ui.colors.gold else Ui.colors.dim)
 			elseif owned == "playtime" then
 				status(
 					`{duration(SkinRules.secondsLeft(def, profile.stats.playSeconds))} TO GO!`,
@@ -1270,6 +1198,21 @@ refreshSkins = function()
 			else def.blurb
 		row(def.id, def.name, blurb, def.wall, def.gun, def)
 	end
+end
+
+refreshSkins = function()
+	local profile = State.profile
+	local meta = State.meta
+	skinsPlayed.Text = "EXPLORED FOR  " .. duration(profile.stats.playSeconds)
+	for _, list in { skinsList, benchSkins } do
+		for _, child in list:GetChildren() do
+			if child:IsA("Frame") then
+				child:Destroy()
+			end
+		end
+	end
+	fillSkins(skinsList, false)
+	fillSkins(benchSkins, true)
 
 	-- The pack: every Robux skin in one purchase. Only while there is something left to buy.
 	local packId = meta.skinPassIds[Skins.packKey] or 0
@@ -1277,7 +1220,13 @@ refreshSkins = function()
 	for _, def in Skins.list do
 		if
 			def.kind == "robux"
-			and SkinRules.status(def, profile.stats.playSeconds, meta.passes) ~= "owned"
+			and SkinRules.status(
+					def,
+					profile.stats.playSeconds,
+					meta.passes,
+					profile.ownedSkins
+				)
+				~= "owned"
 		then
 			lockedRobux = true
 		end
@@ -1291,7 +1240,7 @@ end
 
 local function buildSkins()
 	local frame = window("skins", 620, 380)
-	heading(frame, "SKINS")
+	heading(frame, "PHOSPHOR SKINS")
 	skinsPlayed = Ui.label({
 		TextSize = Ui.text.small,
 		TextColor3 = Ui.colors.dim,
@@ -1302,7 +1251,7 @@ local function buildSkins()
 		Parent = frame,
 	})
 	Ui.label({
-		Text = "Give your dots and your gun a new look!",
+		Text = "New colours and new scanner shapes for your dots and your gun!",
 		TextSize = Ui.text.small,
 		TextColor3 = Ui.colors.dim,
 		Position = UDim2.fromOffset(0, 28),

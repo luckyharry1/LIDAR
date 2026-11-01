@@ -56,7 +56,7 @@ tests["effects follow upgrade levels"] = function()
 			and base.startCharges == Config.Battery.startCharges
 			and base.trickleSeconds == 0
 			and base.shutterLevel == 0
-			and base.phosphorLevel == 0,
+			and base.afterglowLevel == 0,
 		"base effects are not neutral"
 	)
 	assert(
@@ -80,8 +80,8 @@ tests["effects follow upgrade levels"] = function()
 		"Capacitor should add a charge per level"
 	)
 	assert(
-		effects.shutterLevel == 1 and effects.phosphorLevel == 3,
-		"shutter or phosphor level wrong"
+		effects.shutterLevel == 1 and effects.afterglowLevel == 3,
+		"shutter or afterglow level wrong"
 	)
 	assert(effects.wideLens and effects.radarLevel == 2, "lens or radar wrong")
 	assert(
@@ -117,7 +117,7 @@ tests["scanner upgrades make the gun stronger, up to its caps"] = function()
 	assert(full.trickleSeconds > 0, "Trickle Charger did nothing")
 	-- The base gun must be clearly weaker than before the battery rework (900 dots a second,
 	-- 150 studs): that gap is what the bench is for.
-	assert(base.dotsPerSecond <= 450 and base.range <= 100, "the base scanner is too strong")
+	assert(base.dotsPerSecond <= 200 and base.range <= 50, "the base scanner is too strong")
 end
 
 tests["battery cells fill the gun and spill the rest"] = function()
@@ -134,26 +134,6 @@ tests["buying a switchable upgrade turns it on"] = function()
 	profile.static = 1000
 	assert(Progression.buyUpgrade(profile, "radar"), "could not buy the radar")
 	assert(Progression.effects(profile).radarLevel == 1, "a newly bought radar should be on")
-end
-
-tests["cosmetics are bought once, then equip for free"] = function()
-	local profile = SaveData.default()
-	local ok = Progression.equipCosmetic(profile, "dots", "dots_amber")
-	assert(not ok, "equipped an unaffordable cosmetic")
-	profile.static = 200
-	ok = Progression.equipCosmetic(profile, "dots", "dots_amber")
-	assert(
-		ok and profile.static == 120 and profile.cosmetics.dots == "dots_amber",
-		"first equip wrong"
-	)
-	Progression.equipCosmetic(profile, "dots", "")
-	assert(profile.cosmetics.dots == "", "default not restored")
-	Progression.equipCosmetic(profile, "dots", "dots_amber")
-	assert(profile.static == 120, "charged twice for an owned cosmetic")
-	assert(
-		not Progression.equipCosmetic(profile, "gun", "dots_amber"),
-		"equipped into the wrong slot"
-	)
 end
 
 tests["level rewards add bonuses and pay extra for a clean clear"] = function()
