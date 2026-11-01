@@ -637,3 +637,5 @@ same walls, floor and text, and checkpoints sometimes put you next to a monster.
     pairs within 3 steps before. Tier 7 keeps its map and monsters untouched.
   - Check in Studio: that the blue patch matches the cyan water dots in colour and height (wading
     ripples are PR #17's), and how many lamp-bags tiers 1 and 2 now get on short routes.
+  - Burnt-out lamp-bags (variant 4) are intended, but at least two bags per level always burn now
+    (a level with two or three lamp-bags has none or at most one burnt out).
