@@ -6,7 +6,7 @@
    "section": "l0",
    "where": "HUD objective, Level 0",
    "lines": [
-    "Find the surveyors. Start with Joss."
+    "You are not alone here. Find the Survey. Start with Joss."
    ]
   },
   {
@@ -3903,10 +3903,10 @@
      "stage": "office"
     },
     {
-     "cap": "TUESDAY, 11:42 PM"
+     "cap": "THEO MARSH. LASER-SCAN TECH."
     },
     {
-     "cap": "HALDEN BUILDING, FLOOR 3"
+     "cap": "HALDEN BUILDING, FLOOR 3. 11:42 PM."
     },
     {
      "sp": "Theo",
@@ -3930,7 +3930,7 @@
     },
     {
      "sp": "Theo",
-     "line": "This is not floor three. Scan the room. Find a door."
+     "line": "This is not floor three. Nobody sent me here. Scan the room. Find a door."
     }
    ],
    "note": "About 30 seconds. Staged in the client (Stage.luau, set office): scanner sweeps the floor, Theo leans on the wall, it melts, black, the title, a low shot of the melted wall. Ends on the first playable frame.",
@@ -4014,7 +4014,7 @@
     },
     {
      "sp": "Theo",
-     "line": "Okay. Find the surveyors. Find Ines."
+     "line": "I'm not Survey. I just scanned the wrong wall. But they are down here. Find the surveyors. Find Ines."
     }
    ],
    "note": "~60 to 75 seconds with beats; keep skippable. Journal entries 02 and 03 unlock.",

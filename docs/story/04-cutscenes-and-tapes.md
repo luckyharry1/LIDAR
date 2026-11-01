@@ -11,15 +11,15 @@ All spoken lines are voiced (see `05-voice-and-radio.md`) and subtitled. Tapes p
 - **Note:** About 30 seconds. Staged in the client (Stage.luau, set office): scanner sweeps the floor, Theo leans on the wall, it melts, black, the title, a low shot of the melted wall. Ends on the first playable frame.
 
 > *[staging: office]*
-> **[caption]** TUESDAY, 11:42 PM
-> **[caption]** HALDEN BUILDING, FLOOR 3
+> **[caption]** THEO MARSH. LASER-SCAN TECH.
+> **[caption]** HALDEN BUILDING, FLOOR 3. 11:42 PM.
 > **Theo:** Last scan. Forty-one of forty-one. Pack up, go home.
 > *[staging: lean]*
 > **Theo:** Wait. That's not--
 > *[staging: dark]*
 > **[caption]** LIDAR
 > *[staging: wake]*
-> **Theo:** This is not floor three. Scan the room. Find a door.
+> **Theo:** This is not floor three. Nobody sent me here. Scan the room. Find a door.
 
 ## Survey Orientation (Tape 1 of 9) (`tape.orientation`, tape)
 
@@ -46,7 +46,7 @@ All spoken lines are voiced (see `05-voice-and-radio.md`) and subtitled. Tapes p
 > *[staging: static]*
 > **Theo:** A true measurement of a real place.
 > **Theo:** Forty-one scans of floor three. They are on this unit.
-> **Theo:** Okay. Find the surveyors. Find Ines.
+> **Theo:** I'm not Survey. I just scanned the wrong wall. But they are down here. Find the surveyors. Find Ines.
 
 ## Halden Building: Where Tomorrow Works (`tape.halden`, tape)
 
