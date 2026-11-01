@@ -67,15 +67,39 @@ local function lifted(triple: { number }, peak: number): { number }
 	}
 end
 
+-- Pushes a colour away from `avoid` (along the line between them) until it is at least
+-- `distance` away, so no terrain dot can be mistaken for the colour that marks something.
+local function keepClear(color: { number }, avoid: { number }, distance: number): { number }
+	local dx, dy, dz = color[1] - avoid[1], color[2] - avoid[2], color[3] - avoid[3]
+	local length = math.sqrt(dx * dx + dy * dy + dz * dz)
+	if length >= distance then
+		return color
+	end
+	if length < 1e-6 then
+		dx, dy, dz, length = -1, 0, 0, 1 -- exactly the avoided colour: any direction will do
+	end
+	local scale = distance / length
+	return {
+		math.clamp(math.floor(avoid[1] + dx * scale), 0, 255),
+		math.clamp(math.floor(avoid[2] + dy * scale), 0, 255),
+		math.clamp(math.floor(avoid[3] + dz * scale), 0, 255),
+	}
+end
+
+-- How far every floor's terrain dots stay from the objective (gold) dots.
+DotRules.objectiveClearance = 105
+
 function DotRules.themeColors(
 	wallColor: { number },
 	floorColor: { number }
 ): ({ number }, { number }, { number })
 	local ceiling = lifted(wallColor, DotRules.themePeakCeiling)
 	ceiling = { ceiling[1] * 0.85, ceiling[2] * 0.95, math.min(255, ceiling[3] * 1.15) }
-	return lifted(wallColor, DotRules.themePeakWall),
-		lifted(floorColor, DotRules.themePeakFloor),
-		ceiling
+	local objective = Config.Palettes.default.objective
+	local clearance = DotRules.objectiveClearance
+	return keepClear(lifted(wallColor, DotRules.themePeakWall), objective, clearance),
+		keepClear(lifted(floorColor, DotRules.themePeakFloor), objective, clearance),
+		keepClear(ceiling, objective, clearance)
 end
 
 function DotRules.isPermanent(kind: DotKind): boolean

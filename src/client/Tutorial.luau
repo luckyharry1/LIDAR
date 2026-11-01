@@ -127,7 +127,7 @@ function setStep(name: string)
 				.. " widens the scatter]"
 		)
 	elseif name == "door" then
-		Hud.hint("Orange dots are the way on.\n[" .. Input.hint("interact") .. "]")
+		Hud.hint("Gold dots are the way on.\n[" .. Input.hint("interact") .. "]")
 	else
 		Hud.hint(nil)
 	end
@@ -297,7 +297,7 @@ function Tutorial.start()
 			elseif objective and State.server.tier == 1 then
 				once(
 					"objective",
-					"Orange dots are worth the walk.\n[" .. Input.hint("interact") .. " to pick up]"
+					"Gold dots are worth the walk.\n[" .. Input.hint("interact") .. " to pick up]"
 				)
 			end
 		end

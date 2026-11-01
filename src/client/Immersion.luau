@@ -65,7 +65,7 @@ local DEFAULT_MOOD: Mood = {
 	reverb = Enum.ReverbType.GenericReverb,
 }
 
--- Found points of interest keep calling: a ring of orange dots rises from each every few
+-- Found points of interest keep calling: a ring of gold dots rises from each every few
 -- seconds and a faint tone plays, so the player is drawn back toward what they have found.
 local POI_GRID = 6 -- studs; scans of one item count as one point
 local POI_RANGE = 90
@@ -161,7 +161,7 @@ local function poiKey(position: Vector3): string
 end
 
 -- Found things that are done with (picked up, or revealed): never pulse near them again,
--- even though their old orange dots are still there and new ones may land.
+-- even though their old gold dots are still there and new ones may land.
 local FORGET_RADIUS = 5 -- studs; covers an item's stand, its model and its dots
 local forgotten: { Vector3 } = {}
 

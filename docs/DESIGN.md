@@ -50,7 +50,7 @@ for good, and from then on the gold found-item pulse takes over (`client/Lure`) 
 is picked up or revealed.
 
 **Dots** are tiny Neon cubes coloured by what they hit: wall, floor, ceiling, water (blue),
-friend (green), monster (red), objective (orange), hazard (violet). The world's dots are
+friend (green), monster (red), objective (gold), hazard (violet). The world's dots are
 permanent, up to a budget set by the DOT DETAIL setting (14,000 / 42,000 / 85,000, up to
 60% of that at the start, up to 140% with Afterglow); when the budget is full the oldest dot moves. They are packed one per grid cell
 (finer close up), so scanning the same wall twice costs nothing. People and monsters are only
@@ -100,7 +100,7 @@ level again (a quick reset, not a wipe). A fresh respawn is ignored for 5 s.
 | Alarm plate | Stepping on it rings a bell heard 5 cells away for 3 s; it re-arms after 12 s | Scans violet |
 | Flooded cells | Ankle-deep water: slow and loud | Scans blue |
 | Lantern | A real light: a patch of ordinary floor and wall, about one cell | You can see it |
-| Hidden recorder | Put 140 dots on it and it reveals itself, lights its corner and plays the next tape | Orange, and a progress bar under the crosshair |
+| Hidden recorder | Put 140 dots on it and it reveals itself, lights its corner and plays the next tape | Gold, and a progress bar under the crosshair |
 | Battery cell | Recharges the sweep; pays Static | Gold |
 | Key | Opens a locked exit | Gold |
 | Stranded surveyor | Taps on the wall; reaching them pays Static and a green trail of dots leads to the exit | Green, on time |

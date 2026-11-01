@@ -126,7 +126,7 @@ tests["meaning colours never match the terrain dots of any floor"] = function()
 			assert(distance(color, dot) > 60, kind .. " dots look like some floor's terrain dots")
 		end
 	end
-	-- The reported clash: points of interest against the first floor's yellow walls.
+	-- The reported clash: gold points of interest against the first floor's yellow walls.
 	for _, dot in terrain do
 		assert(
 			distance(palette.objective, dot) > 90,
