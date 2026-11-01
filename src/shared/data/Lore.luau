@@ -33,7 +33,7 @@ export type Room = {
 -- and Pim are found there).
 export type Surveyor = {
 	name: string,
-	subject: string?, -- "She" or "He" as the story says; nil where it does not say (then "They")
+	subject: string?, -- "She" or "He" as the story says (docs/story/README.md); nil would read "They"
 	scene: string,
 	sits: boolean,
 	gear: string, -- Figures.surveyor accessories
@@ -287,6 +287,7 @@ Lore.surveyors = {
 	},
 	hana = {
 		name = "Hana",
+		subject = "She",
 		scene = "npc.hana",
 		sits = true,
 		gear = "ponytail",
@@ -316,6 +317,7 @@ Lore.surveyors = {
 	},
 	lena = {
 		name = "Lena",
+		subject = "She",
 		scene = "npc.lena",
 		sits = false,
 		gear = "scarf",
