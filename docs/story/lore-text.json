@@ -1973,7 +1973,7 @@
    "section": "any",
    "where": "Level 3",
    "lines": [
-    "Pim's Mug: Chipped. PIM in marker. Proof he made it this far."
+    "Pim's Mug: Chipped. PIM in marker. Proof she made it this far."
    ],
    "title": "Pim's Mug",
    "note": "Name is before the colon; use text after it."
@@ -2404,6 +2404,45 @@
    },
    "thought": "Fifteen floors. The plans said fourteen. I walked floor three, and I counted wrong.",
    "look": "dorm"
+  },
+  {
+   "id": "rescue.hana",
+   "kind": "rescue",
+   "section": "l1",
+   "where": "Hana, found by the pipes in the Flooded Wing (tier 3)",
+   "lines": [
+    "Hana. Pump house. Took you long enough.",
+    "Stay on my left. Water is loud. Walk.",
+    "Forty steps from the pump to here. Count with me."
+   ],
+   "speaker": "Hana",
+   "vo": "30s, flat, practical, short sentences; hates speeches"
+  },
+  {
+   "id": "rescue.ravi",
+   "kind": "rescue",
+   "section": "l2",
+   "where": "Ravi, found behind a curtain in the Wards (tier 5)",
+   "lines": [
+    "Two taps. A breath. One. You waited. Thank you.",
+    "Do not answer anything that only knocks twice.",
+    "Stay behind me. I know the quiet way."
+   ],
+   "speaker": "Ravi",
+   "vo": "20s, whispery, jumpy; keeps glancing at the radio"
+  },
+  {
+   "id": "rescue.pim",
+   "kind": "rescue",
+   "section": "l3",
+   "where": "Pim, found in the Hollow with her lantern (tier 7)",
+   "lines": [
+    "Theo? You came all the way down for me? Nobody does that.",
+    "I told them there was a draft. Follow the lantern.",
+    "Keep the light low. The glow does not like me either."
+   ],
+   "speaker": "Pim",
+   "vo": "late teens or 20, bright, too hopeful; tries not to sound scared"
   },
   {
    "id": "sign.intake.1",
