@@ -62,7 +62,7 @@ as everyone else.
 | Ember | 120 Static | coral (230, 120, 110) / brick |
 | Plum | 120 Static | plum (170, 100, 170) / dark plum |
 | Rose Quartz | Game pass | hot pink (255, 80, 170) / bright pink, **blossom** model |
-| Aurora | Game pass | electric cyan (40, 225, 255) / glowing teal, **dish** model |
+| Aurora | Game pass | electric teal (0, 190, 170) / deep teal, **dish** model |
 | Nightbloom | Game pass | bright indigo-violet (95, 45, 235) / glowing indigo, **prism** model |
 
 The earned skins are deliberately quiet, a faint tint close to the standard dots, and the

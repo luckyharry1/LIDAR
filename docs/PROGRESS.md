@@ -644,3 +644,5 @@ on the start screen and at the workbench, plus a brainstorm of other monetizatio
   16 per Range Coil level (was 65 + 21; max 106), sweep grid 30x40 to 66x88 (was 44x56 to 90x114), dot
   budget 60% of the DOT DETAIL figure at the start, +20% per Afterglow level (was 100% to 200%).
   `maxRange` stays 150 as the server's cap for pings and reveals.
+- Aurora recoloured to electric teal (wall 0,190,170, gun 0,140,125): the brighter water dots (PR #17)
+  put the old cyan too close to water. This is the colour the PC build chose locally.
