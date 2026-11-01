@@ -12,6 +12,7 @@ local Atmosphere = require(script.Parent.Atmosphere)
 local Audio = require(script.Parent.Audio)
 local Avatar = require(script.Parent.Avatar)
 local Config = require(ReplicatedStorage.Shared.Config)
+local DotRules = require(ReplicatedStorage.Shared.pure.DotRules)
 local Dots = require(script.Parent.Dots)
 local Hud = require(script.Parent.Hud)
 local Input = require(script.Parent.Input)
@@ -64,7 +65,7 @@ local DEFAULT_MOOD: Mood = {
 	reverb = Enum.ReverbType.GenericReverb,
 }
 
--- Found points of interest keep calling: a ring of gold dots rises from each every few
+-- Found points of interest keep calling: a ring of orange dots rises from each every few
 -- seconds and a faint tone plays, so the player is drawn back toward what they have found.
 local POI_GRID = 6 -- studs; scans of one item count as one point
 local POI_RANGE = 90
@@ -160,7 +161,7 @@ local function poiKey(position: Vector3): string
 end
 
 -- Found things that are done with (picked up, or revealed): never pulse near them again,
--- even though their old gold dots are still there and new ones may land.
+-- even though their old orange dots are still there and new ones may land.
 local FORGET_RADIUS = 5 -- studs; covers an item's stand, its model and its dots
 local forgotten: { Vector3 } = {}
 
@@ -416,32 +417,13 @@ local function showNearDot(position: Vector3)
 	end
 end
 
--- A floor's own surfaces: the story's look for its walls and floor, lifted to a brightness a
--- dot can carry (the Hollow's rock is nearly black on paper), and a ceiling in the wall's hue.
-local THEME_WALL = 225
-local THEME_FLOOR = 175
-local THEME_CEILING = 120
-
-local function lifted(triple: { number }, peak: number): { number }
-	local top = math.max(triple[1], triple[2], triple[3], 1)
-	local scale = peak / top
-	return {
-		math.min(255, math.floor(triple[1] * scale)),
-		math.min(255, math.floor(triple[2] * scale)),
-		math.min(255, math.floor(triple[3] * scale)),
-	}
-end
-
 local function applyTheme(floorKey: string?)
 	local look = if floorKey then LoreText.look(string.lower(floorKey)) else nil
 	if look == nil then
 		Dots.setTheme(nil, nil, nil)
 		return
 	end
-	local wall = lifted(look.walls.color, THEME_WALL)
-	local ceiling = lifted(look.walls.color, THEME_CEILING)
-	ceiling = { ceiling[1] * 0.85, ceiling[2] * 0.95, math.min(255, ceiling[3] * 1.15) }
-	Dots.setTheme(wall, lifted(look.floor.color, THEME_FLOOR), ceiling)
+	Dots.setTheme(DotRules.themeColors(look.walls.color, look.floor.color))
 end
 
 local function applyMood(tier: number)

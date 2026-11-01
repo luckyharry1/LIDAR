@@ -13,7 +13,7 @@
 --   robux     a game pass. `pass` is a key of Config.Monetization.skinPassIds; the "pack" pass
 --             unlocks every robux skin at once
 --
--- Colours stay clear of the meaning colours: green is a friend, red is a monster, gold is an
+-- Colours stay clear of the meaning colours: green is a friend, red is a monster, orange is an
 -- objective, bright purple is a hazard. A skin only recolours white terrain dots (the wall tint)
 -- and the gun housing.
 --

@@ -118,7 +118,7 @@ Config.Palettes = {
 		water = { 40, 190, 255 },
 		friend = { 70, 235, 120 },
 		enemy = { 255, 50, 50 },
-		objective = { 255, 205, 80 },
+		objective = { 255, 135, 0 }, -- orange: clear of every floor's wall, floor and ceiling dots (the first floor's walls are yellow)
 		hazard = { 200, 90, 255 },
 	},
 	alt = {

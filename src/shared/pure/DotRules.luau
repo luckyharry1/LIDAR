@@ -50,6 +50,34 @@ function DotRules.classify(tags: { [string]: boolean }, normalY: number): (DotKi
 	return "wall", false
 end
 
+-- A floor's own surfaces: the story's look for its walls and floor, lifted to a brightness a dot
+-- can carry (the Hollow's rock is nearly black on paper), and a ceiling in the wall's hue.
+-- Returns the wall, floor and ceiling dot colours as RGB triples.
+DotRules.themePeakWall = 225
+DotRules.themePeakFloor = 175
+DotRules.themePeakCeiling = 120
+
+local function lifted(triple: { number }, peak: number): { number }
+	local top = math.max(triple[1], triple[2], triple[3], 1)
+	local scale = peak / top
+	return {
+		math.min(255, math.floor(triple[1] * scale)),
+		math.min(255, math.floor(triple[2] * scale)),
+		math.min(255, math.floor(triple[3] * scale)),
+	}
+end
+
+function DotRules.themeColors(
+	wallColor: { number },
+	floorColor: { number }
+): ({ number }, { number }, { number })
+	local ceiling = lifted(wallColor, DotRules.themePeakCeiling)
+	ceiling = { ceiling[1] * 0.85, ceiling[2] * 0.95, math.min(255, ceiling[3] * 1.15) }
+	return lifted(wallColor, DotRules.themePeakWall),
+		lifted(floorColor, DotRules.themePeakFloor),
+		ceiling
+end
+
 function DotRules.isPermanent(kind: DotKind): boolean
 	return kind ~= "friend" and kind ~= "enemy"
 end

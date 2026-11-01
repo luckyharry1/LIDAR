@@ -856,3 +856,11 @@ empty dark room. Stacked on `claude/poi-varied` (PR #18, which is stacked on PR 
   fade look right in the dark; the scene starts ~1.3 s after waking (2.2 s when the room lit
   first); the spots are clear of props (Joss by the bench, Hana between the gauge and kettle,
   Ravi on the west wall, Pim mid-room, Lena east of the pool).
+
+## Orange points of interest (Vasco, 1 Nov)
+- Points-of-interest (objective) dots were gold (255,205,80), the same colour as the plain scanner's dots on the
+  first floor, whose yellow wallpaper walls lift to (225,198,97). The objective colour is now orange
+  (255,135,0), at least 99 from every terrain colour and from the enemy red. The tutorial hints say "Orange dots".
+- The per-floor lift maths moved from `Immersion` into `DotRules.themeColors`, so a test can check every floor:
+  no meaning colour (friend, enemy, objective, hazard, water) is within 60 of any floor's wall, floor or ceiling
+  dots, and the objective is more than 90 from all of them. The colourblind palette is unchanged.

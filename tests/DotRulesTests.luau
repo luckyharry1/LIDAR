@@ -1,6 +1,7 @@
 --!strict
 local Config = require("../src/shared/Config")
 local DotRules = require("../src/shared/pure/DotRules")
+local LoreText = require("../src/shared/data/LoreText")
 
 local tags = Config.Tags
 local tests: { [string]: () -> () } = {}
@@ -105,6 +106,33 @@ end
 tests["the sweep recharges to full and no further"] = function()
 	assert(DotRules.stepCharge(0, 3.5, 7) == 0.5, "half the recharge time should give half charge")
 	assert(DotRules.stepCharge(0.9, 10, 7) == 1, "charge should cap at 1")
+end
+
+tests["meaning colours never match the terrain dots of any floor"] = function()
+	local palette = Config.Palettes.default
+	local terrain: { { number } } = { palette.wall, palette.floor, palette.ceiling }
+	for _, look in LoreText.looks do
+		local wall, floor, ceiling = DotRules.themeColors(look.walls.color, look.floor.color)
+		table.insert(terrain, wall)
+		table.insert(terrain, floor)
+		table.insert(terrain, ceiling)
+	end
+	local function distance(a: { number }, b: { number }): number
+		return math.sqrt((a[1] - b[1]) ^ 2 + (a[2] - b[2]) ^ 2 + (a[3] - b[3]) ^ 2)
+	end
+	for _, kind in { "friend", "enemy", "objective", "hazard", "water" } do
+		local color = (palette :: any)[kind] :: { number }
+		for _, dot in terrain do
+			assert(distance(color, dot) > 60, kind .. " dots look like some floor's terrain dots")
+		end
+	end
+	-- The reported clash: points of interest against the first floor's yellow walls.
+	for _, dot in terrain do
+		assert(
+			distance(palette.objective, dot) > 90,
+			"objective dots are hard to tell from terrain"
+		)
+	end
 end
 
 return tests
