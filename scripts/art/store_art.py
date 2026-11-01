@@ -762,7 +762,7 @@ LOOKS_STATIC = [
 ]
 LOOKS_ROBUX = [
     ("ROSE QUARTZ", (255, 80, 170), (230, 60, 140), "blossom"),
-    ("AURORA", (40, 225, 255), (0, 170, 205), "dish"),
+    ("AURORA", (0, 190, 170), (0, 140, 125), "dish"),
     ("NIGHTBLOOM", (95, 45, 235), (70, 30, 200), "prism"),
 ]
 
