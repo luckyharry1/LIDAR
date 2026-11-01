@@ -319,8 +319,10 @@ function LevelPlan.build(tier: number, seed: number, options: BuildOptions): Lev
 	local lamps: { Cell } = {}
 	local nooks: { number } = {}
 	local deadNookAllowed = tier >= LAST_FORGIVING_TIER + 1
-	-- A short route cannot hold the tier's full count without bunching them up: fewer, then.
-	local lampCount = math.clamp(math.floor(#route / LAMP_ROUTE_STEPS), 1, def.lamps)
+	-- A short route cannot hold the tier's full count without bunching them up: fewer, then, but
+	-- never fewer than two where the tier has them (the second goes off the route if it must).
+	local lampCount =
+		math.clamp(math.floor(#route / LAMP_ROUTE_STEPS), math.min(2, def.lamps), def.lamps)
 	for i = 1, lampCount do
 		if i == 1 then
 			table.insert(lamps, takeNearStep(FIRST_LAMP_STEP))

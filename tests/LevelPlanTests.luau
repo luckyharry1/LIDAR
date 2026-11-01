@@ -125,7 +125,7 @@ tests["every tier places valid, non-overlapping contents"] = function()
 			end
 			assert(#plan.nooks == #plan.lamps, "every lamp-bag needs a variant")
 			assert(
-				#plan.lamps >= 1 and #plan.lamps <= def.lamps,
+				#plan.lamps >= math.min(2, def.lamps) and #plan.lamps <= def.lamps,
 				`wrong lamp count at tier {tier} seed {seed}`
 			)
 			for index, variant in plan.nooks do
