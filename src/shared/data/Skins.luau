@@ -119,7 +119,7 @@ Skins.list = {
 		name = "Aurora",
 		blurb = "Electric teal dots and a radar-dish scanner!",
 		wall = { 0, 190, 170 },
-		gun = { 0, 170, 205 },
+		gun = { 0, 140, 125 },
 		kind = "robux",
 		pass = "aurora",
 	},

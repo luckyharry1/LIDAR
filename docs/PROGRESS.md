@@ -784,3 +784,5 @@ same walls, floor and text, and checkpoints sometimes put you next to a monster.
   3 steps of the beacon over 40 seeds x 14 tiers, a roamer with `keepClear` does not linger there.
 - Check in Studio: the lit cell around each found object reads as that floor; whether the 1.5x
   light looks too bright; tiers 7 and 8 now have their own patch looks (PR #14).
+- Aurora recoloured to electric teal (wall 0,190,170, gun 0,140,125): the brighter water dots (PR #17)
+  put the old cyan too close to water. This is the colour the PC build chose locally.
