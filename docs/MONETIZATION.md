@@ -57,7 +57,7 @@ as everyone else.
 | Classic | Always | cool white (196, 200, 210) / graphite, the classic gun |
 | Tungsten | 15 min in the dark | muted warm / dim brass |
 | Glacier | 45 min | pale mint-teal (150, 214, 196) / slate |
-| Orchid | 90 min | muted lilac / plum, **lantern** model (the one different shape players earn by playing, a taste of the Robux ones) |
+| Orchid | 90 min | soft periwinkle (140, 165, 235) / slate, **lantern** model (the one different shape players earn by playing, a taste of the Robux ones) |
 | Blueprint | 180 min | deep ultramarine (5, 60, 205) / gold, the fanciest earned skin |
 | Ember | 120 Static | coral (230, 120, 110) / brick |
 | Plum | 120 Static | plum (170, 100, 170) / dark plum |

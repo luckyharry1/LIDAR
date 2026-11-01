@@ -60,6 +60,25 @@ function SkinRules.wallTint(profile: SaveData.Profile): { number }?
 	return if skin ~= nil then skin.wall else nil
 end
 
+-- The skin colour for one kind of terrain dot: walls take the skin's colour as it is, floors a
+-- little dimmer and ceilings dimmer still, so a skin reads on every surface while the three stay
+-- apart. Other kinds (friend, enemy, water, objective, hazard) keep their meaning colours: nil.
+function SkinRules.surfaceTint(wall: { number }, kind: string): { number }?
+	local scale = if kind == "wall"
+		then 1
+		elseif kind == "floor" then 0.8
+		elseif kind == "ceiling" then 0.6
+		else nil
+	if scale == nil then
+		return nil
+	end
+	return {
+		math.floor(wall[1] * scale + 0.5),
+		math.floor(wall[2] * scale + 0.5),
+		math.floor(wall[3] * scale + 0.5),
+	}
+end
+
 -- Puts a skin on, or takes it off with an empty id. The server calls this; it refuses a skin the
 -- player has not earned or bought, so a client cannot wear what it did not earn or buy. A Static
 -- skin that is not owned yet is bought here (once) when the player can afford it, then worn.

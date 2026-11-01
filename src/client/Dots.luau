@@ -17,6 +17,7 @@ local RunService = game:GetService("RunService")
 
 local Config = require(ReplicatedStorage.Shared.Config)
 local DotRules = require(ReplicatedStorage.Shared.pure.DotRules)
+local SkinRules = require(ReplicatedStorage.Shared.pure.SkinRules)
 
 type Pending = { position: Vector3, kind: DotRules.DotKind, distance: number, at: number }
 
@@ -84,17 +85,58 @@ local function newWorld(): Folder
 end
 world = newWorld()
 
--- Sets the palette ("default" or "alt") and an optional wall tint from a cosmetic.
-function Dots.setPalette(name: string, wallTint: { number }?)
+local cosmeticWall: { number }? = nil -- the worn skin's wall colour, as RGB
+local themeColors: { [string]: Color3 } = {}
+
+local function applyColors(name: string)
 	local palette = Config.Palettes[name] or Config.Palettes.default
 	for kind, triple in palette do
 		colors[kind] = rgb(triple)
 	end
-	if wallTint then
-		colors.wall = rgb(wallTint)
+	for kind, color in themeColors do
+		colors[kind] = color
+	end
+	if cosmeticWall then
+		-- A skin recolours every terrain surface, not just walls, so it reads in the dark
+		-- whatever floor theme is on.
+		for _, kind in { "wall", "floor", "ceiling" } do
+			local triple = SkinRules.surfaceTint(cosmeticWall, kind)
+			if triple then
+				colors[kind] = rgb(triple)
+			end
+		end
 	end
 end
+
+local paletteName = "default"
+
+-- Sets the palette ("default" or "alt") and an optional wall tint from a cosmetic.
+function Dots.setPalette(name: string, wallTint: { number }?)
+	paletteName = name
+	cosmeticWall = wallTint
+	applyColors(name)
+end
 Dots.setPalette("default", nil)
+
+-- Gives each floor its own surfaces: wall, floor and ceiling dots take the floor's colours.
+-- Called on arrival, when the picture is wiped, so no old dot changes colour. The colourblind
+-- palette keeps its own set, since its colours are chosen for contrast, and a cosmetic wall
+-- tint still wins.
+function Dots.setTheme(wall: { number }?, floor: { number }?, ceiling: { number }?)
+	themeColors = {}
+	if paletteName == "default" then
+		if wall then
+			themeColors.wall = rgb(wall)
+		end
+		if floor then
+			themeColors.floor = rgb(floor)
+		end
+		if ceiling then
+			themeColors.ceiling = rgb(ceiling)
+		end
+	end
+	applyColors(paletteName)
+end
 
 function Dots.color(kind: DotRules.DotKind): Color3
 	return colors[kind]

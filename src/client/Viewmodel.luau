@@ -36,7 +36,8 @@ local DEFAULT_HOUSING = { 96, 100, 108 }
 local DARK = { 34, 36, 40 }
 local READY_LIGHT = Color3.fromRGB(200, 220, 255)
 local CHARGING_LIGHT = Color3.fromRGB(255, 60, 40)
-local GLOW_TRANSPARENCY = 0.45 -- the model's glowing part: dim, so it never competes with the dots
+local GLOW_TRANSPARENCY = 0.35 -- the model's glowing part: dim, so it never competes with the dots
+local RIM_TRANSPARENCY = 0.55 -- the faint outline that makes the gun's shape show in the dark
 local PLAIN_DOTS = { 196, 200, 210 }
 local LIGHT_SIZE = 0.014 -- a pinprick: it must never compete with the dots
 local SWAY = 0.018
@@ -172,6 +173,7 @@ model.Name = "Scanner"
 local pieces: { Piece } = {}
 local housing: { Part } = {}
 local glows: { Part } = {}
+local rim: Highlight
 local light: Part
 local builtModel = ""
 local swayTime = 0
@@ -226,6 +228,15 @@ local function build(modelId: string)
 	end
 	light = newPart(Vector3.one * LIGHT_SIZE, READY_LIGHT, Enum.Material.Neon, Enum.PartType.Ball)
 	table.insert(pieces, { part = light, offset = def.light })
+	-- A faint rim light in the skin's colour: the housing is dark metal, so without an outline
+	-- the gun's shape would be lost in the dark. It colours only the gun, never the world.
+	rim = Instance.new("Highlight")
+	rim.Name = "Rim"
+	rim.Adornee = model
+	rim.FillTransparency = 1
+	rim.OutlineTransparency = RIM_TRANSPARENCY
+	rim.DepthMode = Enum.HighlightDepthMode.Occluded
+	rim.Parent = model
 end
 
 local function update(dt: number)
@@ -295,6 +306,7 @@ local function applySkin()
 	for _, part in glows do
 		part.Color = glowColor
 	end
+	rim.OutlineColor = glowColor
 end
 
 function Viewmodel.start()

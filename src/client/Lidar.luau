@@ -24,6 +24,7 @@ local Dots = require(script.Parent.Dots)
 local Input = require(script.Parent.Input)
 local Maze = require(ReplicatedStorage.Shared.pure.Maze)
 local Net = require(ReplicatedStorage.Shared.Net)
+local SkinRules = require(ReplicatedStorage.Shared.pure.SkinRules)
 local State = require(script.Parent.State)
 
 type Target = {
@@ -113,7 +114,8 @@ local radarRemaining = 0
 local radarYaw = 0
 local teammates: { [number]: Teammate } = {}
 -- While a teammate's rays are drawn, this is the colour of their terrain dots (their skin).
-local mateTint: Color3? = nil
+type MateTint = { wall: Color3, floor: Color3?, ceiling: Color3? }
+local mateTint: MateTint? = nil
 local batchListeners: { BatchListener } = {}
 local poiListeners: { (position: Vector3) -> () } = {}
 local hitListeners: { (position: Vector3) -> () } = {}
@@ -394,7 +396,16 @@ local function castRay(
 	local distance = (result.Position - origin).Magnitude
 	-- Only plain terrain wears a skin. Friends, monsters, objectives and hazards keep their
 	-- meaning colours, so a teammate's look can never be mistaken for one of them.
-	local tint = if kind == "wall" then mateTint else nil
+	local tint: Color3? = nil
+	if mateTint ~= nil then
+		if kind == "wall" then
+			tint = mateTint.wall
+		elseif kind == "floor" then
+			tint = mateTint.floor
+		elseif kind == "ceiling" then
+			tint = mateTint.ceiling
+		end
+	end
 	if late then
 		Dots.addLate(position, kind, distance, lidar.mimicDotDelay)
 	else
@@ -680,17 +691,26 @@ local function stepOwn(camera: Camera, dt: number, now: number)
 	end
 end
 
--- The colour a teammate's terrain dots should wear on this screen: their skin or dot tint, or the
--- plain palette when they have none (so a skinned player and a plain one look different).
-local function tintFor(userId: number): Color3
+-- The colours a teammate's terrain dots should wear on this screen: their skin's (dimmer on floors
+-- and ceilings, as on their own screen), or the plain palette when they have none (so a skinned
+-- player and a plain one look different).
+local function tintFor(userId: number): MateTint
+	local function color(triple: { number }): Color3
+		return Color3.fromRGB(triple[1], triple[2], triple[3])
+	end
 	for _, entry in State.server.lobby do
 		if entry.userId == userId and entry.tint ~= nil then
-			local rgb = entry.tint
-			return Color3.fromRGB(rgb[1], rgb[2], rgb[3])
+			local wall = entry.tint
+			return {
+				wall = color(wall),
+				floor = color(SkinRules.surfaceTint(wall, "floor") :: { number }),
+				ceiling = color(SkinRules.surfaceTint(wall, "ceiling") :: { number }),
+			}
 		end
 	end
+	-- No skin: only walls are fixed to the plain colour; floors and ceilings keep this screen's theme.
 	local palette = Config.Palettes[State.profile.settings.palette] or Config.Palettes.default
-	return Color3.fromRGB(palette.wall[1], palette.wall[2], palette.wall[3])
+	return { wall = color(palette.wall) }
 end
 
 -- Teammates' guns, redrawn from what the server relays about them.

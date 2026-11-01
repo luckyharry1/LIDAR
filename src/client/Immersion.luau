@@ -10,11 +10,14 @@ local RunService = game:GetService("RunService")
 
 local Atmosphere = require(script.Parent.Atmosphere)
 local Audio = require(script.Parent.Audio)
+local Avatar = require(script.Parent.Avatar)
 local Config = require(ReplicatedStorage.Shared.Config)
 local Dots = require(script.Parent.Dots)
 local Hud = require(script.Parent.Hud)
+local Input = require(script.Parent.Input)
 local Lidar = require(script.Parent.Lidar)
 local Lore = require(ReplicatedStorage.Shared.data.Lore)
+local LoreText = require(ReplicatedStorage.Shared.data.LoreText)
 local Net = require(ReplicatedStorage.Shared.Net)
 local State = require(script.Parent.State)
 
@@ -79,6 +82,17 @@ local WRONG_TENSE = { 6, 12 }
 local WRONG_KINDS = { "door", "run", "crackle", "bump" }
 local WRONG_DISTANCE = { 35, 70 }
 
+-- Wading: rings of blue dots spread from the player's feet, so water is felt and seen before
+-- it is scanned. Walking raises them quickly; standing in it, once in a while.
+local WAKE_WALK_PERIOD = 0.45
+local WAKE_SPRINT_PERIOD = 0.3
+local WAKE_STILL_PERIOD = 1.4
+local WAKE_RINGS = { 0.9, 1.8, 2.7 } -- radii, each a moment after the last
+local WAKE_RING_DELAY = 0.18
+local WAKE_RING_DOTS = 14
+local WAKE_DOT_SIZE = 0.07
+local WAKE_DOT_SECONDS = 1.2
+
 -- Lights that stutter when a monster is near.
 local FLICKER_THREAT = 0.15
 local FLICKER_RANGE = 45
@@ -102,6 +116,7 @@ local sightParams = RaycastParams.new()
 sightParams.FilterType = Enum.RaycastFilterType.Exclude
 
 local pois: { [string]: Vector3 } = {}
+local wakeTimer = 0
 local poiTimer = 0
 local wrongTimer = 30
 local baseBrightness: { [Light]: number } = {}
@@ -196,6 +211,22 @@ local function pulsePois(camera: Camera)
 	-- into a harsh, glitchy buzz, and each would steal one of the few positional emitters.
 	if #near > 0 then
 		Audio.poiHum(near[1].position)
+	end
+end
+
+local function wakeRipples(center: Vector3)
+	for ring, radius in WAKE_RINGS do
+		task.delay((ring - 1) * WAKE_RING_DELAY, function()
+			for dot = 1, WAKE_RING_DOTS do
+				local angle = dot / WAKE_RING_DOTS * math.pi * 2 + ring
+				Dots.mark(
+					center + Vector3.new(math.cos(angle) * radius, 0.05, math.sin(angle) * radius),
+					"water",
+					WAKE_DOT_SIZE,
+					WAKE_DOT_SECONDS
+				)
+			end
+		end)
 	end
 end
 
@@ -385,8 +416,37 @@ local function showNearDot(position: Vector3)
 	end
 end
 
+-- A floor's own surfaces: the story's look for its walls and floor, lifted to a brightness a
+-- dot can carry (the Hollow's rock is nearly black on paper), and a ceiling in the wall's hue.
+local THEME_WALL = 225
+local THEME_FLOOR = 175
+local THEME_CEILING = 120
+
+local function lifted(triple: { number }, peak: number): { number }
+	local top = math.max(triple[1], triple[2], triple[3], 1)
+	local scale = peak / top
+	return {
+		math.min(255, math.floor(triple[1] * scale)),
+		math.min(255, math.floor(triple[2] * scale)),
+		math.min(255, math.floor(triple[3] * scale)),
+	}
+end
+
+local function applyTheme(floorKey: string?)
+	local look = if floorKey then LoreText.look(string.lower(floorKey)) else nil
+	if look == nil then
+		Dots.setTheme(nil, nil, nil)
+		return
+	end
+	local wall = lifted(look.walls.color, THEME_WALL)
+	local ceiling = lifted(look.walls.color, THEME_CEILING)
+	ceiling = { ceiling[1] * 0.85, ceiling[2] * 0.95, math.min(255, ceiling[3] * 1.15) }
+	Dots.setTheme(wall, lifted(look.floor.color, THEME_FLOOR), ceiling)
+end
+
 local function applyMood(tier: number)
 	local section = Lore.sectionFor(tier)
+	applyTheme(if section then section.floor else nil)
 	local mood = if section ~= nil then MOODS[section.first] or DEFAULT_MOOD else DEFAULT_MOOD
 	Atmosphere.setTint(mood.tint)
 	Audio.setMood(mood.speed, mood.drips, mood.reverb)
@@ -471,6 +531,18 @@ function Immersion.start()
 		current.FieldOfView = fov
 		if not playing then
 			return
+		end
+		wakeTimer -= dt
+		if wakeTimer <= 0 and Avatar.wading then
+			local character = Players.LocalPlayer.Character
+			local root = if character then character:FindFirstChild("HumanoidRootPart") else nil
+			if root and root:IsA("BasePart") then
+				wakeTimer = if not Avatar.moving
+					then WAKE_STILL_PERIOD
+					elseif Input.sprinting then WAKE_SPRINT_PERIOD
+					else WAKE_WALK_PERIOD
+				wakeRipples(Vector3.new(root.Position.X, Avatar.waterSurface, root.Position.Z))
+			end
 		end
 		poiTimer -= dt
 		if poiTimer <= 0 then

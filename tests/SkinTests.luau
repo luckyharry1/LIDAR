@@ -134,7 +134,36 @@ tests["no skin colour is close to a meaning colour or to the plain dots"] = func
 				distance(def.wall, Config.Palettes.default.wall) > 120,
 				def.id .. " is too close to the standard dots to stand out"
 			)
+		else
+			-- Even the muted skins must visibly differ from the plain dots, or players think
+			-- the skin did nothing.
+			assert(
+				distance(def.wall, Config.Palettes.default.wall) > 50,
+				def.id .. " is too close to the standard dots to be noticed"
+			)
 		end
+		-- The dimmer floor and ceiling versions must stay clear of the meaning colours too.
+		for _, kind in { "floor", "ceiling" } do
+			local dim = SkinRules.surfaceTint(def.wall, kind) :: { number }
+			for _, color in meaning do
+				assert(
+					distance(dim, color) > 60,
+					def.id .. " " .. kind .. " looks like a meaning colour"
+				)
+			end
+		end
+	end
+end
+
+tests["a skin recolours walls, floors and ceilings, and nothing else"] = function()
+	local wall = { 200, 100, 50 }
+	assert(SkinRules.surfaceTint(wall, "wall")[1] == 200, "wall tint changed")
+	local floor = SkinRules.surfaceTint(wall, "floor") :: { number }
+	local ceiling = SkinRules.surfaceTint(wall, "ceiling") :: { number }
+	assert(floor[1] == 160 and floor[2] == 80 and floor[3] == 40, "floor tint wrong")
+	assert(ceiling[1] == 120 and ceiling[2] == 60 and ceiling[3] == 30, "ceiling tint wrong")
+	for _, kind in { "friend", "enemy", "objective", "hazard", "water", "nonsense" } do
+		assert(SkinRules.surfaceTint(wall, kind) == nil, kind .. " dots must keep their colour")
 	end
 end
 
