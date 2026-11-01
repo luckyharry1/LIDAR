@@ -17,6 +17,7 @@ local RunService = game:GetService("RunService")
 
 local Config = require(ReplicatedStorage.Shared.Config)
 local DotRules = require(ReplicatedStorage.Shared.pure.DotRules)
+local SkinRules = require(ReplicatedStorage.Shared.pure.SkinRules)
 
 type Pending = { position: Vector3, kind: DotRules.DotKind, distance: number, at: number }
 
@@ -84,7 +85,7 @@ local function newWorld(): Folder
 end
 world = newWorld()
 
-local cosmeticWall: Color3? = nil
+local cosmeticWall: { number }? = nil -- the worn skin's wall colour, as RGB
 local themeColors: { [string]: Color3 } = {}
 
 local function applyColors(name: string)
@@ -96,7 +97,14 @@ local function applyColors(name: string)
 		colors[kind] = color
 	end
 	if cosmeticWall then
-		colors.wall = cosmeticWall
+		-- A skin recolours every terrain surface, not just walls, so it reads in the dark
+		-- whatever floor theme is on.
+		for _, kind in { "wall", "floor", "ceiling" } do
+			local triple = SkinRules.surfaceTint(cosmeticWall, kind)
+			if triple then
+				colors[kind] = rgb(triple)
+			end
+		end
 	end
 end
 
@@ -105,7 +113,7 @@ local paletteName = "default"
 -- Sets the palette ("default" or "alt") and an optional wall tint from a cosmetic.
 function Dots.setPalette(name: string, wallTint: { number }?)
 	paletteName = name
-	cosmeticWall = if wallTint then rgb(wallTint) else nil
+	cosmeticWall = wallTint
 	applyColors(name)
 end
 Dots.setPalette("default", nil)
