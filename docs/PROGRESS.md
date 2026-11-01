@@ -750,3 +750,14 @@ on the start screen and at the workbench, plus a brainstorm of other monetizatio
   16 per Range Coil level (was 65 + 21; max 106), sweep grid 30x40 to 66x88 (was 44x56 to 90x114), dot
   budget 60% of the DOT DETAIL figure at the start, +20% per Afterglow level (was 100% to 200%).
   `maxRange` stays 150 as the server's cap for pings and reveals.
+
+## Floor surfaces and a louder water (Vasco, 31 Oct)
+- Each floor now has its own surfaces: `Dots.setTheme` recolours wall, floor and ceiling dots from
+  the floor's look in LoreText (yellow wallpaper, pale pool tile, ward green, Hollow violet, Garage
+  concrete), lifted to a dot-friendly brightness. Applied in `Immersion.applyMood` on arrival; the
+  colourblind palette and a cosmetic wall tint still win; the Relay floors use the default set.
+- Wading: rings of blue dots spread from the feet (`Immersion.wakeRipples`, `Avatar.waterSurface`),
+  quicker when sprinting, slow when standing still.
+- Cutscenes are the story thread's (PR #14, `Stage.luau`); POI text is the "Make POIs varied" thread's.
+- Check in Studio: do the five floors read as different places by colour alone, is the Hollow wall
+  bright enough, do the rings show on the water surface without scanning.
