@@ -884,3 +884,16 @@ Vasco: big gaps between the lit floor "tiles", lit walls looked odd, and the res
   floor dots went from tan (190,160,96) to a warm grey (176,164,148).
 - Test: no meaning colour (friend, enemy, objective, hazard, water) is within 60 of any floor's wall, floor or
   ceiling dots, and the objective is more than 90 from all of them. The colourblind palette is unchanged.
+
+## Lit surfaces in real materials, and lit water (Vasco, 1 Nov)
+- Stacked on PR #20. A lit patch is now real parts of a real Roblox material instead of a painted
+  SurfaceGui with seams: office Fabric wallpaper and carpet, pool Marble over Slate, clinic
+  SmoothPlastic over Plastic, cave Rock over Ground, garage Concrete over Asphalt (`PATCH_LOOKS`).
+  The edge fades are the same NumberSequences, read in six steps and thinned by transparency;
+  equal steps join into one part, so a patch with solid edges is one part per surface.
+- Lit water is a Glass slab (blue, reflective) with the old rings and glints on top, and the client
+  lets it glint (`Immersion.shimmerWater`, tag `Lidar_Shimmer`): sheen and tint drift, out of step
+  from piece to piece. The skirting board and seams of the painted version are gone.
+- Check in Studio: do the five floors read as five places in the light, do the stepped fades look
+  soft enough, does the Rock/Ground cave look like rock and not mud, does the water look like water,
+  and the cost of the extra parts on a patch with several lit cells.

@@ -94,6 +94,14 @@ local WAKE_RING_DOTS = 14
 local WAKE_DOT_SIZE = 0.07
 local WAKE_DOT_SECONDS = 1.2
 
+-- Lit water: the surface glints. Its sheen and tint drift slowly, each piece out of step with
+-- the next, so a pool moves under the light and does not sit like painted floor.
+local SHIMMER_RANGE = 70
+local SHIMMER_PERIOD = 0.08 -- seconds between updates
+local SHIMMER_SPEED = 1.4
+local SHIMMER_SHEEN = { 0.12, 0.45 }
+local SHIMMER_LIFT = 0.22 -- how far the tint brightens at the top of a glint
+
 -- Lights that stutter when a monster is near.
 local FLICKER_THREAT = 0.15
 local FLICKER_RANGE = 45
@@ -228,6 +236,32 @@ local function wakeRipples(center: Vector3)
 				)
 			end
 		end)
+	end
+end
+
+local shimmerTimer = 0
+local shimmerBase: { [BasePart]: Color3 } = {}
+
+local function shimmerWater(camera: Camera, dt: number)
+	shimmerTimer -= dt
+	if shimmerTimer > 0 then
+		return
+	end
+	shimmerTimer = SHIMMER_PERIOD
+	local now = os.clock() * SHIMMER_SPEED
+	local here = camera.CFrame.Position
+	for _, instance in CollectionService:GetTagged(Config.Tags.shimmer) do
+		if instance:IsA("BasePart") and (instance.Position - here).Magnitude <= SHIMMER_RANGE then
+			local base = shimmerBase[instance]
+			if base == nil then
+				base = instance.Color
+				shimmerBase[instance] = base
+			end
+			local phase = instance.Position.X * 0.31 + instance.Position.Z * 0.47
+			local wave = (math.sin(now + phase) + math.sin(now * 1.7 + phase * 0.6)) / 4 + 0.5
+			instance.Reflectance = SHIMMER_SHEEN[1] + (SHIMMER_SHEEN[2] - SHIMMER_SHEEN[1]) * wave
+			instance.Color = (base :: Color3):Lerp(Color3.new(1, 1, 1), SHIMMER_LIFT * wave)
+		end
 	end
 end
 
@@ -514,6 +548,7 @@ function Immersion.start()
 		if not playing then
 			return
 		end
+		shimmerWater(current, dt)
 		wakeTimer -= dt
 		if wakeTimer <= 0 and Avatar.wading then
 			local character = Players.LocalPlayer.Character

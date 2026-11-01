@@ -146,6 +146,7 @@ Config.Tags = {
 	water = "Lidar_Water",
 	hazard = "Lidar_Hazard", -- pit rims and alarm plates
 	sound = "Lidar_Sound", -- server-made sounds the client routes through its volume setting
+	shimmer = "Lidar_Shimmer", -- lit water surfaces, which the client lets glint
 	light = "Lidar_Light", -- every server-made light, so clients find them without a scan
 	concealed = "Lidar_Concealed", -- built dark; each client shows it once its scan lands near
 }
