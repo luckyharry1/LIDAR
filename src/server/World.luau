@@ -72,6 +72,7 @@ local PROP_SIDE_REACH = INNER - 3.2 -- how far along a wall a prop may sit from 
 local LAMP_BRIGHTNESS = 2.4
 local ECHO_BRIGHTNESS = 2.2
 local GLOW_BRIGHTNESS = 2
+local PLACE_RANGE_BOOST = 1.5 -- a found object's light reaches the open cells beside it
 local GLOW_RANGE_PER_RADIUS = 1.7 -- a story object's glow radius is where it is clearly lit
 local LAMP_RADIUS = 6 -- the radius a Config.World.lampRange lantern stands for
 local SIGN_LIGHT = { color = { 255, 232, 196 }, radius = 5 }
@@ -554,32 +555,44 @@ local function buildPatch(
 	cell: Maze.Cell,
 	parent: Instance,
 	toward: Vector3?,
-	tier: number
+	tier: number,
+	area: boolean
 )
 	local look = patchLook(tier)
 	local center = World.cellCenter(origin, cell)
 	local span = CELL - THICK
 	local patch = Build.model("Patch", parent)
-	local floor = Build.part({
-		name = "Floor",
-		size = Vector3.new(span, PATCH_THICKNESS, span),
-		cframe = CFrame.new(center),
-		transparency = 1,
-		collide = false,
-		parent = patch,
-	})
-	fadeSurface(
-		floor,
-		Enum.NormalId.Top,
-		look.floor,
-		PATCH_EDGE_FADE,
-		PATCH_EDGE_FADE,
-		look.floorPattern
-	)
+	local function floorAt(at: Maze.Cell)
+		local floor = Build.part({
+			name = "Floor",
+			size = Vector3.new(span, PATCH_THICKNESS, span),
+			cframe = CFrame.new(World.cellCenter(origin, at)),
+			transparency = 1,
+			collide = false,
+			parent = patch,
+		})
+		fadeSurface(
+			floor,
+			Enum.NormalId.Top,
+			look.floor,
+			PATCH_EDGE_FADE,
+			PATCH_EDGE_FADE,
+			look.floorPattern
+		)
+	end
+	floorAt(cell)
+	if area then
+		-- The open floor beside it too, so the lit patch reads as a stretch of the place.
+		for _, neighbor in Maze.neighbors(maze, cell.x, cell.y) do
+			floorAt(neighbor)
+		end
+	end
 	local target = toward or center
 	local best: CFrame? = nil
+	local bases: { CFrame } = {}
 	for _, side in closedSides(maze, cell) do
 		local base = wallBase(center, side)
+		table.insert(bases, base)
 		if
 			best == nil
 			or (base.Position - target).Magnitude < (best.Position - target).Magnitude
@@ -587,23 +600,25 @@ local function buildPatch(
 			best = base
 		end
 	end
-	if best ~= nil then
-		local wall = Build.part({
-			name = "Wall",
-			size = Vector3.new(span, HEIGHT, PATCH_THICKNESS),
-			cframe = best * CFrame.new(0, HEIGHT / 2, 0),
-			transparency = 1,
-			collide = false,
-			parent = patch,
-		})
-		fadeSurface(
-			wall,
-			Enum.NormalId.Front,
-			look.wall,
-			PATCH_EDGE_FADE,
-			PATCH_WALL_FADE,
-			look.wallPattern
-		)
+	for _, base in bases do
+		if area or base == best then
+			local wall = Build.part({
+				name = "Wall",
+				size = Vector3.new(span, HEIGHT, PATCH_THICKNESS),
+				cframe = base * CFrame.new(0, HEIGHT / 2, 0),
+				transparency = 1,
+				collide = false,
+				parent = patch,
+			})
+			fadeSurface(
+				wall,
+				Enum.NormalId.Front,
+				look.wall,
+				PATCH_EDGE_FADE,
+				PATCH_WALL_FADE,
+				look.wallPattern
+			)
+		end
 	end
 end
 
@@ -688,7 +703,7 @@ local function buildLamps(
 		else
 			local range = Config.World.lampRange * glow.radius / LAMP_RADIUS
 			Build.pointLight(bulb, LAMP_COLOR, LAMP_BRIGHTNESS, range)
-			buildPatch(plan.maze, origin, cell, parent, base.Position, plan.tier)
+			buildPatch(plan.maze, origin, cell, parent, base.Position, plan.tier, false)
 		end
 		local echo =
 			newEcho(firstId + index - 1, "nook", cell, lantern, Places.nookLines(variant), glow)
@@ -798,6 +813,10 @@ function World.revealEcho(level: Level, echo: Echo)
 		return
 	end
 	Build.show(echo.model)
+	-- A found story object or tape is the point of its corner of the level: it lights every wall
+	-- of its cell and the open floor beside it, so the range is wider than a poster's.
+	local showsPlace = echo.kind == "reveal" or echo.kind == "recorder"
+	local boost = if showsPlace then PLACE_RANGE_BOOST else 1
 	local anchor = echo.anchor
 	if anchor ~= nil then
 		local glow = echo.glow
@@ -806,10 +825,15 @@ function World.revealEcho(level: Level, echo: Echo)
 				anchor,
 				Build.rgb(glow.color),
 				GLOW_BRIGHTNESS,
-				glow.radius * GLOW_RANGE_PER_RADIUS
+				glow.radius * GLOW_RANGE_PER_RADIUS * boost
 			)
 		else
-			Build.pointLight(anchor, anchor.Color, ECHO_BRIGHTNESS, Config.World.echoLightRange)
+			Build.pointLight(
+				anchor,
+				anchor.Color,
+				ECHO_BRIGHTNESS,
+				Config.World.echoLightRange * boost
+			)
 		end
 	end
 	echo.model.Parent = level.lit
@@ -820,7 +844,8 @@ function World.revealEcho(level: Level, echo: Echo)
 			echo.cell,
 			level.lit,
 			if echo.anchor then echo.anchor.Position else echo.model:GetPivot().Position,
-			level.plan.tier
+			level.plan.tier,
+			showsPlace
 		)
 	end
 end

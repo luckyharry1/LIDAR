@@ -124,6 +124,11 @@ function LevelPlan.build(tier: number, seed: number, options: BuildOptions): Lev
 	-- enemies crowd each other before they crowd the start.
 	local apart: { { [number]: number } } = {}
 	local cellCount = maze.width * maze.height
+	-- The beacon: the cell halfway along the shortest route to the exit. Players who own the
+	-- Surveyor's Kit respawn there, so it needs the same room round it the start has.
+	local route = Maze.path(maze, maze.start, maze.exit)
+	local beaconCell = route[math.max(1, math.floor(#route / 2))] or maze.start
+	local beaconDist = Maze.distances(maze, beaconCell)
 
 	-- True when every other cell stays reachable with this one walled off. Something that
 	-- must not be walked into (a Mimic) only ever sits in such a cell, so it never plugs
@@ -154,35 +159,47 @@ function LevelPlan.build(tier: number, seed: number, options: BuildOptions): Lev
 		bypassable: boolean, -- must not plug the only route
 	}
 
-	-- Picks a free cell that satisfies the rule. When nothing fits, spacing is relaxed first
-	-- and distance from the start second, so enemies crowd each other before the start.
+	-- Picks a free cell that satisfies the rule. When nothing fits, spacing is relaxed first,
+	-- then the room left round the checkpoint beacon, and distance from the start last, so
+	-- enemies crowd each other, then the beacon, before the start.
 	local function take(rule: Rule): Cell
 		local pools = if rule.preferDeadEnd then { deadEnds, allCells } else { allCells }
 		for distance = rule.minDistance, 0, -1 do
 			for gap = rule.spacing, 0, -1 do
-				for _, pool in pools do
-					for _, cell in pool do
-						local index = Maze.index(maze, cell.x, cell.y)
-						local fits = not taken[index] and startDist[index] >= distance
-						if fits and rule.clearOfStart and distance > 0 then
-							-- Path distance alone lets things start just across an open room.
-							local dx, dy = cell.x - maze.start.x, cell.y - maze.start.y
-							fits = dx * dx + dy * dy >= Config.Enemy.spawnClearCells ^ 2
-						end
-						if fits then
-							for _, distances in apart do
-								if distances[index] < gap then
-									fits = false
-									break
+				-- Enemy posts also keep clear of the beacon: a player who respawns there must
+				-- not wake up next to one.
+				local beaconTop = if rule.clearOfStart then Config.Enemy.checkpointClearCells else 0
+				for beaconGap = beaconTop, 0, -1 do
+					for _, pool in pools do
+						for _, cell in pool do
+							local index = Maze.index(maze, cell.x, cell.y)
+							local fits = not taken[index] and startDist[index] >= distance
+							if fits and rule.clearOfStart and distance > 0 then
+								-- Path distance alone lets things start just across an open room.
+								local clear = Config.Enemy.spawnClearCells ^ 2
+								local dx, dy = cell.x - maze.start.x, cell.y - maze.start.y
+								fits = dx * dx + dy * dy >= clear
+								if fits and beaconGap > 0 then
+									dx, dy = cell.x - beaconCell.x, cell.y - beaconCell.y
+									fits = dx * dx + dy * dy >= clear
+										and beaconDist[index] >= beaconGap
 								end
 							end
-						end
-						if fits and rule.bypassable then
-							fits = isBypassable(index)
-						end
-						if fits then
-							taken[index] = true
-							return cell
+							if fits then
+								for _, distances in apart do
+									if distances[index] < gap then
+										fits = false
+										break
+									end
+								end
+							end
+							if fits and rule.bypassable then
+								fits = isBypassable(index)
+							end
+							if fits then
+								taken[index] = true
+								return cell
+							end
 						end
 					end
 				end
@@ -255,7 +272,6 @@ function LevelPlan.build(tier: number, seed: number, options: BuildOptions): Lev
 	-- through at even steps, so a player walking it meets one about every minute: a place to
 	-- see the walls, take stock and hear a line of story. A bag the route cannot offer (every
 	-- cell near that step is taken) goes anywhere instead.
-	local route = Maze.path(maze, maze.start, maze.exit)
 	local function takeNearStep(step: number): Cell
 		local target = math.clamp(math.floor(#route * step + 0.5), 1, #route)
 		local function tryStep(position: number): Cell?
@@ -353,9 +369,6 @@ function LevelPlan.build(tier: number, seed: number, options: BuildOptions): Lev
 			anomaly = { kind = kind, room = maze.rooms[rng:int(1, #maze.rooms)] }
 		end
 	end
-
-	-- Beacon: the cell halfway along the shortest route to the exit.
-	local beaconCell = route[math.max(1, math.floor(#route / 2))] or maze.start
 
 	return {
 		tier = tier,

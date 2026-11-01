@@ -36,6 +36,7 @@ export type Enemy = {
 	speedScale: number,
 	senseScale: number, -- multiplies hearing and sight range
 	home: Maze.Cell,
+	keepClear: { Maze.Cell }, -- cells it never roams close to (the checkpoint beacon), as the start
 	restX: number, -- where it stands when idle: the centre of its home cell unless set otherwise
 	restZ: number,
 	x: number,
@@ -96,6 +97,7 @@ function EnemyBrain.new(
 		speedScale = speedScale,
 		senseScale = senseScale,
 		home = cell,
+		keepClear = {},
 		restX = cell.x - 0.5,
 		restZ = cell.y - 0.5,
 		x = 0,
@@ -238,15 +240,26 @@ local function pathCells(maze: Maze.Maze, dist: { [number]: number }, source: So
 	return dist[Maze.index(maze, cell.x, cell.y)] or math.huge
 end
 
--- A random cell anywhere in the level to roam to. The cells around the level start are never
--- chosen, so nothing idles on top of a player who has just respawned.
+-- A random cell anywhere in the level to roam to. The cells around the level start, and around
+-- anything in `keepClear` (the checkpoint beacon), are never chosen, so nothing idles on top of
+-- a player who has just respawned.
 local function randomPatrolCell(enemy: Enemy, maze: Maze.Maze, rng: Rng.Rng): Maze.Cell
 	local startDist = Maze.distances(maze, maze.start)
+	local clearDist = {}
+	for _, cell in enemy.keepClear do
+		table.insert(clearDist, Maze.distances(maze, cell))
+	end
 	local here = Maze.cellOf(maze, enemy.x, enemy.z)
 	local hereIndex = Maze.index(maze, here.x, here.y)
 	local options = {}
 	for index, steps in startDist do
-		if steps > Config.Enemy.startSafeCells and index ~= hereIndex then
+		local clear = steps > Config.Enemy.startSafeCells and index ~= hereIndex
+		for _, distances in clearDist do
+			if (distances[index] or math.huge) <= Config.Enemy.beaconSafeCells then
+				clear = false
+			end
+		end
+		if clear then
 			table.insert(options, index)
 		end
 	end
