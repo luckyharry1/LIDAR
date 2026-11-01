@@ -211,6 +211,16 @@ end
 
 tests["the opening and every tape are staged with cues the stage knows"] = function()
 	local known = { office = true, lean = true, dark = true, wake = true }
+	local tapeCues = {
+		reach = true,
+		static = true,
+		door = true,
+		fade = true,
+		gone = true,
+		dim = true,
+		echo = true,
+		shape = true,
+	}
 	local opening = LoreText.scene("cs.open")
 	assert(opening ~= nil and opening.stage == "office", "the opening is not staged")
 	for _, beat in opening.beats do
@@ -221,6 +231,11 @@ tests["the opening and every tape are staged with cues the stage knows"] = funct
 	for _, scene in LoreText.scenes do
 		if scene.kind == "tape" then
 			assert(scene.stage == "tape", `{scene.id} is not staged`)
+			for _, beat in scene.beats do
+				if beat.stage ~= nil then
+					assert(tapeCues[beat.stage], `{scene.id}: unknown tape cue {beat.stage}`)
+				end
+			end
 		end
 	end
 end

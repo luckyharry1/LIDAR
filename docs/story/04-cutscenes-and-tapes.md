@@ -41,7 +41,9 @@ All spoken lines are voiced (see `05-voice-and-radio.md`) and subtitled. Tapes p
 > **Ines:** Find my people. They camp at every Level. Each of them knows something you need.
 > **Ines:** And find the way out. We have never found one. But the scanner says there is a shape in the dark that matches the real world.
 > **Ines:** To prove it, I would need a true measurement of a real place. We have never had one. If you have one, I would very much like to meet you.
+> *[staging: reach]*
 > *[She reaches forward. The tape cuts to static.]*
+> *[staging: static]*
 > **Theo:** A true measurement of a real place.
 > **Theo:** Forty-one scans of floor three. They are on this unit.
 > **Theo:** Okay. Find the surveyors. Find Ines.
@@ -57,8 +59,10 @@ All spoken lines are voiced (see `05-voice-and-radio.md`) and subtitled. Tapes p
 > *[Ribbon cutting. A young man in a Corbel and Pike survey jacket holds a scanner and waves.]*
 > **Announcer:** Surveyed to the millimetre by Corbel and Pike.
 > *[Camera drifts down a corridor, floor three. At the very end is a door that is not on any plan. It is slightly open. Light is coming out of it.]*
+> *[staging: door]*
 > **Announcer:** From the lobby to floor... three...
 > *[Tape glitches. Static. End.]*
+> *[staging: static]*
 > **Theo:** Fifteen floors. The plan I was given had fourteen.
 > **Theo:** That door is on floor three. That is my floor.
 
@@ -73,8 +77,10 @@ All spoken lines are voiced (see `05-voice-and-radio.md`) and subtitled. Tapes p
 > *[Time jumps. Same corridor. The carpet is wetter.]*
 > **Hollis:** Round four hundred. Lights out on three. All quiet.
 > *[Time jumps. The man is a little translucent. The footage loses detail where he stands.]*
+> *[staging: fade]*
 > **Hollis:** Round eleven thousand. Funny. I do not see the other guards any more.
 > **Hollis:** Is anyone there? Can anyone see me?
+> *[staging: gone]*
 > *[The man stops. Looks straight into the camera. The footage keeps going, but he is gone from the frame. Keys, faint, continue.]*
 > **Theo:** Nobody saw him, so he started to disappear.
 > **Theo:** That is what fading is. Keep somebody in sight.
@@ -89,6 +95,7 @@ All spoken lines are voiced (see `05-voice-and-radio.md`) and subtitled. Tapes p
 > **Tobi:** Tobi Wren. I can hear the building thinking.
 > **Tobi:** I have worked out that it hears us. Every scan. Every step.
 > **Tobi:** So I stopped. If I stay silent, maybe nothing hears me.
+> *[staging: dim]*
 > *[Longer silence. Dripping. A faint, patient breath.]*
 > **Tobi:** It worked. I could not hear anyone, and nobody could hear me.
 > **Tobi:** That's the problem.
@@ -105,6 +112,7 @@ All spoken lines are voiced (see `05-voice-and-radio.md`) and subtitled. Tapes p
 > **Ravi:** Okay. This is the Echo. It copies voices.
 > **Ravi:** Watch. Two taps. A breath. One.
 > *[He taps the table. Silence. Then, from the dark behind the camera, two taps. No breath. One tap.]*
+> *[staging: echo]*
 > **Echo:** Ravi? Ravi? Ravi?
 > **Ravi:** That is my voice. It learned me in an afternoon.
 > **Ravi:** It can copy the words. It can copy the taps. It cannot wait.
@@ -120,10 +128,13 @@ All spoken lines are voiced (see `05-voice-and-radio.md`) and subtitled. Tapes p
 > *[A slide projector throws images on the cave wall: a corridor, frame by frame.]*
 > **Quill:** Frame one. Empty corridor.
 > **Quill:** Frame ten. Empty.
+> *[staging: shape]*
 > **Quill:** Frame thirty. A shape at the far end.
 > *[A shape at the end of the corridor, drawn closer in each frame.]*
+> *[staging: shape]*
 > **Quill:** It moves when I do not look. So I look.
 > **Quill:** But if I stare, it learns the stare.
+> *[staging: shape]*
 > **Quill:** Watch it. Then step. Never stare. Remember.
 > **Theo:** Watch it, then step. Do not stare. Got it.
 

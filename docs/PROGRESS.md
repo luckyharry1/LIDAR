@@ -725,3 +725,11 @@ on the start screen and at the workbench, plus a brainstorm of other monetizatio
   shortcut applies only when nothing is saving. The `skins` and `skins reset` dev commands save at
   once. Not confirmed in Studio: stopping play may still cut the wait short there, so run a dev
   command, wait a second, then stop.
+
+## Story presentation, round 4 (claude/cutscenes)
+
+- Staged scenes are lit properly now: the ViewportFrame ambient is high enough that the opening office and the tape rooms read clearly instead of black, with a melted wall that glows warm behind it.
+- Each of the seven tapes has a room of its own (Ines's map office, the 1994 lobby with the ribbon and the door that is not on any plan, grey security corridor, wet pump room, ward day room, rock cave with a projector, sodium garage) and cues that show the story: Ines reaches out, the lobby door lights, Hollis fades from the picture, the pump room goes dark, the Echo appears behind Ravi, the shape in Quill's cave steps closer.
+- Lamp-bags light up but say nothing (the same lamp over and over is not a story).
+- A lit patch of wall and floor now differs per floor (carpet and wallpaper, wet tile, planks, concrete) with seams so it reads as material, and flooded floor shows larger, brighter cyan dots.
+- Not run in Studio yet: check the tape rooms and the opening for brightness and cue timing.
