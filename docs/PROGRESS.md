@@ -875,3 +875,12 @@ Vasco: big gaps between the lit floor "tiles", lit walls looked odd, and the res
   `World.buildPatch`.
 - Beacon: `Props.kits.surveyflag`, a red and white survey range pole on a weighted foot with an
   orange flag, replaces the grey block (`Director.beginLevel`). Still tagged objective, no collision.
+## Terrain dots clear of the gold points of interest (Vasco, 1 Nov)
+- Points-of-interest (objective) dots are gold (255,205,80), the same colour as the plain scanner's dots on the
+  first floor, whose yellow wallpaper walls lift to (225,198,97), only ~35 away. Vasco wanted the gold kept and the
+  starting scan changed (an orange objective was tried first and reverted).
+- `DotRules.themeColors` now pushes each floor's wall, floor and ceiling dot colour at least 105 away from the
+  objective gold (`keepClear`), so floor 1's yellow walls become a pale sage (164,180,128). The default palette's
+  floor dots went from tan (190,160,96) to a warm grey (176,164,148).
+- Test: no meaning colour (friend, enemy, objective, hazard, water) is within 60 of any floor's wall, floor or
+  ceiling dots, and the objective is more than 90 from all of them. The colourblind palette is unchanged.

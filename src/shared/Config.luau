@@ -113,12 +113,12 @@ Config.Tracks = {
 Config.Palettes = {
 	default = {
 		wall = { 196, 200, 210 },
-		floor = { 190, 160, 96 },
+		floor = { 176, 164, 148 },
 		ceiling = { 104, 122, 156 },
 		water = { 40, 190, 255 },
 		friend = { 70, 235, 120 },
 		enemy = { 255, 50, 50 },
-		objective = { 255, 205, 80 },
+		objective = { 255, 205, 80 }, -- gold; every terrain dot colour stays well clear of it (DotRules.themeColors)
 		hazard = { 200, 90, 255 },
 	},
 	alt = {
