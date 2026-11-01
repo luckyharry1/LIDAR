@@ -185,6 +185,13 @@ tests["Static skins are bought once, then wear for free"] = function()
 	assert(SkinRules.enforce(profile, {}) and profile.skin == "", "kept an unowned Static skin")
 end
 
+tests["a skin that changes the gun model says so in its description"] = function()
+	for _, def in Skins.list do
+		local says = string.find(string.lower(def.blurb), "gun", 1, true) ~= nil
+		assert(says or def.model == "classic", def.id .. " changes the gun but does not say so")
+	end
+end
+
 tests["every skin has a scanner model the gun can build"] = function()
 	local known = {}
 	for _, model in Skins.models do

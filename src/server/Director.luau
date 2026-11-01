@@ -1225,6 +1225,9 @@ local function leaveTutorial(member: Member)
 	local profile = profileOf(member)
 	profile.tutorialDone = true
 	Data.touch(member.player)
+	-- Written at once, not left for the next autosave: quitting soon after the door must never
+	-- send a player back through the intake.
+	task.spawn(Data.save, member.player)
 	Telemetry.funnel(member.player, "TutorialComplete")
 	-- Whoever leaves first builds the level; the rest wait for it, then drop in.
 	while run.phase == "transition" do

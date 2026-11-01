@@ -44,7 +44,9 @@ local SWAY = 0.018
 local KICK = 0.006 -- how far the gun jitters while scanning
 local SWEEP_TILT = 0.2 -- share of the sweep's own angles the gun follows as it runs
 local SWEEP_PULL = 0.025 -- the gun draws back a touch while sweeping
-local FIRST_PERSON_DISTANCE = 1.2 -- beyond this the camera is in third person: hide the gun
+-- Beyond this the camera is in third person: hide the gun. Crouching lowers the view by
+-- crouchCameraDrop, which must not count as leaving first person (the gun stays up while crouched).
+local FIRST_PERSON_DISTANCE = 1.2 + Config.Player.crouchCameraDrop
 local LOWERED_ABOVE = 0.2 -- how lit it must be before the scanner is put away
 
 -- Sizes and positions are in gun-local studs before SCALE; z is negative toward the muzzle.

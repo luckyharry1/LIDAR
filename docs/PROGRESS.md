@@ -796,6 +796,15 @@ same walls, floor and text, and checkpoints sometimes put you next to a monster.
   model now has a faint `Highlight` rim in the skin colour (Viewmodel `rim`, outline transparency 0.55) and
   brighter glow pieces (transparency 0.35). Both unverified in Studio.
 
+- Gun stays up while crouched (Vasco, 1 Nov): crouching lowers the camera 1.7 studs, which pushed it past the
+  1.2-stud first-person check and hid the gun. The check now allows for the crouch drop. Skins that change the
+  gun model say "NEW ... gun" in their description (Orchid, Rose Quartz, Aurora, Nightbloom); a test enforces it.
+- Tutorial replaying: the only way back into the intake is a profile with `tutorialDone = false` (or being in
+  a party with a new player: `onPartyStart` takes the whole crew through the intake). The flag was only written
+  by the next autosave (up to 3 minutes), so quitting soon after the door lost it. `leaveTutorial` now saves
+  at once. If it still happens, check the Output for "[Data] Could not load": a session lock held by another
+  server (10 minutes) gives a fresh in-memory profile, which also replays the tutorial.
+
 ## Floor surfaces and a louder water (Vasco, 31 Oct)
 - Each floor now has its own surfaces: `Dots.setTheme` recolours wall, floor and ceiling dots from
   the floor's look in LoreText (yellow wallpaper, pale pool tile, ward green, Hollow violet, Garage
