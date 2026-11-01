@@ -856,3 +856,22 @@ empty dark room. Stacked on `claude/poi-varied` (PR #18, which is stacked on PR 
   fade look right in the dark; the scene starts ~1.3 s after waking (2.2 s when the room lit
   first); the spots are clear of props (Joss by the bench, Hana between the gauge and kettle,
   Ravi on the west wall, Pim mid-room, Lena east of the pool).
+
+## Seamless lit patches and a survey-flag beacon (1 Nov, Vasco's playtest; not seen in Studio)
+
+Vasco: big gaps between the lit floor "tiles", lit walls looked odd, and the respawn beacon was a block.
+- Gaps: every lit floor cell faded out at all four edges, so two neighbouring cells left a dim
+  seam between them, and the tile lines stopped short of the cell edge so the tile next to a
+  boundary was twice the size. Now `buildPatch` works out the lit region first and an edge fades
+  only where the patch ends (`edgeFade`); an edge shared with the next lit cell, or meeting a painted
+  wall, stays solid. Seam lines run edge to edge (half over each side) so tiles keep one size.
+- Walls: a found object now paints every closed wall of its cell and of the open cells beside
+  it (before, one cell's walls under a floor five cells wide). Wall ends run on into the next painted
+  wall round a corner or along a corridor and only fade where the painting stops; the top still
+  fades. Walls get a darker skirting board so they meet the floor like a wall does.
+- Floor parts are turned so their front face is up (east to the right, north at the top) and
+  the fades are written for that. **Check in Studio** that the solid edges are on the sides facing the
+  next lit cell; if the left/right of a floor are swapped, flip `floorFades(at, "W")` and `"E"` in
+  `World.buildPatch`.
+- Beacon: `Props.kits.surveyflag`, a red and white survey range pole on a weighted foot with an
+  orange flag, replaces the grey block (`Director.beginLevel`). Still tagged objective, no collision.

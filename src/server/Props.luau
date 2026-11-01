@@ -33,6 +33,8 @@ local PINK = { 255, 170, 210 }
 local CANVAS = { 124, 108, 78 }
 local FERN = { 58, 150, 84 }
 local STONE = { 104, 112, 112 }
+local SURVEY_RED = { 200, 48, 40 }
+local SURVEY_ORANGE = { 240, 120, 32 }
 
 local wood = Enum.Material.Wood
 local metal = Enum.Material.Metal
@@ -653,6 +655,74 @@ Props.kits = {
 			shape = ball,
 			collide = false,
 			light = { color = { 140, 255, 190 }, brightness = 0.8, range = 10 },
+		},
+	},
+	-- The checkpoint beacon of the Surveyor's Kit: a survey range pole in red and white bands on a
+	-- weighted foot, flying a small orange flag. Stands free on the floor at its base.
+	surveyflag = {
+		{
+			size = { 2, 0.3, 2 },
+			at = { 0, 0.15, 0 },
+			color = DARK_METAL,
+			material = metal,
+			collide = false,
+		},
+		{
+			size = { 0.22, 1.2, 0.22 },
+			at = { 0, 0.9, 0 },
+			color = SURVEY_RED,
+			material = plastic,
+			collide = false,
+		},
+		{
+			size = { 0.22, 1.2, 0.22 },
+			at = { 0, 2.1, 0 },
+			color = PAPER,
+			material = plastic,
+			collide = false,
+		},
+		{
+			size = { 0.22, 1.2, 0.22 },
+			at = { 0, 3.3, 0 },
+			color = SURVEY_RED,
+			material = plastic,
+			collide = false,
+		},
+		{
+			size = { 0.22, 1.2, 0.22 },
+			at = { 0, 4.5, 0 },
+			color = PAPER,
+			material = plastic,
+			collide = false,
+		},
+		{
+			size = { 0.22, 1.2, 0.22 },
+			at = { 0, 5.7, 0 },
+			color = SURVEY_RED,
+			material = plastic,
+			collide = false,
+		},
+		{
+			size = { 0.4, 0.4, 0.4 },
+			at = { 0, 6.5, 0 },
+			color = BRASS,
+			material = metal,
+			shape = ball,
+			collide = false,
+		},
+		{
+			size = { 0.06, 1.1, 2.6 },
+			at = { 0, 5.6, -1.4 },
+			color = SURVEY_ORANGE,
+			material = fabric,
+			collide = false,
+		},
+		{
+			size = { 0.07, 0.35, 2.6 },
+			at = { 0, 5.6, -1.4 },
+			color = PAPER,
+			material = fabric,
+			collide = false,
 		},
 	},
 	cradle = {
