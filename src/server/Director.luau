@@ -671,12 +671,14 @@ local function wirePickup(level: World.Level, pickup: World.Pickup)
 			profileOf(member).stats.rescues += 1
 			Data.touch(player)
 			local who = Lore.surveyors[Config.Surveyor.rescueOfTier[run.tier] or ""]
-			toastStage(
-				`{if who then who.name else "Surveyor"} found. They lead the way out.`,
-				"good",
-				"level",
-				"downed"
-			)
+			local text = "Surveyor found. They lead the way out."
+			if who then
+				-- "She leads" / "He leads", or "They lead" where the story gives no pronoun.
+				text = if who.subject
+					then `{who.name} found. {who.subject} leads the way out.`
+					else `{who.name} found. They lead the way out.`
+			end
+			toastStage(text, "good", "level", "downed")
 		else
 			run.collected.plate = true
 			run.plateFound = true
