@@ -49,70 +49,65 @@ local KITS: { [string]: string } = {
 }
 
 -- Per tier: hidden objects (one own cell each) and signs (on a wall, in the cell they name).
+-- Fewer, and each one different: a level has one hidden object that says something about the
+-- place (no two levels share one), and only the posters that teach or warn. Lamp-bags are
+-- never read, and the same notice is not hung twice. When a hidden object is revealed it lights
+-- the whole cell in the look of its floor (World.buildPatch), so it also says where you are.
 Places.tiers = {
+	-- Level 0, the office floor: the first rule of the place, then the guard who walks it.
 	[1] = {
-		reveals = { "poi.l0.desk", "poi.l0.whiteboard" },
+		reveals = { "poi.l0.whiteboard" },
 		signs = {
 			{ id = "plaque.l0", at = "start" },
 			{ id = "rule.04", at = "any" },
 		},
 	},
 	[2] = {
-		reveals = { "poi.l0.vending" },
+		reveals = { "poi.l0.coat" },
 		signs = {
-			{ id = "rule.05", at = "any" },
 			{ id = "sign.pit.1", at = "pit" },
 		},
 	},
+	-- Level 1, the flooded wing: the sound man's headphones, then a crew that tried to paddle.
 	[3] = {
-		reveals = { "poi.l1.headphones", "poi.l1.valve" },
+		reveals = { "poi.l1.headphones" },
 		signs = {
 			{ id = "plaque.l1", at = "start" },
-			{ id = "rule.07", at = "any" },
 			{ id = "sign.plate.1", at = "plate" },
-			{ id = "sign.flood.grate", at = "pit" },
 		},
 	},
 	[4] = {
-		reveals = { "poi.l1.dinghy", "poi.l1.lifering" },
+		reveals = { "poi.l1.dinghy" },
 		signs = {
-			{ id = "rule.09", at = "any" },
-			{ id = "rule.08", at = "any" },
-			{ id = "sign.plate.1", at = "plate" },
+			{ id = "sign.flood.grate", at = "pit" },
 		},
 	},
+	-- Level 2, the wards: the greeting that is a rule, then the stretcher.
 	[5] = {
-		reveals = { "poi.l2.tapcode", "poi.l2.chart" },
+		reveals = { "poi.l2.tapcode" },
 		signs = {
 			{ id = "plaque.l2", at = "start" },
-			{ id = "rule.08", at = "any" },
-			{ id = "sign.pit.2", at = "pit" },
 			{ id = "sign.plate.2", at = "plate" },
 		},
 	},
 	[6] = {
-		reveals = { "poi.l2.gurney", "poi.l2.pa" },
+		reveals = { "poi.l2.gurney" },
 		signs = {
-			{ id = "rule.10", at = "any" },
 			{ id = "sign.pit.2", at = "pit" },
-			{ id = "sign.plate.2", at = "plate" },
 		},
 	},
+	-- Level 3, the hollow: the glow that feeds on light.
 	[7] = {
-		reveals = { "poi.l3.camera", "poi.l3.crystal" },
+		reveals = { "poi.l3.crystal" },
 		signs = {
 			{ id = "plaque.l3", at = "start" },
-			{ id = "rule.10", at = "any" },
-			{ id = "sign.pit.3", at = "pit" },
 		},
 	},
+	-- Level 4, the garage: the stone every Level hangs from.
 	[8] = {
-		reveals = { "poi.l4.stone", "poi.l4.chalk" },
+		reveals = { "poi.l4.stone" },
 		signs = {
 			{ id = "plaque.l4", at = "start" },
-			{ id = "rule.11", at = "any" },
-			{ id = "sign.plate.3", at = "plate" },
-			{ id = "sign.pit.3", at = "pit" },
 		},
 	},
 } :: { [number]: TierPlaces }
