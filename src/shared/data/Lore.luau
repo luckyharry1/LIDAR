@@ -33,6 +33,7 @@ export type Room = {
 -- and Pim are found there).
 export type Surveyor = {
 	name: string,
+	subject: string?, -- "She" or "He" as the story says; nil where it does not say (then "They")
 	scene: string,
 	sits: boolean,
 	gear: string, -- Figures.surveyor accessories
@@ -277,6 +278,7 @@ Lore.rooms = {
 Lore.surveyors = {
 	joss = {
 		name = "Joss",
+		subject = "He",
 		scene = "npc.joss",
 		sits = false,
 		gear = "cap",
@@ -294,6 +296,7 @@ Lore.surveyors = {
 	},
 	ravi = {
 		name = "Ravi",
+		subject = "He",
 		scene = "npc.ravi",
 		sits = true,
 		gear = "headphones",
@@ -303,6 +306,7 @@ Lore.surveyors = {
 	},
 	pim = {
 		name = "Pim",
+		subject = "She",
 		scene = "npc.pim",
 		sits = false,
 		gear = "lantern",
