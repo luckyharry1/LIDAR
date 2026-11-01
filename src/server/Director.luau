@@ -1428,11 +1428,14 @@ local function checkPasses(member: Member)
 	end
 end
 
--- Roblox tells the server when a pass prompt finishes. This is the live grant; checkPasses
--- (which asks Roblox directly) is what restores the pass on every later visit.
-local function onPassPurchased(player: Player, passId: number, purchased: boolean)
+-- The live grant for a pass bought this visit; checkPasses (which asks Roblox directly) is what
+-- restores the pass on every later visit.
+local PURCHASE_CONFIRM_TRIES = 5
+local PURCHASE_CONFIRM_WAIT = 1.5
+
+local function grantPass(player: Player, passId: number)
 	local member = members[player]
-	if member == nil or not purchased or passId == 0 then
+	if member == nil or passId == 0 then
 		return
 	end
 	if passId == Config.Monetization.surveyorKitPassId then
@@ -1461,6 +1464,37 @@ local function onPassPurchased(player: Player, passId: number, purchased: boolea
 			return
 		end
 	end
+end
+
+-- The finished-prompt event is only a hint that something was bought; a pass is granted once
+-- Roblox itself says the player owns it, so a spoofed or mistaken "purchased" grants nothing.
+-- If the lookup keeps failing the pass is still restored on the player's next join (checkPasses).
+local function onPassPurchased(player: Player, passId: number, purchased: boolean)
+	if not purchased or passId == 0 or members[player] == nil then
+		return
+	end
+	local known = passId == Config.Monetization.surveyorKitPassId
+	for _, id in Config.Monetization.skinPassIds do
+		known = known or id == passId
+	end
+	if not known then
+		return
+	end
+	task.spawn(function()
+		for attempt = 1, PURCHASE_CONFIRM_TRIES do
+			if members[player] == nil then
+				return
+			end
+			if ownsPass(player, passId) == true then
+				grantPass(player, passId)
+				return
+			end
+			if attempt < PURCHASE_CONFIRM_TRIES then
+				task.wait(PURCHASE_CONFIRM_WAIT)
+			end
+		end
+		warn(`[Pass] {player.Name} finished a purchase prompt for {passId} but does not own it.`)
+	end)
 end
 
 local function onPlayerAdded(player: Player)
