@@ -753,7 +753,7 @@ LOOKS_EARNED = [
     ("CLASSIC", (196, 200, 210), (96, 100, 108), "classic", "DEFAULT"),
     ("TUNGSTEN", (214, 196, 160), (112, 100, 80), "classic", "15 MIN"),
     ("GLACIER", (150, 214, 196), (62, 98, 112), "classic", "45 MIN"),
-    ("ORCHID", (196, 176, 208), (98, 84, 110), "lantern", "90 MIN"),
+    ("ORCHID", (140, 165, 235), (70, 84, 124), "lantern", "90 MIN"),
     ("BLUEPRINT", (5, 60, 205), (205, 165, 70), "classic", "180 MIN"),
 ]
 LOOKS_STATIC = [
