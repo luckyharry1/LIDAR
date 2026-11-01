@@ -39,3 +39,6 @@ the HUD goal are live. Unused so far: tapes 2 to 7 (no screens placed yet), POIs
 - Light sensitivity: lamps, POIs and tape screens should ignite on the first dot or any dot within ~6 to 10 studs; see `02-sections.md`.
 
 Open for later: more tapes (2 slots), Relay Levels (school, mall, pool, station), sound cues to asset ids, `thought` rate limiting.
+
+## Pronouns (decided 2026-11-01)
+Theo he/him. Joss he/him. Tobi, Hollis, Quill, Pike he/him. Hana she/her. Lena she/her. Ravi he/him. Pim she/her. Ines she/her. Text and UI should use these.
