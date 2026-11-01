@@ -11,6 +11,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
 local Config = require(ReplicatedStorage.Shared.Config)
+local Badges = require(script.Parent.Badges)
 local Daily = require(ReplicatedStorage.Shared.pure.Daily)
 local Data = require(script.Parent.Data)
 local Difficulty = require(ReplicatedStorage.Shared.pure.Difficulty)
@@ -984,6 +985,7 @@ local function enterLore(roomId: string, nextTier: number)
 			profile.checkpointTier = math.max(profile.checkpointTier, nextTier)
 			Data.touch(player)
 			Telemetry.funnel(player, "LoreRoomReached")
+			Badges.award(player, "firstHaven")
 			task.spawn(Data.save, player)
 		end
 	end
@@ -1122,6 +1124,7 @@ function completeLevel()
 			local showInvite = not profile.invitePrompted
 			profile.invitePrompted = true
 			Telemetry.levelCleared(player, tier, def.name)
+			Badges.award(player, "levelCleared")
 			if tier == 1 then
 				Telemetry.funnel(player, "LevelOneCleared")
 			elseif tier == 3 then
@@ -1702,12 +1705,14 @@ local function onReveal(player: Player, echoId: number)
 	if counted then
 		run.collected.echoes += 1
 		Telemetry.custom(player, "EchoRevealed", run.tier)
+		Badges.award(player, "hiddenFound")
 	end
 	-- Everyone in the level hears it. A recorder plays each player's own next tape, so the
 	-- story stays in order for each; every other hidden thing says its own few lines.
 	local own = table.concat(echo.lines, " ")
 	for otherPlayer, other in members do
 		if inLevel(other) then
+			Badges.award(otherPlayer, "hiddenFound")
 			local speaker, line = "", own
 			if echo.kind == "recorder" then
 				local profile = profileOf(other)
@@ -1847,6 +1852,7 @@ end
 local function onFunnel(player: Player, step: string)
 	-- The only step the server cannot observe for itself.
 	if step == "TutorialFirstScan" and members[player] ~= nil then
+		Badges.award(player, "firstScan")
 		Telemetry.funnel(player, step)
 	end
 end

@@ -291,6 +291,15 @@ Config.Telemetry = {
 	enabled = true,
 }
 
+-- Roblox badge ids, from the Creator Hub (Monetization > Badges). Zero means "not created
+-- yet": nothing is awarded. See server/Badges.
+Config.Badges = {
+	firstScan = 0, -- the first scan in the intake room
+	firstHaven = 0, -- reaching the first safe haven
+	levelCleared = 0, -- clearing a level
+	hiddenFound = 0, -- revealing a hidden object
+}
+
 -- Sounds. The short interface clips ship inside the Roblox client. The atmosphere and monster
 -- sounds are from Roblox's licensed libraries (Pro Sound Effects, APM): see docs/ASSETS.md.
 -- Set any id to "" to silence it.
