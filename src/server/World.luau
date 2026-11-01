@@ -83,38 +83,59 @@ local LAMP_COLOR = Color3.fromRGB(255, 226, 170)
 local PATCH_PIXELS_PER_STUD = 6
 local WATER_COLOR = Color3.fromRGB(34, 118, 168) -- a lit pool: the cyan dots of water, as paint
 local WATER_GLINT = Color3.fromRGB(150, 220, 255)
-local WATER_RIPPLES = 5
+local WATER_RIPPLES = 7
+local WATER_REFLECTANCE = 0.25
+local PATCH_STEPS = 6 -- steps of fade across and down a lit surface
 -- What a lit corner of each Level looks like, so no two Levels share a wall or a floor: office
 -- carpet and wallpaper, wet green tile, clinic lino, cave rock, garage concrete.
-type PatchLook = { floor: Color3, wall: Color3, floorPattern: string, wallPattern: string }
+type PatchLook = {
+	floor: Color3,
+	wall: Color3,
+	floorMaterial: Enum.Material,
+	wallMaterial: Enum.Material,
+	floorPattern: string,
+	wallPattern: string,
+}
+-- Real Roblox materials, so each Level's lit stretch has its own grain under the light: the
+-- fibres of office carpet and wallpaper, pool tile, clinic lino, cave rock, poured concrete.
 local PATCH_LOOKS: { PatchLook } = {
 	{
-		floor = Color3.fromRGB(126, 112, 88),
-		wall = Color3.fromRGB(184, 160, 86),
+		floor = Color3.fromRGB(122, 104, 70),
+		wall = Color3.fromRGB(196, 170, 84),
+		floorMaterial = Enum.Material.Fabric,
+		wallMaterial = Enum.Material.Fabric,
 		floorPattern = "squares",
 		wallPattern = "stripes",
 	},
 	{
-		floor = Color3.fromRGB(70, 128, 128),
-		wall = Color3.fromRGB(108, 160, 148),
+		floor = Color3.fromRGB(70, 118, 126),
+		wall = Color3.fromRGB(176, 214, 220),
+		floorMaterial = Enum.Material.Slate,
+		wallMaterial = Enum.Material.Marble,
 		floorPattern = "tiles",
 		wallPattern = "tiles",
 	},
 	{
-		floor = Color3.fromRGB(150, 172, 160),
-		wall = Color3.fromRGB(176, 200, 180),
+		floor = Color3.fromRGB(138, 160, 148),
+		wall = Color3.fromRGB(184, 214, 196),
+		floorMaterial = Enum.Material.Plastic,
+		wallMaterial = Enum.Material.SmoothPlastic,
 		floorPattern = "tiles",
 		wallPattern = "stripes",
 	},
 	{
-		floor = Color3.fromRGB(104, 84, 68),
-		wall = Color3.fromRGB(132, 106, 84),
+		floor = Color3.fromRGB(96, 76, 62),
+		wall = Color3.fromRGB(112, 92, 134),
+		floorMaterial = Enum.Material.Ground,
+		wallMaterial = Enum.Material.Rock,
 		floorPattern = "boards",
 		wallPattern = "boards",
 	},
 	{
-		floor = Color3.fromRGB(104, 106, 112),
-		wall = Color3.fromRGB(160, 138, 96),
+		floor = Color3.fromRGB(86, 86, 92),
+		wall = Color3.fromRGB(156, 156, 162),
+		floorMaterial = Enum.Material.Asphalt,
+		wallMaterial = Enum.Material.Concrete,
 		floorPattern = "squares",
 		wallPattern = "tiles",
 	},
@@ -505,19 +526,100 @@ local function buildPlates(plan: LevelPlan.LevelPlan, origin: Vector3, parent: I
 	return plates
 end
 
--- A soft-edged painted surface: the part itself is invisible and a SurfaceGui fades from solid
--- in the middle to nothing at the edges, so a light's patch has no hard border.
+-- The transparency a NumberSequence gives at `at` (0 to 1) along its length.
+local function sampleSequence(sequence: NumberSequence, at: number): number
+	local points = sequence.Keypoints
+	for index = 2, #points do
+		local before, after = points[index - 1], points[index]
+		if at <= after.Time then
+			local span = after.Time - before.Time
+			if span <= 0 then
+				return after.Value
+			end
+			return before.Value + (after.Value - before.Value) * (at - before.Time) / span
+		end
+	end
+	return points[#points].Value
+end
+
+-- The visible stuff of a lit patch: real parts of a real material laid over the invisible
+-- surface `part`, thinned out toward the edges in steps so the patch has no hard border. The
+-- fades are read off the same `across` and `down` sequences the painted version used (across
+-- runs along the face to the right, down from its top), neighbouring steps of the same
+-- transparency are joined into one part, and a patch whose edges all run on is a single part.
+-- The parts take the invisible one's place in concealment: each remembers what it looked like.
 local function fadeSurface(
 	part: BasePart,
-	face: Enum.NormalId,
 	color: Color3,
+	material: Enum.Material,
 	across: NumberSequence,
 	down: NumberSequence,
-	pattern: string,
 	salt: number
 )
+	local width, height = part.Size.X, part.Size.Y
+	local rows: { { number } } = {}
+	local rowKeys: { string } = {}
+	for row = 1, PATCH_STEPS do
+		local vertical = 1 - sampleSequence(down, (row - 0.5) / PATCH_STEPS)
+		local cells: { number } = {}
+		for column = 1, PATCH_STEPS do
+			local horizontal = 1 - sampleSequence(across, (column - 0.5) / PATCH_STEPS)
+			-- Tenths, so steps of nearly the same strength join up.
+			cells[column] = math.floor((1 - horizontal * vertical) * 10 + 0.5) / 10
+		end
+		rows[row] = cells
+		rowKeys[row] = table.concat(cells, ",")
+	end
+	local water = material == Enum.Material.Glass
+	local row = 1
+	while row <= PATCH_STEPS do
+		local last = row
+		while last < PATCH_STEPS and rowKeys[last + 1] == rowKeys[row] do
+			last += 1
+		end
+		local column = 1
+		while column <= PATCH_STEPS do
+			local to = column
+			while to < PATCH_STEPS and rows[row][to + 1] == rows[row][column] do
+				to += 1
+			end
+			local transparency = rows[row][column]
+			if transparency < 0.95 then
+				-- The face's x runs toward the part's -X and its y down toward -Y.
+				local u0, u1 = (column - 1) / PATCH_STEPS, to / PATCH_STEPS
+				local v0, v1 = (row - 1) / PATCH_STEPS, last / PATCH_STEPS
+				local tile = Build.part({
+					name = if water then "WaterSurface" else "Surface",
+					size = Vector3.new((u1 - u0) * width, (v1 - v0) * height, PATCH_THICKNESS),
+					cframe = part.CFrame * CFrame.new(
+						-((u0 + u1) / 2 - 0.5) * width,
+						(0.5 - (v0 + v1) / 2) * height,
+						0
+					),
+					color = color,
+					material = material,
+					transparency = if water then 0.2 + transparency * 0.8 else transparency,
+					collide = false,
+					query = false,
+					tag = if water then Config.Tags.shimmer else nil,
+					parent = part.Parent :: Instance,
+				})
+				if water then
+					tile.Reflectance = WATER_REFLECTANCE
+				end
+			end
+			column = to + 1
+		end
+		row = last + 1
+	end
+	if not water then
+		return
+	end
+
+	-- Open water also has rings spreading out and a few glints, so a lit pool reads as water
+	-- and not as a patch of dry floor.
 	local gui = Instance.new("SurfaceGui")
-	gui.Face = face
+	gui.Face = Enum.NormalId.Front
 	gui.LightInfluence = 1
 	gui.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
 	gui.PixelsPerStud = PATCH_PIXELS_PER_STUD
@@ -529,92 +631,36 @@ local function fadeSurface(
 	local acrossGradient = Instance.new("UIGradient")
 	acrossGradient.Transparency = across
 	acrossGradient.Parent = group
-	local fill = Instance.new("Frame")
-	fill.Size = UDim2.fromScale(1, 1)
-	fill.BackgroundColor3 = color
-	fill.BorderSizePixel = 0
-	fill.Parent = group
-	local downGradient = Instance.new("UIGradient")
-	downGradient.Rotation = 90
-	downGradient.Transparency = down
-	downGradient.Parent = fill
-	if pattern == "water" then
-		-- Open water: a lighter surface with rings spreading out and a few glints, so a lit pool
-		-- reads as water and not as a patch of dry floor.
-		fill.BackgroundTransparency = 0.12
-		local ripples = Random.new(salt)
-		for _ = 1, WATER_RIPPLES do
-			local size = 0.18 + ripples:NextNumber() * 0.3
-			local ring = Instance.new("Frame")
-			ring.AnchorPoint = Vector2.new(0.5, 0.5)
-			ring.Position = UDim2.fromScale(
-				0.15 + ripples:NextNumber() * 0.7,
-				0.15 + ripples:NextNumber() * 0.7
-			)
-			ring.Size = UDim2.fromScale(size, size)
-			ring.BackgroundTransparency = 1
-			ring.BorderSizePixel = 0
-			ring.Parent = group
-			local corner = Instance.new("UICorner")
-			corner.CornerRadius = UDim.new(0.5, 0)
-			corner.Parent = ring
-			local stroke = Instance.new("UIStroke")
-			stroke.Thickness = 2
-			stroke.Color = WATER_GLINT
-			stroke.Transparency = 0.35 + ripples:NextNumber() * 0.3
-			stroke.Parent = ring
-		end
-		for _ = 1, 3 do
-			local glint = Instance.new("Frame")
-			glint.AnchorPoint = Vector2.new(0.5, 0.5)
-			glint.Position = UDim2.fromScale(ripples:NextNumber(), ripples:NextNumber())
-			glint.Size = UDim2.fromScale(0.16, 0.018)
-			glint.Rotation = ripples:NextNumber() * 30 - 15
-			glint.BackgroundColor3 = WATER_GLINT
-			glint.BackgroundTransparency = 0.4
-			glint.BorderSizePixel = 0
-			glint.Parent = group
-		end
-		return
+	local ripples = Random.new(salt)
+	for _ = 1, WATER_RIPPLES do
+		local size = 0.18 + ripples:NextNumber() * 0.3
+		local ring = Instance.new("Frame")
+		ring.AnchorPoint = Vector2.new(0.5, 0.5)
+		ring.Position =
+			UDim2.fromScale(0.15 + ripples:NextNumber() * 0.7, 0.15 + ripples:NextNumber() * 0.7)
+		ring.Size = UDim2.fromScale(size, size)
+		ring.BackgroundTransparency = 1
+		ring.BorderSizePixel = 0
+		ring.Parent = group
+		local corner = Instance.new("UICorner")
+		corner.CornerRadius = UDim.new(0.5, 0)
+		corner.Parent = ring
+		local stroke = Instance.new("UIStroke")
+		stroke.Thickness = 2
+		stroke.Color = WATER_GLINT
+		stroke.Transparency = 0.2 + ripples:NextNumber() * 0.3
+		stroke.Parent = ring
 	end
-	-- Seams, so a wall reads as wallpaper, tile or planks and not a flat colour. They run from
-	-- edge to edge, the edge ones drawn half over each side, so the lines of two neighbouring
-	-- patches meet as one line the same width as the rest and the tiles keep their size.
-	local seam = color:Lerp(Color3.new(0, 0, 0), 0.4)
-	local count = if pattern == "tiles" then 5 else 9
-	for index = 0, count do
-		local at = index / count
-		if pattern ~= "boards" then
-			local line = Instance.new("Frame")
-			line.AnchorPoint = Vector2.new(0.5, 0)
-			line.Position = UDim2.fromScale(at, 0)
-			line.Size = UDim2.new(0, 2, 1, 0)
-			line.BackgroundColor3 = seam
-			line.BackgroundTransparency = 0.45
-			line.BorderSizePixel = 0
-			line.Parent = group
-		end
-		if pattern ~= "stripes" then
-			local line = Instance.new("Frame")
-			line.AnchorPoint = Vector2.new(0, 0.5)
-			line.Position = UDim2.fromScale(0, at)
-			line.Size = UDim2.new(1, 0, 0, 2)
-			line.BackgroundColor3 = seam
-			line.BackgroundTransparency = 0.45
-			line.BorderSizePixel = 0
-			line.Parent = group
-		end
-	end
-	if face == Enum.NormalId.Front then
-		-- A wall meets the floor in a darker skirting board, which makes it a wall.
-		local skirting = Instance.new("Frame")
-		skirting.AnchorPoint = Vector2.new(0, 1)
-		skirting.Position = UDim2.fromScale(0, 1)
-		skirting.Size = UDim2.fromScale(1, 0.07)
-		skirting.BackgroundColor3 = color:Lerp(Color3.new(0, 0, 0), 0.55)
-		skirting.BackgroundTransparency = 0.1
-		skirting.BorderSizePixel = 0
-		skirting.Parent = group
+	for _ = 1, 4 do
+		local glint = Instance.new("Frame")
+		glint.AnchorPoint = Vector2.new(0.5, 0.5)
+		glint.Position = UDim2.fromScale(ripples:NextNumber(), ripples:NextNumber())
+		glint.Size = UDim2.fromScale(0.2, 0.02)
+		glint.Rotation = ripples:NextNumber() * 30 - 15
+		glint.BackgroundColor3 = WATER_GLINT
+		glint.BackgroundTransparency = 0.25
+		glint.BorderSizePixel = 0
+		glint.Parent = group
 	end
 end
 
@@ -717,11 +763,10 @@ local function buildPatch(
 		})
 		fadeSurface(
 			floor,
-			Enum.NormalId.Front,
 			if wet then WATER_COLOR else look.floor,
+			if wet then Enum.Material.Glass else look.floorMaterial,
 			edgeFade(floorFades(at, "W"), floorFades(at, "E")),
 			edgeFade(floorFades(at, "N"), floorFades(at, "S")),
-			if wet then "water" else look.floorPattern,
 			key
 		)
 	end
@@ -755,11 +800,10 @@ local function buildPatch(
 			})
 			fadeSurface(
 				wall,
-				Enum.NormalId.Front,
 				look.wall,
+				look.wallMaterial,
 				edgeFade(wallEndFades(at, side, ends[1]), wallEndFades(at, side, ends[2])),
 				PATCH_WALL_FADE,
-				look.wallPattern,
 				key * 4 + (table.find(Maze.DIR_NAMES, side) :: number)
 			)
 		end
