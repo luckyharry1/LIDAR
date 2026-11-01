@@ -256,7 +256,9 @@ local function drawTrail(from: Vector3)
 		-- Hana, Ravi and Pim are found by name on the floors before their camps.
 		local who = Lore.surveyors[Config.Surveyor.rescueOfTier[State.server.tier] or ""]
 		if who and who.rescued then
-			Hud.dialogue(who.name, who.rescued[math.random(#who.rescued)])
+			for _, line in who.rescued do
+				Hud.dialogue(who.name, line) -- the lines queue, so they are heard in order
+			end
 		else
 			Hud.dialogue("Surveyor", SURVEYOR_LINES[math.random(#SURVEYOR_LINES)])
 		end
