@@ -806,3 +806,14 @@ same walls, floor and text, and checkpoints sometimes put you next to a monster.
 - Cutscenes are the story thread's (PR #14, `Stage.luau`); POI text is the "Make POIs varied" thread's.
 - Check in Studio: do the five floors read as different places by colour alone, is the Hollow wall
   bright enough, do the rings show on the water surface without scanning.
+- Follow-up (1 Nov, Vasco: lit water did not look like water; three lamps bunched up on level 7):
+  - A lit patch over a flooded cell is now the pool's surface (blue, rings and glints,
+    `fadeSurface` pattern `water`, `WATER_COLOR`) at water level instead of dry floor. A flooded
+    cell beside any light (lamp-bag or found object) gets one too.
+  - Lamp-bags keep apart (`LevelPlan`): the first sits near the start along the route, the rest at
+    even steps, each at least 5 path steps from the others (never under 3 unless the maze leaves
+    no room), and a short way through holds fewer (one per 5 route cells, at most the tier's
+    count). Over 300 seeds of tier 7, one pair is 3 steps apart and none closer; it was 15% of
+    pairs within 3 steps before. Tier 7 keeps its map and monsters untouched.
+  - Check in Studio: that the blue patch matches the cyan water dots in colour and height (wading
+    ripples are PR #17's), and how many lamp-bags tiers 1 and 2 now get on short routes.
