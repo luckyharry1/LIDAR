@@ -125,13 +125,25 @@ local function patchLook(tier: number): PatchLook
 	local index = LOOK_OF_TIER[tier] or (tier - 1) % #PATCH_LOOKS + 1
 	return PATCH_LOOKS[index]
 end
--- Solid in the middle, nothing at both edges; the wall is solid at the floor, gone at the top.
-local PATCH_EDGE_FADE = NumberSequence.new({
-	NumberSequenceKeypoint.new(0, 1),
-	NumberSequenceKeypoint.new(0.35, 0.15),
-	NumberSequenceKeypoint.new(0.65, 0.15),
-	NumberSequenceKeypoint.new(1, 1),
-})
+-- Solid in the middle. An edge fades to nothing only when the patch ends there; an edge shared
+-- with the next lit cell, or meeting a lit wall, stays solid so neighbouring pieces join up
+-- without a gap. `low` is the left (or top) edge of the surface and `high` the right (or bottom).
+local function edgeFade(lowFades: boolean, highFades: boolean): NumberSequence
+	local points = {}
+	if lowFades then
+		table.insert(points, NumberSequenceKeypoint.new(0, 1))
+		table.insert(points, NumberSequenceKeypoint.new(0.35, 0.15))
+	else
+		table.insert(points, NumberSequenceKeypoint.new(0, 0.15))
+	end
+	if highFades then
+		table.insert(points, NumberSequenceKeypoint.new(0.65, 0.15))
+		table.insert(points, NumberSequenceKeypoint.new(1, 1))
+	else
+		table.insert(points, NumberSequenceKeypoint.new(1, 0.15))
+	end
+	return NumberSequence.new(points)
+end
 local PATCH_WALL_FADE = NumberSequence.new({
 	NumberSequenceKeypoint.new(0, 1),
 	NumberSequenceKeypoint.new(0.6, 0.3),
@@ -501,7 +513,8 @@ local function fadeSurface(
 	color: Color3,
 	across: NumberSequence,
 	down: NumberSequence,
-	pattern: string
+	pattern: string,
+	salt: number
 )
 	local gui = Instance.new("SurfaceGui")
 	gui.Face = face
@@ -529,7 +542,7 @@ local function fadeSurface(
 		-- Open water: a lighter surface with rings spreading out and a few glints, so a lit pool
 		-- reads as water and not as a patch of dry floor.
 		fill.BackgroundTransparency = 0.12
-		local ripples = Random.new(math.floor(color.R * 255) * 31 + math.floor(color.B * 255))
+		local ripples = Random.new(salt)
 		for _ = 1, WATER_RIPPLES do
 			local size = 0.18 + ripples:NextNumber() * 0.3
 			local ring = Instance.new("Frame")
@@ -564,13 +577,16 @@ local function fadeSurface(
 		end
 		return
 	end
-	-- Seams, so a wall reads as wallpaper, tile or planks and not a flat colour.
+	-- Seams, so a wall reads as wallpaper, tile or planks and not a flat colour. They run from
+	-- edge to edge, the edge ones drawn half over each side, so the lines of two neighbouring
+	-- patches meet as one line the same width as the rest and the tiles keep their size.
 	local seam = color:Lerp(Color3.new(0, 0, 0), 0.4)
 	local count = if pattern == "tiles" then 5 else 9
-	for index = 1, count - 1 do
+	for index = 0, count do
 		local at = index / count
 		if pattern ~= "boards" then
 			local line = Instance.new("Frame")
+			line.AnchorPoint = Vector2.new(0.5, 0)
 			line.Position = UDim2.fromScale(at, 0)
 			line.Size = UDim2.new(0, 2, 1, 0)
 			line.BackgroundColor3 = seam
@@ -580,6 +596,7 @@ local function fadeSurface(
 		end
 		if pattern ~= "stripes" then
 			local line = Instance.new("Frame")
+			line.AnchorPoint = Vector2.new(0, 0.5)
 			line.Position = UDim2.fromScale(0, at)
 			line.Size = UDim2.new(1, 0, 0, 2)
 			line.BackgroundColor3 = seam
@@ -588,10 +605,33 @@ local function fadeSurface(
 			line.Parent = group
 		end
 	end
+	if face == Enum.NormalId.Front then
+		-- A wall meets the floor in a darker skirting board, which makes it a wall.
+		local skirting = Instance.new("Frame")
+		skirting.AnchorPoint = Vector2.new(0, 1)
+		skirting.Position = UDim2.fromScale(0, 1)
+		skirting.Size = UDim2.fromScale(1, 0.07)
+		skirting.BackgroundColor3 = color:Lerp(Color3.new(0, 0, 0), 0.55)
+		skirting.BackgroundTransparency = 0.1
+		skirting.BorderSizePixel = 0
+		skirting.Parent = group
+	end
 end
 
--- Visible floor and one wall for a cell, for a light to fall on. Only the wall nearest `toward`
--- (the light's own wall) shows, and both fade out toward their edges.
+-- Which way the surface of a wall runs, seen from inside the cell: for the wall on each side,
+-- the sides of the cell its left and its right end touch.
+local WALL_ENDS = {
+	N = { "W", "E" },
+	S = { "E", "W" },
+	E = { "N", "S" },
+	W = { "S", "N" },
+}
+
+-- Visible floor and walls for a light to fall on. A small light (a lamp-bag) gets the cell's
+-- floor and the wall nearest `toward`; with `area` (a found story object) the patch is the
+-- cell and the open cells beside it, every closed wall of them included, so it reads as a
+-- stretch of the place. Water beside any light gets its pool surface. Where two pieces of the
+-- patch meet they run on into each other; only the outer edges fade out.
 local function buildPatch(
 	maze: Maze.Maze,
 	origin: Vector3,
@@ -606,55 +646,109 @@ local function buildPatch(
 	local center = World.cellCenter(origin, cell)
 	local span = CELL - THICK
 	local patch = Build.model("Patch", parent)
-	local function floorAt(at: Maze.Cell)
+	local function keyOf(at: Maze.Cell): number
+		return Maze.index(maze, at.x, at.y)
+	end
+
+	-- The cells that get a floor.
+	local region: { [number]: Maze.Cell } = { [keyOf(cell)] = cell }
+	for _, neighbor in Maze.neighbors(maze, cell.x, cell.y) do
+		-- Water next to any light shows as water, whatever kind of light it is.
+		if area or flooded[keyOf(neighbor)] then
+			region[keyOf(neighbor)] = neighbor
+		end
+	end
+
+	-- The walls that get painted: [cell key][side].
+	local lit: { [number]: { [string]: boolean } } = {}
+	local function light(at: Maze.Cell, side: string)
+		local key = keyOf(at)
+		lit[key] = lit[key] or {}
+		lit[key][side] = true
+	end
+	if area then
+		for _, at in region do
+			for _, side in closedSides(maze, at) do
+				light(at, side)
+			end
+		end
+	else
+		local target = toward or center
+		local best: string? = nil
+		local bestDistance = math.huge
+		for _, side in closedSides(maze, cell) do
+			local distance = (wallBase(center, side).Position - target).Magnitude
+			if distance < bestDistance then
+				best, bestDistance = side, distance
+			end
+		end
+		if best ~= nil then
+			light(cell, best)
+		end
+	end
+	local function isLit(at: Maze.Cell, side: string): boolean
+		local walls = lit[keyOf(at)]
+		return walls ~= nil and walls[side] == true
+	end
+
+	-- Floors. An edge stays solid where the next cell is part of the patch or a painted wall
+	-- stands on it, and fades where the patch ends.
+	local function floorFades(at: Maze.Cell, side: string): boolean
+		if Maze.isOpen(maze, at.x, at.y, side) then
+			local d = Maze.DIRS[side]
+			return region[keyOf({ x = at.x + d.dx, y = at.y + d.dy })] == nil
+		end
+		return not isLit(at, side)
+	end
+	for key, at in region do
 		-- A flooded cell keeps its water: the patch there is the pool's surface, not dry floor.
-		local wet = flooded[Maze.index(maze, at.x, at.y)] == true
+		local wet = flooded[key] == true
+		local position = World.cellCenter(origin, at)
+			+ Vector3.new(0, if wet then WATER_DEPTH else 0, 0)
+		-- Turned so its front face is up with east to the right and north at the top, which
+		-- is the way the fades below are written.
 		local floor = Build.part({
 			name = if wet then "Water" else "Floor",
-			size = Vector3.new(span, PATCH_THICKNESS, span),
-			cframe = CFrame.new(
-				World.cellCenter(origin, at) + Vector3.new(0, if wet then WATER_DEPTH else 0, 0)
-			),
+			size = Vector3.new(span, span, PATCH_THICKNESS),
+			cframe = CFrame.fromMatrix(position, Vector3.new(-1, 0, 0), Vector3.new(0, 0, -1)),
 			transparency = 1,
 			collide = false,
 			parent = patch,
 		})
 		fadeSurface(
 			floor,
-			Enum.NormalId.Top,
+			Enum.NormalId.Front,
 			if wet then WATER_COLOR else look.floor,
-			PATCH_EDGE_FADE,
-			PATCH_EDGE_FADE,
-			if wet then "water" else look.floorPattern
+			edgeFade(floorFades(at, "W"), floorFades(at, "E")),
+			edgeFade(floorFades(at, "N"), floorFades(at, "S")),
+			if wet then "water" else look.floorPattern,
+			key
 		)
 	end
-	floorAt(cell)
-	-- The open floor beside it too, so the lit patch reads as a stretch of the place. Water
-	-- next to any light shows as water, whatever kind of light it is.
-	for _, neighbor in Maze.neighbors(maze, cell.x, cell.y) do
-		if area or flooded[Maze.index(maze, neighbor.x, neighbor.y)] then
-			floorAt(neighbor)
+
+	-- Walls. Each end runs on into the next painted wall round a corner, or along a corridor
+	-- into the next lit cell, and fades where the painted part stops. The top always fades.
+	local function wallEndFades(at: Maze.Cell, side: string, end_: string): boolean
+		if not Maze.isOpen(maze, at.x, at.y, end_) then
+			return not isLit(at, end_) -- a corner
 		end
+		local d = Maze.DIRS[end_]
+		local beyond = { x = at.x + d.dx, y = at.y + d.dy }
+		return not (
+			region[keyOf(beyond)] ~= nil
+			and not Maze.isOpen(maze, beyond.x, beyond.y, side)
+			and isLit(beyond, side)
+		)
 	end
-	local target = toward or center
-	local best: CFrame? = nil
-	local bases: { CFrame } = {}
-	for _, side in closedSides(maze, cell) do
-		local base = wallBase(center, side)
-		table.insert(bases, base)
-		if
-			best == nil
-			or (base.Position - target).Magnitude < (best.Position - target).Magnitude
-		then
-			best = base
-		end
-	end
-	for _, base in bases do
-		if area or base == best then
+	for key, sides in lit do
+		local at = Maze.cellAt(maze, key)
+		for side in sides do
+			local ends = WALL_ENDS[side]
 			local wall = Build.part({
 				name = "Wall",
 				size = Vector3.new(span, HEIGHT, PATCH_THICKNESS),
-				cframe = base * CFrame.new(0, HEIGHT / 2, 0),
+				cframe = wallBase(World.cellCenter(origin, at), side)
+					* CFrame.new(0, HEIGHT / 2, 0),
 				transparency = 1,
 				collide = false,
 				parent = patch,
@@ -663,9 +757,10 @@ local function buildPatch(
 				wall,
 				Enum.NormalId.Front,
 				look.wall,
-				PATCH_EDGE_FADE,
+				edgeFade(wallEndFades(at, side, ends[1]), wallEndFades(at, side, ends[2])),
 				PATCH_WALL_FADE,
-				look.wallPattern
+				look.wallPattern,
+				key * 4 + (table.find(Maze.DIR_NAMES, side) :: number)
 			)
 		end
 	end

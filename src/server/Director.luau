@@ -26,6 +26,7 @@ local Maze = require(ReplicatedStorage.Shared.pure.Maze)
 local Noise = require(ReplicatedStorage.Shared.pure.Noise)
 local Party = require(script.Parent.Party)
 local Progression = require(ReplicatedStorage.Shared.pure.Progression)
+local Props = require(script.Parent.Props)
 local Remotes = require(script.Parent.Remotes)
 local SkinRules = require(ReplicatedStorage.Shared.pure.SkinRules)
 local Skins = require(ReplicatedStorage.Shared.data.Skins)
@@ -844,15 +845,10 @@ local function beginLevel(tier: number)
 	end)
 
 	if Config.Monetization.surveyorKitPassId ~= 0 then
-		local beacon = Instance.new("Part")
-		beacon.Name = "Beacon"
-		beacon.Anchored = true
-		beacon.CanCollide = false
-		beacon.Size = Vector3.new(1, 3, 1)
-		beacon.Position = level.beaconPosition
-		beacon.Color = Color3.fromRGB(60, 60, 64)
-		CollectionService:AddTag(beacon, Config.Tags.objective)
-		beacon.Parent = level.model
+		-- A survey flag on its range pole, not a block: it reads as a place someone marked.
+		local flag = Props.place("surveyflag", CFrame.new(level.beaconPosition), level.model)
+		flag.Name = "Beacon"
+		CollectionService:AddTag(flag, Config.Tags.objective)
 	end
 
 	-- The Mimic poses as a stranded surveyor; it only makes sense once someone in the party has
