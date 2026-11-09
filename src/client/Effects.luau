@@ -61,6 +61,8 @@ local markers: { Marker } = {}
 local markerFolder = Instance.new("Folder")
 markerFolder.Name = "LidarMarkers"
 local shakeUntil = 0
+local shakeSeconds = SHAKE_SECONDS
+local shakeStrength = SHAKE_STRENGTH
 local bloomed: { [Instance]: boolean } = {}
 local reflection: Model? = nil
 local zoneTimer = 0
@@ -98,6 +100,13 @@ function Effects.pulse(strength: number, seconds: number)
 	end
 end
 
+-- Shakes the camera, strongest at the start and settling over `seconds`.
+function Effects.shake(seconds: number, strength: number)
+	shakeUntil = os.clock() + seconds
+	shakeSeconds = seconds
+	shakeStrength = strength
+end
+
 --------------------------------------------------------------------------------------------
 -- Caught and revived
 
@@ -105,7 +114,7 @@ local function onCaught(enemyKind: string, downed: boolean)
 	Input.releaseAll()
 	Audio.caught()
 	Effects.pulse(1, 0.4)
-	shakeUntil = os.clock() + SHAKE_SECONDS
+	Effects.shake(SHAKE_SECONDS, SHAKE_STRENGTH)
 	local def = Enemies[enemyKind]
 	local entity = Lore.entities[enemyKind]
 	if def then
@@ -478,7 +487,7 @@ local function update(dt: number)
 	if now < shakeUntil then
 		local camera = workspace.CurrentCamera
 		if camera then
-			local strength = SHAKE_STRENGTH * (shakeUntil - now) / SHAKE_SECONDS
+			local strength = shakeStrength * (shakeUntil - now) / shakeSeconds
 			camera.CFrame *= CFrame.new(
 				(math.random() - 0.5) * strength,
 				(math.random() - 0.5) * strength,

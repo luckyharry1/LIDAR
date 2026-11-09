@@ -897,3 +897,46 @@ Vasco: big gaps between the lit floor "tiles", lit walls looked odd, and the res
 - Check in Studio: do the five floors read as five places in the light, do the stepped fades look
   soft enough, does the Rock/Ground cave look like rock and not mud, does the water look like water,
   and the cost of the extra parts on a patch with several lit cells.
+
+
+## Invisible teammates and the close encounter (9 Nov, Vasco; not seen in Studio)
+
+Vasco: "Make it so friendly are invisible with green footsteps, add a jumpscare." Branched from
+`claude/project-thread-btlp2q` (main plus the lit-surfaces and lamp-centring commits).
+- Teammates: other players' characters are hidden on your client (`Presence.hideMate`:
+  `LocalTransparencyModifier = 1` on every part, including accessories as they load in). The
+  parts are still there, so a scan lands on them and leaves green friend dots; the green footprints
+  were already there. The name over a teammate no longer shows all the time: it shows
+  `Config.Coop.nameSeconds` (3 s) after a scan lands on them (any scan, a teammate's relayed rays
+  included) and always while they are downed (so a downed player can be found and helped up).
+  Their own (default Roblox) footstep sounds still play.
+- Surveyor NPCs already worked this way: figures are built invisible (`Figures.assemble`), scan
+  green, and only light up once found; a helped-up rescue leaves a green dot figure and green
+  footprint trail (`Effects.drawTrail`). Nothing changed there.
+- The close encounter (`client/Scare.luau`, timing in `shared/pure/Dread.luau`, numbers in
+  `Config.Scare`). Rare and earned: from tier 2, a level holds one 45% of the time (rolled on
+  arrival); dread builds only while you walk in the dark (150 s to fill, 3.5 times faster with a
+  monster at the edge of the aura), needs 75 s in the level, none in the first 150 s of a session,
+  270 s between scares, then a 4 to 40 s fuse. It waits for a good moment (lit room, menu,
+  scene, photo mode, or a real monster within aura 0.55 all pause it).
+  1. The dark goes silent (`Audio.setScare`: ambience, drips, far bumps and "wrong" sounds stop,
+     the heartbeat and breath rise). 2.4 s.
+  2. Five heavy steps (`Audio.scareStep`) walk toward you from the clearest heading ahead, each
+     with a red print, quicker as they come, ending 4.5 studs away.
+  3. A beat of nothing (1.1 s).
+  4. The strike: a red dot figure (head, screaming mouth, bright eyes, shoulders, reaching arms
+     and fingers; ~190 dots) is drawn 3.2 studs in front of the camera, follows your view and
+     lurches closer over 0.9 s, with the roar and rumble (`Audio.scareStrike`), a red flash, camera
+     shake (`Effects.shake`) and a 24 degree FOV kick (`Immersion.kickFov`).
+  5. It runs off (fast steps, `Audio.wrong("run")`) and the dark's sounds fade back in.
+  It is client side and costs nothing: you are never caught by it. A level change, being caught
+  or leaving the level cancels it and restores the sound.
+- Tests: `tests/DreadTests.luau` (never on tier 1, only some levels, no early scare, fills and
+  fires within the fuse, once per level, standing still builds nothing, threat speeds it up,
+  ineligible time pauses it, the cooldown spans levels).
+- Check in Studio: `workspace:SetAttribute("DevScare", os.clock())` plays it. Does the figure read as a
+  face and not a pile of dots; is the roar too much or too little (it uses the caught roar,
+  pitched down, with the rumble and the Listener's clicks sped up); is 190 dots times 6 frames
+  too heavy for the mark pool (1600) on phones; whether the teammate characters really vanish
+  (face, hats, clothes) and whether a skinned or custom avatar leaves anything visible. Possible
+  follow-ups: a "reduce flashing" setting, a hint to Theo after the first one.

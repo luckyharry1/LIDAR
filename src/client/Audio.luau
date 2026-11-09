@@ -78,6 +78,7 @@ local stingArmedAt = 0
 local stingNear = false
 local lit = false
 local equalizer: EqualizerSoundEffect
+local scareMix = 0 -- 0..1: the close encounter hushes the dark and lets the heartbeat build
 local muffled = false -- the world goes dull and far away while a level is left behind
 local muffleMix = 0
 local moodSpeed, moodDrips = 1, 1
@@ -281,6 +282,30 @@ function Audio.wrong(kind: string, position: Vector3)
 	else
 		playAt(position, audio.bumps, 0.8, 0.8 + math.random() * 0.4, 120)
 	end
+end
+
+-- The close encounter's hush: 1 silences the ambience, drips and far-off bumps and lets the heart
+-- and breath rise on their own; 0 gives the dark its sounds back. Eased in `update`.
+function Audio.setScare(mix: number)
+	scareMix = math.clamp(mix, 0, 1)
+end
+
+-- True while the close encounter has the dark's sounds hushed.
+function Audio.scaring(): boolean
+	return scareMix > 0
+end
+
+-- One heavy step of the thing that is coming, from `position`.
+function Audio.scareStep(position: Vector3, weight: number)
+	playAt(position, audio.wandererStep, 0.7 + 0.3 * weight, 0.62 + 0.12 * weight, 90)
+end
+
+-- The strike: the roar, the floor dropping out, and a rattle of clicks all at once.
+function Audio.scareStrike()
+	oneShot(audio.caughtRoar, 1, 0.7)
+	oneShot(audio.rumble, 1, 0.35)
+	oneShot(audio.listenerVoice, 0.9, 1.9)
+	oneShot(audio.ping, 0.4, 0.3)
 end
 
 -- The crackle of a bulb cutting out (`off`) or catching again, from the bulb.
@@ -490,8 +515,9 @@ local function update(dt: number)
 	local playing = State.server.stage ~= "title"
 	local inDark = if playing then dark else 0.5
 
-	fadeTo(ambience, audio.ambienceVolume * inDark, dt, 2)
-	fadeTo(drips, audio.dripsVolume * inDark * moodDrips, dt, 2)
+	local hush = 1 - scareMix
+	fadeTo(ambience, audio.ambienceVolume * inDark * hush, dt, 4)
+	fadeTo(drips, audio.dripsVolume * inDark * moodDrips * hush, dt, 4)
 	ambience.PlaybackSpeed += (moodSpeed - ambience.PlaybackSpeed) * math.min(1, dt * 0.5)
 	muffleMix = math.clamp(muffleMix + (if muffled then 1 else -1) * MUFFLE_PER_SECOND * dt, 0, 1)
 	equalizer.HighGain = -muffleMix * 28
@@ -500,12 +526,13 @@ local function update(dt: number)
 	if SoundService.AmbientReverb ~= reverb then
 		SoundService.AmbientReverb = reverb
 	end
-	fadeTo(presence, audio.presenceVolume * threat * dark, dt, 3)
-	fadeTo(heartbeat, audio.heartbeatVolume * threat * dark, dt, 3)
-	heartbeat.PlaybackSpeed = HEART_SPEED_CALM + (HEART_SPEED_TENSE - HEART_SPEED_CALM) * threat
+	local felt = math.max(threat, scareMix)
+	fadeTo(presence, audio.presenceVolume * felt * dark, dt, 3)
+	fadeTo(heartbeat, audio.heartbeatVolume * felt * dark, dt, 3)
+	heartbeat.PlaybackSpeed = HEART_SPEED_CALM + (HEART_SPEED_TENSE - HEART_SPEED_CALM) * felt
 	fadeTo(wade, if Avatar.wading and Avatar.moving then 0.5 else 0, dt, 5)
 
-	if playing and State.inLevel() and dark > 0.5 then
+	if playing and State.inLevel() and dark > 0.5 and scareMix == 0 then
 		bumpTimer -= dt
 		if bumpTimer <= 0 then
 			local range = audio.bumpSeconds

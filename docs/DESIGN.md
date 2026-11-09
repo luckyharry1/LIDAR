@@ -127,8 +127,10 @@ Mazes are cells of 14 studs with 11-stud walls; the exit is the cell farthest fr
 ## Co-op
 
 Up to 4 players. Everyone sees everyone's dots: teammates' scanners are redrawn locally from
-a few numbers the server relays, so no dot is ever sent over the network. Teammates' names
-show through walls up to 400 studs, and they leave green footprints. A caught player is downed
+a few numbers the server relays, so no dot is ever sent over the network. Teammates are
+invisible, like monsters: they are known by their green footprints and the green dots a scan
+leaves on them, and a scan that lands on one shows their name through walls for 3 s (a downed
+teammate's name always shows). A caught player is downed
 while someone is still standing; a teammate stands close and scans them for 3 s to get them up,
 and a monster that downs someone pauses for 4 s so it cannot camp. Pings (G, Y, touch PING)
 mark a spot for 12 s; with Echo Beacon they also lure things that listen. The emote wheel

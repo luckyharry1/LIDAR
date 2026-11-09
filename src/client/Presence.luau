@@ -5,7 +5,10 @@
 --    that fades over several seconds (with a footstep sound), and teammates leave green ones.
 --  * Breath: close to a monster, pale mist puffs where its head would be.
 --  * The aura: a red glow creeps in at the edges of the screen as one gets near.
---  * Teammates' names float over them and show through walls, so a party can always regroup.
+--  * Teammates are invisible too, like everyone in the dark: they are known by green footprints
+--    and by the green dots a scan leaves on them. Their name shows through walls for a few
+--    seconds after a scan lands on them (and always while they are downed, so they can be found
+--    and helped up).
 -- A Mimic that is still pretending to be one of ours does none of this: it sits still and
 -- holds its breath.
 
@@ -18,6 +21,7 @@ local Audio = require(script.Parent.Audio)
 local Config = require(ReplicatedStorage.Shared.Config)
 local Dots = require(script.Parent.Dots)
 local Hud = require(script.Parent.Hud)
+local Lidar = require(script.Parent.Lidar)
 local Reach = require(script.Parent.Reach)
 local State = require(script.Parent.State)
 local Ui = require(script.Parent.Ui)
@@ -32,6 +36,7 @@ type Walker = {
 	nextMist: number,
 }
 type Marker = { gui: BillboardGui, label: TextLabel }
+type Bodies = { character: Model, connection: RBXScriptConnection }
 
 local tracks = Config.Tracks
 local PRINT_SIZE = 0.16
@@ -52,9 +57,56 @@ local player = Players.LocalPlayer
 local monsters: { [Model]: Walker } = {}
 local mates: { [Player]: Walker } = {}
 local markers: { [Player]: Marker } = {}
+local bodies: { [Player]: Bodies } = {} -- teammates' characters, hidden from this client
+local namedUntil: { [Player]: number } = {} -- when a scan last landed on a teammate
 local aura = 0
 local floorParams = RaycastParams.new()
 floorParams.FilterType = Enum.RaycastFilterType.Exclude
+
+-- Hides one part of a teammate (and its face decal) from this client only. The part is still
+-- there for the scanner: a ray lands on an invisible body just the same.
+local function hidePart(instance: Instance)
+	if instance:IsA("BasePart") then
+		instance.LocalTransparencyModifier = 1
+	end
+end
+
+-- Teammates cannot be seen, only sensed. Accessories and clothes load in after the character
+-- appears, so new parts are hidden as they arrive.
+local function hideMate(other: Player, character: Model)
+	local known = bodies[other]
+	if known ~= nil and known.character == character then
+		return
+	end
+	if known ~= nil then
+		known.connection:Disconnect()
+	end
+	for _, descendant in character:GetDescendants() do
+		hidePart(descendant)
+	end
+	bodies[other] = {
+		character = character,
+		connection = character.DescendantAdded:Connect(hidePart),
+	}
+end
+
+local function forgetMate(other: Player)
+	local known = bodies[other]
+	if known ~= nil then
+		known.connection:Disconnect()
+		bodies[other] = nil
+	end
+	namedUntil[other] = nil
+end
+
+-- A scan landed on `part`: if it is a teammate, their name shows for a moment.
+local function noteSeen(part: BasePart)
+	local model = part:FindFirstAncestorOfClass("Model")
+	local other = if model then Players:GetPlayerFromCharacter(model) else nil
+	if other ~= nil and other ~= player then
+		namedUntil[other] = os.clock() + Config.Coop.nameSeconds
+	end
+end
 
 local function headHeightOf(model: Model): number
 	local ok, size = pcall(function()
@@ -190,7 +242,7 @@ local function markerFor(other: Player): Marker?
 	return marker
 end
 
-local function updateMates(camera: Vector3, playing: boolean)
+local function updateMates(camera: Vector3, playing: boolean, now: number)
 	for _, other in Players:GetPlayers() do
 		if other == player then
 			continue
@@ -200,10 +252,11 @@ local function updateMates(camera: Vector3, playing: boolean)
 		if character == nil or root == nil or not root:IsA("BasePart") then
 			continue
 		end
+		hideMate(other, character)
 		local marker = markerFor(other)
 		if marker then
-			marker.gui.Enabled = playing
 			local downed = character:GetAttribute("Downed") == true
+			marker.gui.Enabled = playing and (downed or now < (namedUntil[other] or 0))
 			marker.label.Text = if downed then other.DisplayName .. "  DOWN" else other.DisplayName
 			marker.label.TextColor3 = if downed then Ui.colors.warn else Ui.colors.good
 		end
@@ -258,7 +311,11 @@ local function update(dt: number)
 		end
 	end
 
-	updateMates(eye, inLevel or State.server.stage == "lore" or State.server.stage == "passage")
+	updateMates(
+		eye,
+		inLevel or State.server.stage == "lore" or State.server.stage == "passage",
+		now
+	)
 
 	local target = 0
 	if inLevel then
@@ -275,7 +332,9 @@ function Presence.start()
 	CollectionService:GetInstanceAddedSignal(Config.Tags.enemy):Connect(function(model)
 		task.spawn(watchMonster, model)
 	end)
+	Lidar.onSeen(noteSeen)
 	Players.PlayerRemoving:Connect(function(leaving: Player)
+		forgetMate(leaving)
 		mates[leaving] = nil
 		local marker = markers[leaving]
 		if marker then

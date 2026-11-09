@@ -16,6 +16,8 @@
 --   workspace:SetAttribute("DevCommand", "skins 60")     add 60 minutes of playtime (this is saved to the profile, and so
 --                                                        is a skin you then wear) and unlock every Robux skin for the session;
 --                                                        "skins reset" undoes it
+--   workspace:SetAttribute("DevScare", os.clock()) play the close encounter (jumpscare) now, on
+--                                                        any level (the client plays it for itself)
 --   workspace:SetAttribute("DevCommand", "lights on")    light the maze to inspect it ("lights off")
 
 local RunService = game:GetService("RunService")
