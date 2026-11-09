@@ -275,15 +275,7 @@ local function update(dt: number)
 		return
 	end
 	if
-		Dread.step(
-			dread,
-			settings,
-			dt,
-			eligible(),
-			Avatar.moving,
-			Audio.threat(),
-			math.random()
-		)
+		Dread.step(dread, settings, dt, eligible(), Avatar.moving, Audio.threat(), math.random())
 	then
 		task.spawn(play)
 	end
