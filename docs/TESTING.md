@@ -133,8 +133,10 @@ says so.
 
 ### Two or more players
 
-- [ ] Teammates' names show through walls; their scans redraw on your screen; their
-      footprints are green.
+- [ ] Teammates are invisible (no body, hat, face or clothes, in the dark or in a lit room);
+      their footprints are green and a scan makes them green dots. Their name shows through
+      walls for about 3 s after your scan lands on them, and always while they are downed.
+      Their scans redraw on your screen.
 - [ ] Downed and revive; spectating while down; "DOWN" on the name marker.
 - [ ] A disguised Echo: it scans green with late dots, it gives off no footprints, breath or
       heartbeat, and only near it does a false "Base?" give directions.
@@ -151,3 +153,17 @@ says so.
       cleared levels (and AFTER 2 LEVELS before). Buying a skin equips it at once; the Phosphor
       Pack unlocks all three; rejoining keeps them (`UserOwnsGamePassAsync`). Playtime skins
       unlock while walking (toast "New skin") and not while idling in a haven.
+
+### The close encounter (jumpscare)
+
+- [ ] In Studio, on tier 2 or later, `workspace:SetAttribute("DevScare", os.clock())` plays it at once:
+      the dark goes silent (only the heartbeat), 5 heavy steps come toward you leaving red
+      prints (quicker as they near), a beat of nothing, then a red dot figure with a screaming
+      mouth lurches at your face with a roar, red flash, camera shake and a wide FOV kick, and
+      runs off. The dark's sounds come back about 2 s later. You are never downed by it.
+- [ ] It never plays on tier 1, in a lit room, a haven, a stairwell, a cutscene, with a menu
+      open, or while a real monster is close (aura above half).
+- [ ] Rarity: only about 4 in 10 levels from tier 2 hold one, none in the first 2.5 min of a
+      session, at most one per level, at least 4.5 min apart, and only after a couple of minutes
+      of walking in the dark (faster with a monster near).
+- [ ] If you are caught or leave the level mid-scare, the sound returns to normal at once.

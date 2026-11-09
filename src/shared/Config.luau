@@ -109,6 +109,31 @@ Config.Tracks = {
 	auraRange = 46, -- the red edge-of-screen aura starts at this distance
 }
 
+-- The close encounter: now and then, deep in a dark level, the maze goes silent, something
+-- walks up to you in the dark, and for a moment its shape is right in your face. Rare, earned
+-- and never unannounced (see client/Scare and pure/Dread). It costs nothing: it never catches you.
+Config.Scare = {
+	enabled = true,
+	minTier = 2, -- never on the first floor, where the player is still learning
+	levelChance = 0.45, -- share of eligible levels that hold one
+	firstGraceSeconds = 150, -- none this soon after the game starts
+	cooldownSeconds = 270, -- ... and none this soon after the last one
+	minLevelSeconds = 75, -- it needs this long in the level, spent in the dark
+	buildSeconds = 150, -- of walking in the dark to fill the dread
+	nearBonus = 2.5, -- extra build speed when something real is near (threat is 0..1)
+	fuseMin = 4, -- once the dread is full, it comes this many seconds later ...
+	fuseMax = 40, -- ... up to this many
+	hushSeconds = 2.4, -- the dark goes quiet this long before the first step
+	steps = 5, -- heavy footsteps coming closer, one pair of red prints each
+	stepStartDistance = 22, -- studs: the steps begin this far off, if the maze allows
+	stepEndDistance = 4.5, -- ... and the last one lands this close
+	silenceSeconds = 1.1, -- the beat of nothing after the last step
+	strikeDistance = 3.2, -- studs in front of the camera where the face appears
+	strikeSeconds = 0.9,
+	fovKick = 24, -- degrees of extra field of view on the strike
+	clearThreat = 0.55, -- no scare while a real monster is this close (threat is 0..1)
+}
+
 -- Dot palettes as RGB triples. `alt` is the colourblind-safe set (blue friends, orange monsters).
 Config.Palettes = {
 	default = {
@@ -248,7 +273,8 @@ Config.Coop = {
 	pingCooldown = 1.5,
 	emoteCooldown = 1,
 	emotes = { "Here", "Wait", "Go", "Danger", "Thanks" },
-	markerDistance = 400, -- teammates' name markers show through walls up to this far
+	markerDistance = 400, -- a teammate's name shows through walls up to this far, while it shows
+	nameSeconds = 3, -- teammates are invisible: a scan landing on one shows their name this long
 }
 
 Config.Economy = {

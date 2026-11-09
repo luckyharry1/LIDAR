@@ -12,6 +12,7 @@ local suites: { { name: string, tests: { [string]: () -> () } } } = {
 	{ name = "SaveData", tests = require("./SaveDataTests") },
 	{ name = "Skins", tests = require("./SkinTests") },
 	{ name = "Daily", tests = require("./DailyTests") },
+	{ name = "Dread", tests = require("./DreadTests") },
 	{ name = "Simulation", tests = require("./SimTests") },
 	{ name = "Lore", tests = require("./LoreTests") },
 	{ name = "Source", tests = require("./SourceTests") },

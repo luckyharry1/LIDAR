@@ -29,6 +29,7 @@ local FADE_IN_SECONDS = 2.2
 local FADE_GIVE_UP_SECONDS = 9 -- the black never outstays a lost message
 local THREAT_FOV_NARROWING = 7 -- degrees lost when something is on top of you
 local FOV_EASE_PER_SECOND = 3
+local FOV_KICK_DECAY = 5 -- per second: a scare's wide view settles in about a second
 
 -- The Levels (by the first tier of each; the Garage shares the Hollow's); past them, the Relay keeps the last mood.
 local MOODS: { [number]: Mood } = {
@@ -135,6 +136,7 @@ local lightTimer = 0
 
 local baseFov = 70
 local fov = 70
+local fovKick = 0 -- extra degrees of field of view from a scare, easing back to nothing
 local blackToken = 0 -- identifies the latest fade to black, so an old timeout cannot lift a new one
 local blackedOut = false
 
@@ -468,6 +470,11 @@ local function applyMood(tier: number)
 	Audio.setMood(mood.speed, mood.drips, mood.reverb)
 end
 
+-- The view jumps wider by `degrees` and eases back: the close encounter's strike.
+function Immersion.kickFov(degrees: number)
+	fovKick = degrees
+end
+
 function Immersion.start()
 	local camera = workspace.CurrentCamera
 	if camera then
@@ -544,7 +551,8 @@ function Immersion.start()
 		local threat = if playing then Audio.threat() else 0
 		local target = baseFov - THREAT_FOV_NARROWING * threat * threat
 		fov += (target - fov) * math.min(1, dt * FOV_EASE_PER_SECOND)
-		current.FieldOfView = fov
+		fovKick -= fovKick * math.min(1, dt * FOV_KICK_DECAY)
+		current.FieldOfView = fov + fovKick
 		if not playing then
 			return
 		end
@@ -567,7 +575,7 @@ function Immersion.start()
 			pulsePois(current)
 		end
 		wrongTimer -= dt
-		if wrongTimer <= 0 and State.server.stage == "level" then
+		if wrongTimer <= 0 and State.server.stage == "level" and not Audio.scaring() then
 			local range = if threat > FLICKER_THREAT then WRONG_TENSE else WRONG_CALM
 			wrongTimer = range[1] + math.random() * (range[2] - range[1])
 			wrongSound(current)
