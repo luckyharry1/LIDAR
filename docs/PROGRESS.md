@@ -940,3 +940,48 @@ Vasco: "Make it so friendly are invisible with green footsteps, add a jumpscare.
   too heavy for the mark pool (1600) on phones; whether the teammate characters really vanish
   (face, hats, clothes) and whether a skinned or custom avatar leaves anything visible. Possible
   follow-ups: a "reduce flashing" setting, a hint to Theo after the first one.
+
+
+## Playthrough audit: exploit guards, a catch you can see, quieter HUD (10 Nov; not seen in Studio)
+
+Vasco: play it through from the code as a new Roblox horror player; find exploits, boredom, dull UI
+and fundamental flaws, and fix what can be fixed. Branch `claude/playthrough-fixes`, stacked on
+`claude/invisible-friends-jumpscare` (PR #24), with PR #23's pass check cherry-picked in.
+
+Exploits closed (all in `server/Director.luau`):
+- Reveal: a client could ask for any hidden object within 167 studs (the best scanner's reach)
+  to be revealed, through walls, from the start cell. The reach is now the player's own scanner
+  (`scanReach`: 59 studs with the starting gun).
+- Teleport: a horizontal jump of more than 40 studs in one logic tick (or 60 studs/s when a tick
+  ran long) that the server did not make is put back (`tickMembers`). Walking through walls at
+  walking speed is not caught; that would need a check against the maze graph.
+- Daily board: a time under 70% of sprinting the shortest route is not posted
+  (`fastestClearSeconds`); the clear and its reward still count.
+- Game pass grants are confirmed with Roblox (PR #23's commit, unchanged).
+- Havens: one player at the stairs used to pull everyone down at once, out of the workbench or a
+  talk. If anyone is more than 24 studs from the doorway the others get an 8 second warning first.
+
+Immersion and pacing (client):
+- A catch has a face. `Scare.grabbed` draws the red dot figure lunging at the camera for 0.4 s,
+  with a red flash and a field-of-view kick, before the screen goes black (`Effects.onCaught`
+  holds the fade that long). A monster's rule is toasted on its first two catches only.
+- The stairwell, now and then (`Immersion.hauntStairs`): from tier 2, 30% of walks down, never
+  within three walks of the last. A door shuts above, then the lamps behind you die one by one
+  from the top with a heavy step each. It stops 5 studs above your eyes. Local to each player.
+- The corner text (floor, counts, goal, Static) fades to 72% transparent 7 s after it last
+  changed while in a level, and comes back when anything in it changes (`Hud.quietInfo`).
+- Teammates are visible again where there is real light: lit rooms, a haven whose lamp is found,
+  the stairwell (`Presence.shouldHideMates`). In the dark of a level they stay invisible.
+- The orientation tape no longer starts from the first stray dots: it needs 30 dots on the
+  screen and only from the intake's third lesson on (`Tutorial`, `TV_HITS`).
+- The title says which tier the survey on this server is on before you join it.
+
+Check in Studio: the catch face reads (not just a red smear) and the black still lands before
+the respawn; the stairwell lamps go dark and stay dark (the server tweens their colour for 0.7 s
+when they come on, the client overrides after); the corner text is still readable when dim on a
+phone; a teammate fades in when the haven lamp is found; nobody rubber-bands in normal play,
+including after a pit fall and a respawn.
+
+Found and not fixed (needs a decision): see the PR description. The big one is that a public
+server is one party's run, so strangers who land on a server are dropped into whatever tier is
+under way.

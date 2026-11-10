@@ -326,7 +326,8 @@ local function refreshTitle()
 	if server.runActive then
 		start("JOIN THE SURVEY", "continue", Ui.colors.good)
 		party()
-		titleStatus.Text = "A survey is under way on this server. You will join it."
+		titleStatus.Text =
+			`A survey is under way on this server, on tier {server.tier}. You will join it.`
 	elseif not profile.tutorialDone then
 		start("BEGIN", "new", Ui.colors.good)
 		party()

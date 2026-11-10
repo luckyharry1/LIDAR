@@ -86,6 +86,10 @@ local LEVEL_ORIGINS = { Vector3.new(0, 0, 0), Vector3.new(0, 0, 700) } -- levels
 local SCAN_STALE_SECONDS = 1 -- a scan report older than this counts as "not scanning"
 local LOGIC_HZ = 4
 local MAX_STEP_DISTANCE = 40 -- studs per logic tick; anything more is a teleport, not walking
+local MAX_STEP_SPEED = 60 -- studs/s allowed when a logic tick ran long (the server hitched)
+local FASTEST_CLEAR_SHARE = 0.7 -- of sprinting the shortest route: no daily time under it is posted
+local HAVEN_WAIT_SECONDS = 8 -- warning the others get before one player takes them downstairs
+local HAVEN_NEAR_DOOR = 24 -- studs: everyone this close to the doorway is ready to go
 local PROMPT_SLACK = 8 -- extra studs allowed on top of the prompt distance for lag
 local SPAWN_SPREAD = 2.5
 local SEED_SPAN = 2 ^ 30
@@ -634,6 +638,18 @@ local function nearEnough(player: Player, part: BasePart): boolean
 			<= Config.World.promptDistance + PROMPT_SLACK
 end
 
+-- How far from a hidden thing this member can be and still have put dots on it: their own
+-- scanner's reach (not the best scanner in the game), the slack a lamp allows, and some for lag.
+local function scanReach(member: Member): number
+	return member.effects.range + Config.Lidar.lightReach + PROMPT_SLACK
+end
+
+-- The quickest a level can honestly be cleared: sprinting the shortest way from the start to the
+-- exit, with a margin for cut corners. A faster time did not come from walking.
+local function fastestClearSeconds(plan: LevelPlan.LevelPlan): number
+	return plan.maze.pathLength * CELL / Config.Player.sprintSpeed * FASTEST_CLEAR_SHARE
+end
+
 local function wirePickup(level: World.Level, pickup: World.Pickup)
 	local taken = false
 	pickup.prompt.Triggered:Connect(function(player: Player)
@@ -954,27 +970,56 @@ local function enterLore(roomId: string, nextTier: number)
 	-- The way on is an open doorway in the dark: confirming at it leaves the haven.
 	watchDoorway(lore.exitPrompt, function()
 		return run.lore == lore
-	end, function(): boolean
-		toastStage("Lights off behind you. Heading back in.", "info", "lore")
+	end, function(player: Player): boolean
+		local function leave()
+			if run.lore ~= lore then
+				return
+			end
+			toastStage("Lights off behind you. Heading back in.", "info", "lore")
+			for otherPlayer, other in members do
+				if other.stage == "lore" then
+					Remotes.send(
+						otherPlayer,
+						"Objective",
+						"exit",
+						{ position = lore.spawnCFrame.Position, by = 0 }
+					)
+				end
+			end
+			task.delay(DOORWAY_LEAVE_SECONDS, function()
+				if run.lore == lore then
+					run.mode = "run"
+					local tier = run.nextTier
+					Director.walkPassage(function()
+						beginLevel(tier)
+					end)
+				end
+			end)
+		end
+		-- Someone still at the workbench or with a surveyor gets a warning instead of being
+		-- pulled down the stairs mid-sentence. With everyone at the doorway there is no wait.
+		local door = lore.exitPrompt.Parent :: BasePart
+		local someoneBusy = false
 		for otherPlayer, other in members do
-			if other.stage == "lore" then
-				Remotes.send(
-					otherPlayer,
-					"Objective",
-					"exit",
-					{ position = lore.spawnCFrame.Position, by = 0 }
-				)
+			local root = rootOf(otherPlayer)
+			if
+				other.stage == "lore"
+				and otherPlayer ~= player
+				and (root == nil or (root.Position - door.Position).Magnitude > HAVEN_NEAR_DOOR)
+			then
+				someoneBusy = true
 			end
 		end
-		task.delay(DOORWAY_LEAVE_SECONDS, function()
-			if run.lore == lore then
-				run.mode = "run"
-				local tier = run.nextTier
-				Director.walkPassage(function()
-					beginLevel(tier)
-				end)
-			end
-		end)
+		if someoneBusy then
+			toastStage(
+				`{player.DisplayName} is at the stairs. Going down in {HAVEN_WAIT_SECONDS} seconds!`,
+				"warn",
+				"lore"
+			)
+			task.delay(HAVEN_WAIT_SECONDS, leave)
+		else
+			leave()
+		end
 		return true
 	end, "lore")
 
@@ -1115,8 +1160,14 @@ function completeLevel()
 					profile.daily.bestMs = 0
 				end
 				profile.daily.day = day
-				dailyBest = Leaderboard.submit(player, day, seconds * 1000)
-				profile.daily.bestMs = dailyBest
+				if seconds >= fastestClearSeconds(level.plan) then
+					dailyBest = Leaderboard.submit(player, day, seconds * 1000)
+					profile.daily.bestMs = dailyBest
+				else
+					-- Faster than sprinting the shortest route: cleared, but no time for the board.
+					dailyBest = profile.daily.bestMs
+					warn(`[Daily] {player.Name} cleared in {math.floor(seconds)} s; not posted.`)
+				end
 			else
 				profile.bestTier = math.max(profile.bestTier, tier)
 			end
@@ -1428,11 +1479,14 @@ local function checkPasses(member: Member)
 	end
 end
 
--- Roblox tells the server when a pass prompt finishes. This is the live grant; checkPasses
--- (which asks Roblox directly) is what restores the pass on every later visit.
-local function onPassPurchased(player: Player, passId: number, purchased: boolean)
+-- The live grant for a pass bought this visit; checkPasses (which asks Roblox directly) is what
+-- restores the pass on every later visit.
+local PURCHASE_CONFIRM_TRIES = 5
+local PURCHASE_CONFIRM_WAIT = 1.5
+
+local function grantPass(player: Player, passId: number)
 	local member = members[player]
-	if member == nil or not purchased or passId == 0 then
+	if member == nil or passId == 0 then
 		return
 	end
 	if passId == Config.Monetization.surveyorKitPassId then
@@ -1461,6 +1515,37 @@ local function onPassPurchased(player: Player, passId: number, purchased: boolea
 			return
 		end
 	end
+end
+
+-- The finished-prompt event is only a hint that something was bought; a pass is granted once
+-- Roblox itself says the player owns it, so a spoofed or mistaken "purchased" grants nothing.
+-- If the lookup keeps failing the pass is still restored on the player's next join (checkPasses).
+local function onPassPurchased(player: Player, passId: number, purchased: boolean)
+	if not purchased or passId == 0 or members[player] == nil then
+		return
+	end
+	local known = passId == Config.Monetization.surveyorKitPassId
+	for _, id in Config.Monetization.skinPassIds do
+		known = known or id == passId
+	end
+	if not known then
+		return
+	end
+	task.spawn(function()
+		for attempt = 1, PURCHASE_CONFIRM_TRIES do
+			if members[player] == nil then
+				return
+			end
+			if ownsPass(player, passId) == true then
+				grantPass(player, passId)
+				return
+			end
+			if attempt < PURCHASE_CONFIRM_TRIES then
+				task.wait(PURCHASE_CONFIRM_WAIT)
+			end
+		end
+		warn(`[Pass] {player.Name} finished a purchase prompt for {passId} but does not own it.`)
+	end)
 end
 
 local function onPlayerAdded(player: Player)
@@ -1676,8 +1761,7 @@ local function onReveal(player: Player, echoId: number)
 	then
 		if
 			not beacon.revealed
-			and (beacon.position - root.Position).Magnitude
-				<= Config.Lidar.maxRange + Config.Lidar.lightReach + PROMPT_SLACK
+			and (beacon.position - root.Position).Magnitude <= scanReach(member)
 		then
 			beacon.reveal()
 			for otherPlayer, other in members do
@@ -1702,8 +1786,7 @@ local function onReveal(player: Player, echoId: number)
 	if
 		echo == nil
 		or echo.revealed
-		or (echo.position - root.Position).Magnitude
-			> Config.Lidar.maxRange + Config.Lidar.lightReach + PROMPT_SLACK
+		or (echo.position - root.Position).Magnitude > scanReach(member)
 	then
 		return
 	end
@@ -1909,13 +1992,21 @@ local function tickMembers(dt: number)
 			local last = member.lastPosition
 			if last ~= nil then
 				local moved = (root.Position - last) * Vector3.new(1, 0, 1)
-				if moved.Magnitude <= MAX_STEP_DISTANCE then
+				if moved.Magnitude <= math.max(MAX_STEP_DISTANCE, MAX_STEP_SPEED * dt) then
 					if moved.Magnitude > 0.05 then
 						member.lastMovedAt = os.clock()
 					end
 					member.sessionDistance += moved.Magnitude
 					local stats = profileOf(member).stats
 					stats.distance = math.floor(stats.distance + moved.Magnitude)
+				else
+					-- Nobody walks that far in one tick, and the server did not move them
+					-- (placeMember records where it puts people): a teleport. Back they go.
+					local character = player.Character
+					if character then
+						character:PivotTo(root.CFrame.Rotation + last)
+						root.AssemblyLinearVelocity = Vector3.zero
+					end
 				end
 			end
 			member.lastPosition = root.Position
