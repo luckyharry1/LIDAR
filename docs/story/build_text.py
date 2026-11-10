@@ -209,7 +209,7 @@ def warm(r, look=None):
 
 # ===================================================================== THE GOAL
 # HUD objective text. Plain, direct: the player always knows what to do next.
-add("goal.l0", "goal", "l0", "HUD objective, Level 0", ["Find the surveyors. Start with Joss."])
+add("goal.l0", "goal", "l0", "HUD objective, Level 0", ["You are not alone here. Find the Survey. Start with Joss."])
 add("goal.l0b", "goal", "l0", "HUD objective, after Joss", ["Find the fuse. Go down."])
 add("goal.l1", "goal", "l1", "HUD objective, Level 1", ["Find Hana at the pump house."])
 add("goal.l1b", "goal", "l1", "HUD objective, after Hana", ["Follow the water to the Falls."])
@@ -335,9 +335,9 @@ poi("poi.l0.vcr", "l0", "CRT and VCR on a cart in the first room: orientation ta
 poi("poi.l0.desk", "l0", "Desk with a Halden Building staff badge and a nameplate",
     ["HALDEN BUILDING. A. PIKE.", "Corbel & Pike Surveying.", "Valid: 1994."], "Halden. Corbel and Pike. That is my company. This is a 1994 badge.", "l0")
 poi("poi.l0.whiteboard", "l0", "Whiteboard in a meeting room",
-    ["DAY 3.", "WALLS MOVED WHILE WE SLEPT.", "NEVER SLEEP UNLIT.", "MAP EVERYTHING."], "Walls move when nobody looks. That's the whole reason for the dots.", "l0")
+    ["DAY 3.", "THE WALLS MOVE WHEN NOBODY WATCHES.", "SCAN EVERYTHING. DOTS HOLD THE WALLS STILL.", "FIND JOSS. SUPPLY CLOSET. HE HAS THE LAMPS."], "Day three, and they still wrote a plan. Joss, supply closet: that's my first stop.", "l0")
 poi("poi.l0.coat", "l0", "Coat on a hook; security badge; clipboard",
-    ["HOLLIS, J. NIGHT SECURITY.", "Round log: 11,284.", "Last entry: ALL QUIET."], "Eleven thousand rounds. That isn't a shift. That's years of walking.", "l0")
+    ["HOLLIS, J. NIGHT SECURITY.", "ROUND LOG: 11,284.", "LAST ENTRY: ALL QUIET."], "Eleven thousand rounds. He never left. Those footsteps are Hollis, still on his route.", "l0")
 poi("poi.l0.copier", "l0", "Copier jammed on a page",
     ["EXIT GUESSES:", "1. stairs - no  2. lift - no  3. roof - no ...", "14. the door at the end of floor 3 - ???"],
     "Fourteen guesses. All crossed out. 'The door at the end of floor three.' That's mine.", "l0",
@@ -368,9 +368,9 @@ poi("poi.l1.lifering", "l1", "Life ring painted HALDEN B3",
 poi("poi.l1.pumplog", "l1", "Pump house log taped to a pipe",
     ["WATER LEVEL: UP.", "UP.", "UP.", "FOLLOW IT UPSTREAM. IT ENDS SOMEWHERE LIT. -H.O."], "Follow the water upstream. Okay. That's a plan.", "l1")
 poi("poi.l1.headphones", "l1", "Headphones on a pipe with a sticky note",
-    ["TOBI WREN. SOUND.", "Do not call out. Do not answer if it calls.", "Gain all the way up."], "Tobi's. If he left these, he's the thing that's listening now.", "l1")
+    ["TOBI WREN. SOUND.", "IT HEARS EVERY STEP. WALK, DO NOT RUN.", "GAIN ALL THE WAY UP. I CANNOT HEAR IT COMING."], "Tobi's. He went silent to hide, and then could not hear it coming. Walk, don't run.", "l1")
 poi("poi.l1.dinghy", "l1", "Half-sunk rubber dinghy",
-    ["CREW 2. B1.", "Hana went ahead on foot.", "Oars lost. Third seat lost."], "Crew 2 tried to paddle. They lost a seat. That's a polite way to say it.", "l1")
+    ["CREW 2. B1.", "HANA WENT AHEAD ON FOOT.", "FOLLOW THE WATER. THE FALLS ARE DOWNSTREAM."], "Hana walked on. The water runs toward the Falls, so I follow the water.", "l1")
 poi("poi.l1.valve", "l1", "Valve station with the wheel missing",
     ["MAIN VALVE B4.", "WHEEL REMOVED FOR SAFETY.", "(by whom?)"], "Wheel's gone. I need the wheel to drain the channel.", "l1")
 poi("poi.l1.tally", "l1", "Chalk tally on a wall",
@@ -395,9 +395,9 @@ poi("poi.l2.pa", "l2", "PA speaker above a nurse station",
 poi("poi.l2.chart", "l2", "Patient chart on a bed",
     ["PATIENT: UNKNOWN.", "ADMITTED: ____", "CONDITION: FORGOTTEN."], "Every chart says unknown. Nobody remembers who they were treating.", "l2")
 poi("poi.l2.tapcode", "l2", "Brass plate on a pillar",
-    ["TWO TAPS. A BREATH. ONE.", "CREW GREETING.", "(scratched below) IT CANNOT BREATHE."], "A greeting. Two taps, a breath, one. The thing that answers cannot breathe.", "l2")
+    ["TWO TAPS. A BREATH. ONE.", "THE CREW GREETING.", "(scratched below) IF IT DOES NOT BREATHE, IT IS NOT US."], "Something here copies the taps and forgets the breath. That is how I tell Ravi from the Echo.", "l2")
 poi("poi.l2.gurney", "l2", "Gurney with Survey straps",
-    ["SURVEY STRETCHER 4.", "Used twice.", "Used once to carry someone out. Used once to carry someone in."], "They carried someone in. I don't want to know who.", "l2")
+    ["SURVEY STRETCHER 4.", "ONCE TO CARRY SOMEONE OUT.", "ONCE TO CARRY SOMEONE IN. THE NAME IS CROSSED OUT."], "Someone was carried into a ward and never came out. The things in the dark were staff once.", "l2")
 poi("poi.l2.bell", "l2", "Call bell on a wire",
     ["CALL BELL. RING FOR ASSISTANCE.", "(someone has cut the wire)"], "Cut the wire. Nobody wants the thing to know where they are.", "l2")
 
@@ -409,7 +409,7 @@ poi("poi.c2.radio", "c2", "Unplugged radio on a stool",
 poi("poi.l3.doorframe", "l3", "Halden door frame grown into cave rock",
     ["HALDEN BLDG. FLOOR 3.", "The door is open. There is only rock on the other side."], "A Halden door frame inside a cave. Pieces of the real building are everywhere down here.", "l3")
 poi("poi.l3.crystal", "l3", "Glowing mineral vein",
-    ["DO NOT TOUCH THE GLOW.", "It gives light. It takes warmth. It takes light back."], "The glow feeds on light. Which means a lamp-bag is bait.", "l3")
+    ["DO NOT TOUCH THE GLOW.", "IT GIVES LIGHT. IT TAKES WARMTH.", "IT FEEDS ON LAMPS. KEEP THE SCANNER LOW."], "The glow feeds on light, so a lamp-bag is bait here. Keep low, find Pim.", "l3")
 poi("poi.l3.camera", "l3", "Camera on a tripod facing the passage",
     ["Q. QUILL. PHOTOGRAPHY.", "Shutter half pressed. Never finished."], "He was in the middle of a shot. He never took it.", "l3")
 poi("poi.l3.bridge", "l3", "Rope bridge over a drop",
@@ -421,7 +421,7 @@ poi("poi.c3.mugs", "c3", "Row of mugs on a ledge",
 
 # --- Level 4
 poi("poi.l4.stone", "l4", "Cornerstone",
-    ["HALDEN BUILDING. 1994.", "Nothing here is older than this stone.", "Every Level hangs from it."], "Everything hangs from the Halden. The whole Backrooms is built on top of it.", "l4", 9)
+    ["HALDEN BUILDING. 1994.", "NOTHING HERE IS OLDER THAN THIS STONE.", "EVERY LEVEL HANGS FROM IT. THE LAMP IS BELOW."], "Everything hangs from the Halden. The Lamp is below this stone. That is the way out.", "l4", 9)
 poi("poi.l4.ticket", "l4", "Ticket machine at a boom gate",
     ["ENTERED: TUE 11:42 PM", "EXIT: _____", "(machine will not print an exit time)"], "Eleven forty-two. That's when I walked in. It's been tracking me.", "l4")
 poi("poi.l4.chalk", "l4", "Chalk arrows leading downward",
@@ -553,7 +553,7 @@ ITEMS = [
     ("tea", "Cold Tea", "Steadies your hands. Cools the scanner.", "Camps and side rooms"),
     ("flashbulb", "Flash Bulb", "One bright flash. Stuns the Still for a moment.", "Level 3, one"),
     ("glowstick", "Glow Stick", "Snap it. Twenty seconds of light.", "Any, consumable"),
-    ("mug", "Pim's Mug", "Chipped. PIM in marker. Proof he made it this far.", "Level 3"),
+    ("mug", "Pim's Mug", "Chipped. PIM in marker. Proof she made it this far.", "Level 3"),
     ("scanner41", "Scanner Unit 0041", "Your scanner. The real floor is still on it.", "Starts with you"),
 ]
 for iid, name, desc, where in ITEMS:
@@ -614,15 +614,15 @@ add("rev.dorm.model", "reveal", "dorm", "Model of the Halden Building",
 # --- OPENING CUTSCENE (plays on New Game; skippable on repeat)
 scene("cs.open", "cutscene", "The Halden Building", "New Game start", "Automatic, once per profile; skippable", [
     ("@", "office"),
-    ("^", "TUESDAY, 11:42 PM"),
-    ("^", "HALDEN BUILDING, FLOOR 3"),
+    ("^", "THEO MARSH. LASER-SCAN TECH."),
+    ("^", "HALDEN BUILDING, FLOOR 3. 11:42 PM."),
     ("Theo", "Last scan. Forty-one of forty-one. Pack up, go home."),
     ("@", "lean"),
     ("Theo", "Wait. That's not--"),
     ("@", "dark"),
     ("^", "LIDAR"),
     ("@", "wake"),
-    ("Theo", "This is not floor three. Scan the room. Find a door."),
+    ("Theo", "This is not floor three. Nobody sent me here. Scan the room. Find a door."),
 ], note="About 30 seconds. Staged in the client (Stage.luau, set office): scanner sweeps the floor, Theo leans on the wall, it melts, black, the title, a low shot of the melted wall. Ends on the first playable frame.", look="l0", stage="office")
 
 # --- TAPE 1: ORIENTATION (the clear opening explanation)
@@ -640,10 +640,12 @@ scene("tape.orientation", "tape", "Survey Orientation (Tape 1 of 9)", "CRT/VCR i
     ("Ines", "Find my people. They camp at every Level. Each of them knows something you need."),
     ("Ines", "And find the way out. We have never found one. But the scanner says there is a shape in the dark that matches the real world."),
     ("Ines", "To prove it, I would need a true measurement of a real place. We have never had one. If you have one, I would very much like to meet you."),
+    ("@", "reach"),
     ("~", "She reaches forward. The tape cuts to static."),
+    ("@", "static"),
     ("Theo", "A true measurement of a real place."),
     ("Theo", "Forty-one scans of floor three. They are on this unit."),
-    ("Theo", "Okay. Find the surveyors. Find Ines."),
+    ("Theo", "I'm not Survey. I just scanned the wrong wall. But they are down here. Find the surveyors. Find Ines."),
 ], note="~60 to 75 seconds with beats; keep skippable. Journal entries 02 and 03 unlock.", look="l0")
 
 # --- TAPE 2: HALDEN PROMO
@@ -653,8 +655,10 @@ scene("tape.halden", "tape", "Halden Building: Where Tomorrow Works", "VCR in th
     ("~", "Ribbon cutting. A young man in a Corbel and Pike survey jacket holds a scanner and waves."),
     ("Announcer", "Surveyed to the millimetre by Corbel and Pike."),
     ("~", "Camera drifts down a corridor, floor three. At the very end is a door that is not on any plan. It is slightly open. Light is coming out of it."),
+    ("@", "door"),
     ("Announcer", "From the lobby to floor... three..."),
     ("~", "Tape glitches. Static. End."),
+    ("@", "static"),
     ("Theo", "Fifteen floors. The plan I was given had fourteen."),
     ("Theo", "That door is on floor three. That is my floor."),
 ], look="l0")
@@ -666,8 +670,10 @@ scene("tape.hollis", "tape", "Security Camera 4 (night)", "Monitor in the Level 
     ("~", "Time jumps. Same corridor. The carpet is wetter."),
     ("Hollis", "Round four hundred. Lights out on three. All quiet."),
     ("~", "Time jumps. The man is a little translucent. The footage loses detail where he stands."),
+    ("@", "fade"),
     ("Hollis", "Round eleven thousand. Funny. I do not see the other guards any more."),
     ("Hollis", "Is anyone there? Can anyone see me?"),
+    ("@", "gone"),
     ("~", "The man stops. Looks straight into the camera. The footage keeps going, but he is gone from the frame. Keys, faint, continue."),
     ("Theo", "Nobody saw him, so he started to disappear."),
     ("Theo", "That is what fading is. Keep somebody in sight."),
@@ -679,6 +685,7 @@ scene("tape.tobi", "tape", "Walkman Diary: T. Wren", "Cassette player in the Lev
     ("Tobi", "Tobi Wren. I can hear the building thinking."),
     ("Tobi", "I have worked out that it hears us. Every scan. Every step."),
     ("Tobi", "So I stopped. If I stay silent, maybe nothing hears me."),
+    ("@", "dim"),
     ("~", "Longer silence. Dripping. A faint, patient breath."),
     ("Tobi", "It worked. I could not hear anyone, and nobody could hear me."),
     ("Tobi", "That's the problem."),
@@ -692,6 +699,7 @@ scene("tape.ravi", "tape", "Ravi's Demonstration", "TV in the Level 2 day room",
     ("Ravi", "Okay. This is the Echo. It copies voices."),
     ("Ravi", "Watch. Two taps. A breath. One."),
     ("~", "He taps the table. Silence. Then, from the dark behind the camera, two taps. No breath. One tap."),
+    ("@", "echo"),
     ("Echo", "Ravi? Ravi? Ravi?"),
     ("Ravi", "That is my voice. It learned me in an afternoon."),
     ("Ravi", "It can copy the words. It can copy the taps. It cannot wait."),
@@ -704,10 +712,13 @@ scene("tape.quill", "tape", "Contact Sheet: M. Quill", "Projector in the Level 3
     ("~", "A slide projector throws images on the cave wall: a corridor, frame by frame."),
     ("Quill", "Frame one. Empty corridor."),
     ("Quill", "Frame ten. Empty."),
+    ("@", "shape"),
     ("Quill", "Frame thirty. A shape at the far end."),
     ("~", "A shape at the end of the corridor, drawn closer in each frame."),
+    ("@", "shape"),
     ("Quill", "It moves when I do not look. So I look."),
     ("Quill", "But if I stare, it learns the stare."),
+    ("@", "shape"),
     ("Quill", "Watch it. Then step. Never stare. Remember."),
     ("Theo", "Watch it, then step. Do not stare. Got it."),
 ], look="l3")
@@ -726,6 +737,18 @@ scene("tape.pike", "tape", "Tape 9 of 9: A. Pike", "Camcorder on the folding tab
     ("Theo", "He was the first. Unit zero zero zero seven. And I have the real floor."),
     ("Theo", "Down to the Lamp."),
 ], look="l4")
+
+# --- RESCUED IN THE MAZE: what a surveyor says when found sitting in the dark and helped up.
+# Short, in voice; the game picks one per rescue and then they walk you out. Pim is a woman.
+add("rescue.hana", "rescue", "l1", "Hana, found by the pipes in the Flooded Wing (tier 3)",
+    ["Hana. Pump house. Took you long enough.", "Stay on my left. Water is loud. Walk.",
+     "Forty steps from the pump to here. Count with me."], speaker="Hana", vo=VOICES["Hana"])
+add("rescue.ravi", "rescue", "l2", "Ravi, found behind a curtain in the Wards (tier 5)",
+    ["Two taps. A breath. One. You waited. Thank you.", "Do not answer anything that only knocks twice.",
+     "Stay behind me. I know the quiet way."], speaker="Ravi", vo=VOICES["Ravi"])
+add("rescue.pim", "rescue", "l3", "Pim, found in the Hollow with her lantern (tier 7)",
+    ["Theo? You came all the way down for me? Nobody does that.", "I told them there was a draft. Follow the lantern.",
+     "Keep the light low. The glow does not like me either."], speaker="Pim", vo=VOICES["Pim"])
 
 # --- DIALOGUE: JOSS (Supply Closet, after tier 1)
 scene("npc.joss", "dialogue", "Joss Berrow", "Supply Closet (c0), after tier 1", "Walk up to the green dot; scene plays; he hands over lamp-bags", [
