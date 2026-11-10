@@ -24,6 +24,7 @@ local Dread = require(ReplicatedStorage.Shared.pure.Dread)
 local Effects = require(script.Parent.Effects)
 local Hud = require(script.Parent.Hud)
 local Immersion = require(script.Parent.Immersion)
+local Net = require(ReplicatedStorage.Shared.Net)
 local State = require(script.Parent.State)
 
 local settings = Config.Scare
@@ -46,6 +47,12 @@ local HEAD_DOT = 0.14
 local EYE_DOT = 0.22
 local AFTERMATH_SECONDS = 2.4
 local FLEE_DISTANCE = 9
+-- A real catch: the thing is in your face for a moment before the dark takes you (Scare.grabbed).
+local GRAB_FRAMES = 4
+local GRAB_SECONDS = 0.4 -- Effects holds the fade to black this long (CATCH_HOLD_SECONDS)
+local GRAB_FROM = 0.85 -- of strikeDistance: it starts closer than the scare's, and ends on you
+local GRAB_TO = 0.4
+local GRAB_FOV_SHARE = 0.6 -- of the scare's field-of-view kick
 
 local player = Players.LocalPlayer
 local dread = Dread.new(settings)
@@ -259,6 +266,31 @@ local function play()
 	stop()
 end
 
+-- Something real has caught the player. Until now a catch was a roar and a black screen; this
+-- puts what caught you in front of your eyes for the instant before the black. Any scare in
+-- progress gives way to it.
+local function grabbed()
+	if not settings.enabled then
+		return
+	end
+	stop()
+	Hud.flash(Color3.fromRGB(255, 30, 30), GRAB_SECONDS + 0.3)
+	Immersion.kickFov(settings.fovKick * GRAB_FOV_SHARE)
+	for frame = 1, GRAB_FRAMES do
+		local camera = workspace.CurrentCamera
+		if camera == nil then
+			return
+		end
+		local progress = (frame - 1) / (GRAB_FRAMES - 1)
+		drawFigure(
+			camera,
+			settings.strikeDistance * (GRAB_FROM + (GRAB_TO - GRAB_FROM) * progress),
+			FACE_LIFETIME
+		)
+		task.wait(GRAB_SECONDS / GRAB_FRAMES)
+	end
+end
+
 -- Whether a scare would land well right now.
 local function eligible(): boolean
 	return not running
@@ -303,6 +335,10 @@ function Scare.start()
 			end
 		end)
 	end
+	local caught = Net.get("Caught") :: RemoteEvent
+	caught.OnClientEvent:Connect(function()
+		task.spawn(grabbed)
+	end)
 	RunService.Heartbeat:Connect(update)
 	player.CharacterAdded:Connect(stop)
 end

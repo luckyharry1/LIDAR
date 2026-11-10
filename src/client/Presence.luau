@@ -8,7 +8,8 @@
 --  * Teammates are invisible too, like everyone in the dark: they are known by green footprints
 --    and by the green dots a scan leaves on them. Their name shows through walls for a few
 --    seconds after a scan lands on them (and always while they are downed, so they can be found
---    and helped up).
+--    and helped up). Where there is real light (a lit room, a haven whose lamp is found, the
+--    stairwell) the party can see each other again.
 -- A Mimic that is still pretending to be one of ours does none of this: it sits still and
 -- holds its breath.
 
@@ -17,6 +18,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
+local Atmosphere = require(script.Parent.Atmosphere)
 local Audio = require(script.Parent.Audio)
 local Config = require(ReplicatedStorage.Shared.Config)
 local Dots = require(script.Parent.Dots)
@@ -36,7 +38,7 @@ type Walker = {
 	nextMist: number,
 }
 type Marker = { gui: BillboardGui, label: TextLabel }
-type Bodies = { character: Model, connection: RBXScriptConnection }
+type Bodies = { character: Model, connection: RBXScriptConnection, hidden: boolean }
 
 local tracks = Config.Tracks
 local PRINT_SIZE = 0.16
@@ -59,6 +61,7 @@ local mates: { [Player]: Walker } = {}
 local markers: { [Player]: Marker } = {}
 local bodies: { [Player]: Bodies } = {} -- teammates' characters, hidden from this client
 local namedUntil: { [Player]: number } = {} -- when a scan last landed on a teammate
+local matesHidden = true -- false where there is real light to see each other by
 local aura = 0
 local floorParams = RaycastParams.new()
 floorParams.FilterType = Enum.RaycastFilterType.Exclude
@@ -67,26 +70,47 @@ floorParams.FilterType = Enum.RaycastFilterType.Exclude
 -- there for the scanner: a ray lands on an invisible body just the same.
 local function hidePart(instance: Instance)
 	if instance:IsA("BasePart") then
-		instance.LocalTransparencyModifier = 1
+		instance.LocalTransparencyModifier = if matesHidden then 1 else 0
 	end
 end
 
--- Teammates cannot be seen, only sensed. Accessories and clothes load in after the character
--- appears, so new parts are hidden as they arrive.
+-- Whether teammates are unseen right now. In the dark of a level, always. In a lit room, in a
+-- haven once its lamp is found and on the stairs there is light on them, so they show.
+local function shouldHideMates(): boolean
+	local stage = State.server.stage
+	if stage == "passage" then
+		return false
+	elseif stage == "lore" then
+		local zone = Atmosphere.zone()
+		if zone == nil then
+			return true
+		end
+		return zone:GetAttribute("Dark") == true and zone:GetAttribute("Revealed") ~= true
+	end
+	return true
+end
+
+-- Teammates cannot be seen in the dark, only sensed. Accessories and clothes load in after the
+-- character appears, so new parts are hidden (or shown) as they arrive.
 local function hideMate(other: Player, character: Model)
 	local known = bodies[other]
+	if known ~= nil and known.character == character and known.hidden == matesHidden then
+		return
+	end
+	for _, descendant in character:GetDescendants() do
+		hidePart(descendant)
+	end
 	if known ~= nil and known.character == character then
+		known.hidden = matesHidden
 		return
 	end
 	if known ~= nil then
 		known.connection:Disconnect()
 	end
-	for _, descendant in character:GetDescendants() do
-		hidePart(descendant)
-	end
 	bodies[other] = {
 		character = character,
 		connection = character.DescendantAdded:Connect(hidePart),
+		hidden = matesHidden,
 	}
 end
 
@@ -256,7 +280,8 @@ local function updateMates(camera: Vector3, playing: boolean, now: number)
 		local marker = markerFor(other)
 		if marker then
 			local downed = character:GetAttribute("Downed") == true
-			marker.gui.Enabled = playing and (downed or now < (namedUntil[other] or 0))
+			marker.gui.Enabled = playing
+				and (downed or not matesHidden or now < (namedUntil[other] or 0))
 			marker.label.Text = if downed then other.DisplayName .. "  DOWN" else other.DisplayName
 			marker.label.TextColor3 = if downed then Ui.colors.warn else Ui.colors.good
 		end
@@ -273,7 +298,8 @@ local function updateMates(camera: Vector3, playing: boolean, now: number)
 			}
 			mates[other] = walker
 		end
-		if playing and character:GetAttribute("Downed") ~= true then
+		-- Footprints are for the dark: someone you can see does not need them.
+		if playing and matesHidden and character:GetAttribute("Downed") ~= true then
 			stepWalker(walker, root.Position, camera)
 		else
 			walker.last = nil
@@ -311,6 +337,7 @@ local function update(dt: number)
 		end
 	end
 
+	matesHidden = shouldHideMates()
 	updateMates(
 		eye,
 		inLevel or State.server.stage == "lore" or State.server.stage == "passage",

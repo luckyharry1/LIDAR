@@ -117,6 +117,20 @@ local CONCEAL_REACH = 16
 local DOT_CHECK_SECONDS = 0.05
 local SIGHT_CLEARANCE = 1.2 -- studs: a sight line to a patch stops this far short of it
 
+-- The stairwell. Most walks down are only a walk. Now and then the lights that came on for you
+-- go out again behind you, one at a time from the top, each with a heavy step: something is
+-- using the stairs after you. It never reaches you, and the lamps beside you stay lit.
+local STAIRS_NAME = "Passage" -- server/Passage builds the model and its "LightBlock" lamps
+local STAIRS_LAMP = "LightBlock"
+local STAIRS_MIN_TIER = 2 -- never on the first walk down, where the stairs are still new
+local STAIRS_CHANCE = 0.3
+local STAIRS_REST = 3 -- walks down that stay quiet after one that was not
+local STAIRS_START_DROP = 9 -- studs the player has gone down before it begins
+local STAIRS_KEEP = 5 -- studs above the player's eyes: lamps lower than this stay lit
+local STAIRS_DOOR_WAIT = 1.1 -- from the door above closing to the first lamp dying
+local STAIRS_GAP = 0.34 -- seconds between lamps
+local STAIRS_DEAD = Color3.fromRGB(46, 44, 42)
+
 local Immersion = {}
 
 local hidden: { [Instance]: boolean } = {} -- concealed parts and lights not yet shown here
@@ -139,6 +153,9 @@ local fov = 70
 local fovKick = 0 -- extra degrees of field of view from a scare, easing back to nothing
 local blackToken = 0 -- identifies the latest fade to black, so an old timeout cannot lift a new one
 local blackedOut = false
+local stairsArmed = false -- this walk down holds the lights going out
+local stairsRest = 0 -- walks left before another may
+local stairsToken = 0 -- identifies the walk, so a run of dying lamps ends with it
 
 local function comeUp(haven: boolean)
 	blackToken += 1
@@ -273,6 +290,72 @@ local function wrongSound(camera: Camera)
 	local position = camera.CFrame.Position
 		+ Vector3.new(math.cos(angle) * distance, 0, math.sin(angle) * distance)
 	Audio.wrong(WRONG_KINDS[math.random(#WRONG_KINDS)], position)
+end
+
+-- A walk down the stairs begins: decide whether this is one of the rare ones.
+local function enterStairs(tier: number)
+	stairsToken += 1
+	stairsArmed = false
+	if stairsRest > 0 then
+		stairsRest -= 1
+	elseif tier >= STAIRS_MIN_TIER and math.random() < STAIRS_CHANCE then
+		stairsArmed = true
+		stairsRest = STAIRS_REST
+	end
+end
+
+-- Once the player is a little way down an armed stairwell: a door shuts above, then the lamps
+-- behind them die from the top down, a step for each. Local only; the server never knows.
+local function hauntStairs(camera: Camera)
+	local model = workspace:FindFirstChild(STAIRS_NAME)
+	if model == nil then
+		return
+	end
+	local lamps: { BasePart } = {}
+	for _, child in model:GetChildren() do
+		if child.Name == STAIRS_LAMP and child:IsA("BasePart") then
+			table.insert(lamps, child)
+		end
+	end
+	if #lamps == 0 then
+		return
+	end
+	table.sort(lamps, function(a, b)
+		return a.Position.Y > b.Position.Y
+	end)
+	local top = lamps[1].Position
+	if top.Y - camera.CFrame.Position.Y < STAIRS_START_DROP then
+		return
+	end
+	stairsArmed = false
+	local mine = stairsToken
+	task.spawn(function()
+		Audio.wrong("door", top)
+		task.wait(STAIRS_DOOR_WAIT)
+		for index, lamp in lamps do
+			local current = workspace.CurrentCamera
+			if
+				stairsToken ~= mine
+				or State.server.stage ~= "passage"
+				or current == nil
+				or lamp.Parent == nil
+				or lamp.Position.Y < current.CFrame.Position.Y + STAIRS_KEEP
+			then
+				return
+			end
+			local light = lamp:FindFirstChildOfClass("PointLight")
+			if light then
+				light.Enabled = false
+			end
+			lamp.Material = Enum.Material.Concrete
+			lamp.Color = STAIRS_DEAD
+			Audio.spark(lamp.Position, true)
+			if index % 2 == 1 then
+				Audio.scareStep(lamp.Position - Vector3.new(0, 4, 0), index / #lamps)
+			end
+			task.wait(STAIRS_GAP)
+		end
+	end)
 end
 
 -- Lights are tagged by the server, so this never walks the workspace (which holds every dot:
@@ -526,6 +609,11 @@ function Immersion.start()
 		if server.stage == "passage" then
 			-- A stairwell rings: long echo, ambience slowed, the floor's drips dry.
 			Audio.setMood(0.8, 0.4, Enum.ReverbType.Cave)
+			if previous.stage ~= "passage" then
+				enterStairs(server.tier)
+			end
+		else
+			stairsArmed = false
 		end
 		local arrived = server.epoch ~= previous.epoch
 			or server.stage ~= previous.stage and previous.stage ~= "downed"
@@ -553,6 +641,9 @@ function Immersion.start()
 		fov += (target - fov) * math.min(1, dt * FOV_EASE_PER_SECOND)
 		fovKick -= fovKick * math.min(1, dt * FOV_KICK_DECAY)
 		current.FieldOfView = fov + fovKick
+		if stairsArmed and State.server.stage == "passage" then
+			hauntStairs(current)
+		end
 		if not playing then
 			return
 		end

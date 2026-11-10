@@ -30,6 +30,7 @@ local SWEEP_HINT_SECONDS = 12
 local HINT_SECONDS = 8
 local SPRINT_HINT_AFTER = 35 -- seconds into the first level
 local TV_REACH = 3 -- studs: a dot this close to the television's screen counts as a hit on it
+local TV_HITS = 30 -- dots the screen needs before the tape plays: looked at, not brushed past
 local THINK_GAP_SECONDS = 40 -- Theo thinks aloud at most this often
 local PROFILE_WAIT_SECONDS = 3 -- how long to wait for a saved profile before assuming a new player
 
@@ -231,15 +232,15 @@ function Tutorial.start()
 		end
 	end)
 	Lidar.onHit(function(position: Vector3)
+		-- Not during the first two lessons: a new player's first stray dots used to start a
+		-- minute of tape before they had learned to scan. From "find" on it is theirs to discover.
+		if step ~= "find" and step ~= "door" then
+			return
+		end
 		local screen = tvScreen()
-		if
-			step ~= "idle"
-			and step ~= "done"
-			and screen ~= nil
-			and (screen.Position - position).Magnitude < TV_REACH
-		then
+		if screen ~= nil and (screen.Position - position).Magnitude < TV_REACH then
 			tvHits += 1
-			if tvHits >= Config.Lidar.lightRevealHits then
+			if tvHits >= TV_HITS then
 				playTape()
 			end
 		end

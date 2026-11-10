@@ -50,6 +50,8 @@ local TRAIL_HEIGHT = 0.3
 local TRAIL_SIZE = 0.14
 local TRAIL_LIFETIME = 40 -- seconds: long enough to follow it to the door
 local SHAKE_SECONDS = 0.35
+local CATCH_HOLD_SECONDS = 0.4 -- a catch shows its face this long before the screen goes black
+local RULE_TOASTS = 2 -- a monster's rule is spelled out the first times it catches you
 local SHAKE_STRENGTH = 0.5
 local MIRROR_HEIGHT = 5
 local ZONE_HZ = 6
@@ -60,6 +62,7 @@ local player = Players.LocalPlayer
 local markers: { Marker } = {}
 local markerFolder = Instance.new("Folder")
 markerFolder.Name = "LidarMarkers"
+local caughtBy: { [string]: number } = {} -- catches by each kind of monster, this session
 local shakeUntil = 0
 local shakeSeconds = SHAKE_SECONDS
 local shakeStrength = SHAKE_STRENGTH
@@ -120,12 +123,18 @@ local function onCaught(enemyKind: string, downed: boolean)
 	if def then
 		local name = if entity then entity.name else def.displayName
 		Hud.toast("Caught by " .. name .. ".", "warn")
-		Hud.toast(def.rule, "info")
+		-- Its rule is a lesson for the first catches; after that it is a lecture.
+		local times = (caughtBy[enemyKind] or 0) + 1
+		caughtBy[enemyKind] = times
+		if times <= RULE_TOASTS then
+			Hud.toast(def.rule, "info")
+		end
 	end
-	if downed then
-		Hud.fade(0.55, 0.3)
-	else
-		Hud.fade(1, 0.2)
+	-- The black waits a moment: what caught you is in your face first (Scare draws it).
+	task.delay(CATCH_HOLD_SECONDS, function()
+		Hud.fade(if downed then 0.55 else 1, 0.2)
+	end)
+	if not downed then
 		task.delay(Config.World.respawnSeconds + 0.2, function()
 			Hud.fade(0, 0.9)
 		end)

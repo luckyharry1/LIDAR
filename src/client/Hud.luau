@@ -34,6 +34,9 @@ local LINE_HOLD_MIN = 4 -- seconds a spoken line stays after it has been typed o
 local LINE_HOLD_PER_CHAR = 0.045
 local LINE_FADE_SECONDS = 0.8
 local RING_SHOW_SECONDS = 1.1 -- the spread ring shows this long after the spread changes
+local INFO_AWAKE_SECONDS = 7 -- the corner text stays bright this long after it last changed
+local INFO_QUIET = 0.72 -- ... then steps back to this transparency, so the dark is the picture
+local INFO_FADE_RATE = 2
 local AURA_DEPTH = 0.24 -- share of the screen the aura reaches in from each edge
 local AURA_STRENGTH = 0.6
 
@@ -85,6 +88,9 @@ local spreadChangedAt = -math.huge
 local auraLevel = -1
 local lines: { Line } = {}
 local speaking = false
+local infoShown = "" -- the corner text as last written, to notice when it changes
+local infoChangedAt = 0
+local infoFade = 0
 
 local function tween(instance: Instance, seconds: number, goal: { [string]: any })
 	TweenService
@@ -660,6 +666,25 @@ local function refreshInfo()
 		objectiveLabel.Text = ""
 		goalLabel.Text = if stage == "lore" then Lore.roomGoal(server.loreRoom) else ""
 	end
+	local shown = tierLabel.Text .. objectiveLabel.Text .. goalLabel.Text .. staticLabel.Text
+	if shown ~= infoShown then
+		infoShown = shown
+		infoChangedAt = os.clock()
+	end
+end
+
+-- The corner text (floor, what to find, the goal, Static) is bright when it has news and steps
+-- back once it has been read: in the dark of a level the dots should be the only bright thing.
+local function quietInfo(dt: number)
+	local quiet = State.server.stage == "level" and os.clock() - infoChangedAt > INFO_AWAKE_SECONDS
+	local target = if quiet then INFO_QUIET else 0
+	if math.abs(target - infoFade) < 0.005 then
+		return
+	end
+	infoFade += (target - infoFade) * math.min(1, dt * INFO_FADE_RATE)
+	for _, label in { tierLabel, objectiveLabel, goalLabel, staticLabel } do
+		label.TextTransparency = infoFade
+	end
 end
 
 local function mapCell(index: number): Frame
@@ -779,6 +804,7 @@ local function update(dt: number)
 		elseif ready and not Lidar.sweeping then Ui.colors.line
 		else Ui.colors.dim
 	crouchLabel.Visible = Avatar.crouching and not hidden
+	quietInfo(dt)
 
 	local camera = workspace.CurrentCamera
 	refreshSpreadRing(camera)
