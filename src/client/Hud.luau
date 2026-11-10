@@ -23,6 +23,8 @@ type Line = { speaker: string, text: string }
 local TOAST_SECONDS = 4.5
 local TOAST_LIMIT = 4
 local CARD_SECONDS = 4
+local QUIET_GAP_SECONDS = 3 -- an optional line waits this long after the last one has gone
+local MAX_QUEUED_LINES = 4 -- a backlog older than this is stale: the oldest line is dropped
 local METER_WIDTH = 190
 local COMPASS_WIDTH = 220
 local COMPASS_FOV = 100 -- degrees of bearing the strip spans
@@ -88,6 +90,9 @@ local spreadChangedAt = -math.huge
 local auraLevel = -1
 local lines: { Line } = {}
 local speaking = false
+local lastSpokeAt = -math.huge -- when the last spoken line finished
+local cardUntil = 0 -- a level or room name is on screen until then
+local hintWanted = false -- a hint is asked for; it hides while someone is speaking
 local infoShown = "" -- the corner text as last written, to notice when it changes
 local infoChangedAt = 0
 local infoFade = 0
@@ -144,6 +149,7 @@ end
 
 -- A large centred title that fades in and out: level names and room names.
 function Hud.titleCard(title: string, subtitle: string)
+	cardUntil = os.clock() + CARD_SECONDS
 	cardTitle.Text = string.upper(title)
 	cardSubtitle.Text = subtitle
 	-- A hairline draws out from the middle under the name, like a scan line settling.
@@ -163,12 +169,17 @@ end
 
 -- A persistent line of guidance near the bottom; nil hides it.
 function Hud.hint(text: string?)
-	if text == nil then
-		hintPanel.Visible = false
-	else
+	hintWanted = text ~= nil
+	if text ~= nil then
 		hintLabel.Text = text
-		hintPanel.Visible = true
 	end
+	hintPanel.Visible = hintWanted and not dialoguePanel.Visible
+end
+
+-- True while words are on screen or about to be: a spoken line, a queue, a level or room name.
+-- Anything that is only nice to say waits for this to be false (see Hud.dialogue).
+function Hud.busy(): boolean
+	return speaking or #lines > 0 or os.clock() < cardUntil
 end
 
 -- Fades the whole screen to black (alpha 1) or back (alpha 0).
@@ -195,6 +206,7 @@ local function speakNext()
 		return
 	end
 	speaking = true
+	hintPanel.Visible = false -- one thing to read at a time
 	dialogueSpeaker.Text = string.upper(line.speaker)
 	dialogueText.Text = line.text
 	dialogueText.MaxVisibleGraphemes = 0
@@ -216,16 +228,31 @@ local function speakNext()
 		tween(dialogueText, LINE_FADE_SECONDS, { TextTransparency = 1 })
 		task.wait(LINE_FADE_SECONDS)
 		dialoguePanel.Visible = false
+		lastSpokeAt = os.clock()
+		if #lines == 0 then
+			hintPanel.Visible = hintWanted
+		end
 		speakNext()
 	end)
 end
 
 -- A recorder speaks. Lines queue, so two recorders never talk over each other.
-function Hud.dialogue(speaker: string, line: string)
+-- An `optional` line (a thought, a check-in) is only said into a quiet screen: if anything is
+-- being said, queued, named on a card, or was said a moment ago, it is dropped and this returns
+-- false, so the caller can try again later instead of using the line up. Lines that carry the
+-- story or a lesson are not optional and always get their turn.
+function Hud.dialogue(speaker: string, line: string, optional: boolean?): boolean
+	if optional and (Hud.busy() or os.clock() - lastSpokeAt < QUIET_GAP_SECONDS) then
+		return false
+	end
+	if #lines >= MAX_QUEUED_LINES then
+		table.remove(lines, 1) -- by the time the backlog is read it is old news
+	end
 	table.insert(lines, { speaker = speaker, text = line })
 	if not speaking then
 		speakNext()
 	end
+	return true
 end
 
 -- The red glow at the screen edges: 0 is none, 1 is something right beside you. Cheap to

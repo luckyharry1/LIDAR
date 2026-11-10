@@ -274,4 +274,62 @@ tests["the opening and every tape are staged with cues the stage knows"] = funct
 	end
 end
 
+-- Vasco, 10 Nov: "the dialogue is way too much and repetitive". These budgets keep it cut.
+local SPOKEN_MAX = 90 -- characters in one spoken or thought line
+local SPOKEN_BUDGET = { ["cs.open"] = 3, ["tape.orientation"] = 5, ["npc.ines"] = 7 }
+
+tests["every scene stays inside its spoken-line budget, and every line stays short"] = function()
+	for _, scene in LoreText.scenes do
+		local spoken = 0
+		for _, beat in scene.beats do
+			if beat.sp ~= nil and beat.line ~= nil then
+				spoken += 1
+				if scene.kind ~= "cutscene" then
+					assert(#beat.line <= SPOKEN_MAX, `{scene.id}: line is {#beat.line} characters`)
+				end
+			end
+		end
+		local budget = SPOKEN_BUDGET[scene.id]
+			or (if scene.kind == "tape" then 4 elseif scene.kind == "dialogue" then 5 else nil)
+		if budget ~= nil then
+			assert(spoken <= budget, `{scene.id} speaks {spoken} lines, the budget is {budget}`)
+		end
+	end
+end
+
+tests["no sentence is spoken twice across scenes, thoughts and Base's calls"] = function()
+	local seen: { [string]: string } = {}
+	local function once(owner: string, line: string)
+		local key = string.lower(line)
+		if #key > 12 then
+			assert(seen[key] == nil, `"{line}" is said by {seen[key]} and {owner}`)
+			seen[key] = owner
+		end
+	end
+	for _, scene in LoreText.scenes do
+		for _, beat in scene.beats do
+			if beat.sp ~= nil and beat.line ~= nil then
+				once(scene.id, beat.line)
+			end
+		end
+	end
+	for _, kind in { "thought", "radio" } do
+		for _, entry in LoreText.ofKind(kind) do
+			if not entry.legacy then -- the v1 ids are kept for old callers and say the same things
+				for _, line in entry.lines do
+					once(entry.id, line)
+				end
+			end
+		end
+	end
+end
+
+tests["Base's level calls are company, not orders: the HUD goal says what to do"] = function()
+	for tier = 1, #Tiers do
+		local call = Lore.radioFor(tier)
+		assert(string.find(call, "Find ", 1, true) == nil, `tier {tier}: Base repeats the goal`)
+		assert(#call <= 110, `tier {tier}: Base talks too long`)
+	end
+end
+
 return tests

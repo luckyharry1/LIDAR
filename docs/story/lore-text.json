@@ -6,7 +6,7 @@
    "section": "l0",
    "where": "HUD objective, Level 0",
    "lines": [
-    "You are not alone here. Find the Survey. Start with Joss."
+    "Find Joss."
    ]
   },
   {
@@ -24,7 +24,7 @@
    "section": "l1",
    "where": "HUD objective, Level 1",
    "lines": [
-    "Find Hana at the pump house."
+    "Find Hana."
    ]
   },
   {
@@ -42,7 +42,7 @@
    "section": "falls",
    "where": "HUD objective, Falls",
    "lines": [
-    "Talk to Lena. Rest."
+    "Talk to Lena."
    ]
   },
   {
@@ -51,7 +51,7 @@
    "section": "l2",
    "where": "HUD objective, Level 2",
    "lines": [
-    "Find Ravi. Do not answer the voices."
+    "Find Ravi."
    ]
   },
   {
@@ -60,7 +60,7 @@
    "section": "l3",
    "where": "HUD objective, Level 3",
    "lines": [
-    "Find Pim in the Hollow."
+    "Find Pim."
    ]
   },
   {
@@ -69,7 +69,7 @@
    "section": "l4",
    "where": "HUD objective, Level 4",
    "lines": [
-    "Follow the chalk arrows down to the Lamp."
+    "Follow the chalk down to the Lamp."
    ]
   },
   {
@@ -97,8 +97,8 @@
    "section": "any",
    "where": "Handbook p2",
    "lines": [
-    "2. The Backrooms are made of forgotten places.",
-    "Offices, pools, wards, caves. Each one is a Level."
+    "2. Levels do not connect like rooms.",
+    "Walk out of one and you are in the next."
    ]
   },
   {
@@ -107,8 +107,8 @@
    "section": "any",
    "where": "Handbook p3",
    "lines": [
-    "3. Your scanner does not make light. It makes a record.",
-    "A dot stays where you looked. Mapped space holds still."
+    "3. Scan the same place twice and it lies less.",
+    "margin: Walls drift when nobody looks. -T.W."
    ]
   },
   {
@@ -117,8 +117,8 @@
    "section": "any",
    "where": "Handbook p4; colour key poster",
    "lines": [
-    "4. White dots: structure. Green dots: people.",
-    "Red dots: something that was a person and is not now."
+    "4. Red dots were people once.",
+    "They do not know it. Do not stand near them."
    ]
   },
   {
@@ -128,7 +128,7 @@
    "where": "Handbook p5",
    "lines": [
     "5. Every scan is a noise. Some things listen for it.",
-    "margin: Walk. Do not run. -T.W."
+    "margin: Run and you are shouting. -T.W."
    ]
   },
   {
@@ -146,9 +146,8 @@
    "section": "any",
    "where": "Handbook p7",
    "lines": [
-    "7. Radio: Base will ask what you see.",
-    "Base will never tell you to come to her.",
-    "margin: If it says come to me, it is not Base. -R.A."
+    "7. Base will ask what you see.",
+    "Base will never tell you to come to her."
    ]
   },
   {
@@ -157,8 +156,7 @@
    "section": "any",
    "where": "Handbook p8",
    "lines": [
-    "8. Crew greet with two taps, a breath, then one.",
-    "margin: It can copy the taps. It cannot copy the breath. -R.A."
+    "8. Crew greet with two taps, a breath, then one."
    ]
   },
   {
@@ -167,7 +165,7 @@
    "section": "any",
    "where": "Handbook p9",
    "lines": [
-    "9. Lamps wake when scanned. Scan every lamp you find.",
+    "9. Lamps wake when scanned. Scan every one you find.",
     "margin: A bag that glows was hung by a friend. -J.B."
    ]
   },
@@ -178,8 +176,7 @@
    "where": "Handbook p10",
    "lines": [
     "10. Stay where someone can see you.",
-    "A person nobody sees starts to fade.",
-    "margin: Green is someone looking back. -I.C."
+    "A person nobody sees starts to fade."
    ]
   },
   {
@@ -256,7 +253,6 @@
     "LEVEL 2: THE WARDS",
     "What: an abandoned hospital.",
     "Hazards: the Echo. It answers back.",
-    "Do not answer voices.",
     "Survey: 15% mapped. Exit: not found."
    ],
    "thought": "A hospital. Great. Dark, empty, and it answers back.",
@@ -310,8 +306,8 @@
    "section": "l0",
    "where": "Theo's journal (unlocks as learned): after the orientation tape",
    "lines": [
-    "The Backrooms. A place made of forgotten places.",
-    "Offices, pools, wards, caves. Each one a Level. You walk out of one and into the next."
+    "Ines runs the Survey. She wants a true scan of a real place.",
+    "I have forty-one of floor three."
    ]
   },
   {
@@ -320,8 +316,8 @@
    "section": "l0",
    "where": "Theo's journal (unlocks as learned): after the orientation tape",
    "lines": [
-    "The scanner makes a record, not light.",
-    "Dots stay. Mapped space holds still. The rest moves."
+    "Red dots were people. Green dots are people still.",
+    "I keep that straight."
    ]
   },
   {
@@ -330,8 +326,8 @@
    "section": "l0",
    "where": "Theo's journal (unlocks as learned): after Joss",
    "lines": [
-    "Joss Berrow. Rigger. Thirty years in the Survey, if time even counts here.",
-    "Gave me lamp-bags. Scan a bag and it wakes up."
+    "Joss Berrow. Rigger. Cheerful in a way that worries me.",
+    "Gave me lamp-bags."
    ]
   },
   {
@@ -370,8 +366,8 @@
    "section": "falls",
    "where": "Theo's journal (unlocks as learned): after Lena",
    "lines": [
-    "The Falls is a Refuge. Everyone remembers a place like it, so the dark cannot rewrite it.",
-    "Five Crews went down. The wall of names has thirty-one on it. I am not on it yet."
+    "The Falls holds because everyone remembers a place like it.",
+    "There is a space on the roster for me."
    ]
   },
   {
@@ -420,8 +416,7 @@
    "section": "any",
    "where": "Right after the opening cutscene",
    "lines": [
-    "Okay. Okay. Scanner still works. Hands still work.",
-    "This is not floor three."
+    "Okay. Scanner works. Hands work."
    ],
    "speaker": "Theo",
    "vo": "late 20s to early 30s, tired, dry humour that cracks under pressure; speaks to himself, never to camera; shaky, whispered"
@@ -432,7 +427,7 @@
    "section": "any",
    "where": "First time a dot lands",
    "lines": [
-    "Dots. They stay where I look. So I can see by remembering."
+    "The dots stay. I see by remembering."
    ],
    "speaker": "Theo",
    "vo": "late 20s to early 30s, tired, dry humour that cracks under pressure; speaks to himself, never to camera; surprised, quiet"
@@ -443,7 +438,7 @@
    "section": "any",
    "where": "First time a wall fills in",
    "lines": [
-    "That is a wall. A real one. I can build a map out of this."
+    "A wall. A real one."
    ],
    "speaker": "Theo",
    "vo": "late 20s to early 30s, tired, dry humour that cracks under pressure; speaks to himself, never to camera; relieved, whispered"
@@ -454,7 +449,7 @@
    "section": "any",
    "where": "First lamp-bag wakes",
    "lines": [
-    "Lamp-bag. It lit the second I scanned it. Somebody wanted me to find this."
+    "It lit the second I looked. Somebody wanted me to find this."
    ],
    "speaker": "Theo",
    "vo": "late 20s to early 30s, tired, dry humour that cracks under pressure; speaks to himself, never to camera; grateful"
@@ -465,7 +460,7 @@
    "section": "any",
    "where": "Any lamp wakes (rotate)",
    "lines": [
-    "The wall's yellow. The floor's carpet. This place is a real place."
+    "Yellow wall. Carpet. A real place, once."
    ],
    "speaker": "Theo",
    "vo": "late 20s to early 30s, tired, dry humour that cracks under pressure; speaks to himself, never to camera; calm"
@@ -476,7 +471,7 @@
    "section": "any",
    "where": "Pacer first heard",
    "lines": [
-    "Keys. Someone is walking a round. I should not be where they are walking."
+    "Keys. Hollis, still on his round. Wait for him to pass."
    ],
    "speaker": "Theo",
    "vo": "late 20s to early 30s, tired, dry humour that cracks under pressure; speaks to himself, never to camera; tense, whisper"
@@ -487,7 +482,7 @@
    "section": "any",
    "where": "Hush first heard",
    "lines": [
-    "It's listening. I can hear it listening. Don't scan. Don't breathe."
+    "It's listening. Don't scan. Don't breathe."
    ],
    "speaker": "Theo",
    "vo": "late 20s to early 30s, tired, dry humour that cracks under pressure; speaks to himself, never to camera; very quiet"
@@ -498,7 +493,7 @@
    "section": "any",
    "where": "Echo first heard",
    "lines": [
-    "That voice is wrong. Too early, no pauses. Do not answer."
+    "That voice is wrong. No pauses. Do not answer."
    ],
    "speaker": "Theo",
    "vo": "late 20s to early 30s, tired, dry humour that cracks under pressure; speaks to himself, never to camera; whisper"
@@ -509,7 +504,7 @@
    "section": "any",
    "where": "Still first noticed closer",
    "lines": [
-    "It was over there. Now it's over here. Do not look away. Do not stare."
+    "It was over there. Now it's here. Watch it."
    ],
    "speaker": "Theo",
    "vo": "late 20s to early 30s, tired, dry humour that cracks under pressure; speaks to himself, never to camera; controlled"
@@ -520,7 +515,7 @@
    "section": "any",
    "where": "First time Theo wakes at a lamp after being caught",
    "lines": [
-    "I woke up at the lamp. Something pulled me back. I'm not testing that twice."
+    "Back at the lamp. Something pulled me. Not testing that twice."
    ],
    "speaker": "Theo",
    "vo": "late 20s to early 30s, tired, dry humour that cracks under pressure; speaks to himself, never to camera; shaky"
@@ -531,7 +526,7 @@
    "section": "any",
    "where": "Respawn after Lena has explained",
    "lines": [
-    "Ines, again. Thank you. I'll try to fall less."
+    "Thanks, Ines. I'll try to fall less."
    ],
    "speaker": "Theo",
    "vo": "late 20s to early 30s, tired, dry humour that cracks under pressure; speaks to himself, never to camera; rueful"
@@ -542,7 +537,7 @@
    "section": "any",
    "where": "Near a pit for the first time",
    "lines": [
-    "Painted edge. Somebody didn't want the next person to fall."
+    "A painted edge. Somebody cared."
    ],
    "speaker": "Theo",
    "vo": "late 20s to early 30s, tired, dry humour that cracks under pressure; speaks to himself, never to camera; careful"
@@ -553,7 +548,7 @@
    "section": "any",
    "where": "Near an alarm plate for the first time",
    "lines": [
-    "A plate and a bell. Something listens to the floor. Step around."
+    "A plate and a bell. Step around."
    ],
    "speaker": "Theo",
    "vo": "late 20s to early 30s, tired, dry humour that cracks under pressure; speaks to himself, never to camera; careful"
@@ -564,7 +559,7 @@
    "section": "any",
    "where": "First time in the water",
    "lines": [
-    "Ankle deep. Cold. It's blue. It has to come from somewhere."
+    "Cold. Blue. It has to come from somewhere."
    ],
    "speaker": "Theo",
    "vo": "late 20s to early 30s, tired, dry humour that cracks under pressure; speaks to himself, never to camera; curious"
@@ -575,7 +570,7 @@
    "section": "any",
    "where": "First step into the Falls",
    "lines": [
-    "Colour. Real colour. I forgot what it looked like."
+    "Colour. I forgot what it looked like."
    ],
    "speaker": "Theo",
    "vo": "late 20s to early 30s, tired, dry humour that cracks under pressure; speaks to himself, never to camera; awed"
@@ -586,7 +581,7 @@
    "section": "any",
    "where": "First tape picked up",
    "lines": [
-    "A tape. Somebody wanted to be found. I should watch it."
+    "A tape. Somebody wanted to be found."
    ],
    "speaker": "Theo",
    "vo": "late 20s to early 30s, tired, dry humour that cracks under pressure; speaks to himself, never to camera; thoughtful"
@@ -597,7 +592,7 @@
    "section": "any",
    "where": "First time a green dot is a surveyor",
    "lines": [
-    "Green. A person. A real one. Don't scare them. Don't be scared."
+    "Green. A real person. Don't scare them."
    ],
    "speaker": "Theo",
    "vo": "late 20s to early 30s, tired, dry humour that cracks under pressure; speaks to himself, never to camera; hopeful"
@@ -608,7 +603,7 @@
    "section": "any",
    "where": "Scanner overheating",
    "lines": [
-    "Scanner's getting hot. Ease off. Stay quiet."
+    "Scanner's hot. Ease off."
    ],
    "speaker": "Theo",
    "vo": "late 20s to early 30s, tired, dry humour that cracks under pressure; speaks to himself, never to camera; quiet"
@@ -619,7 +614,7 @@
    "section": "any",
    "where": "First time he sees a red dot he recognises as a former surveyor",
    "lines": [
-    "That red used to be a person. Ines said so. I didn't believe it until now."
+    "That red was a person. I believe it now."
    ],
    "speaker": "Theo",
    "vo": "late 20s to early 30s, tired, dry humour that cracks under pressure; speaks to himself, never to camera; grim"
@@ -630,7 +625,7 @@
    "section": "any",
    "where": "Hearing the Lamp hum far below",
    "lines": [
-    "There's a hum. Steady. That's not a monster. That's a light."
+    "A steady hum. Not a monster. A light."
    ],
    "speaker": "Theo",
    "vo": "late 20s to early 30s, tired, dry humour that cracks under pressure; speaks to himself, never to camera; drawn"
@@ -678,16 +673,15 @@
    "where": "Whiteboard in a meeting room",
    "lines": [
     "DAY 3.",
-    "THE WALLS MOVE WHEN NOBODY WATCHES.",
-    "SCAN EVERYTHING. DOTS HOLD THE WALLS STILL.",
-    "FIND JOSS. SUPPLY CLOSET. HE HAS THE LAMPS."
+    "THE WALLS MOVED WHILE WE SLEPT.",
+    "NEVER SLEEP UNLIT."
    ],
    "glow": {
     "color": "amber",
     "radius": 8,
     "look": "l0"
    },
-   "thought": "Day three, and they still wrote a plan. Joss, supply closet: that's my first stop.",
+   "thought": "Moving walls. Brilliant. Keep scanning.",
    "look": "l0"
   },
   {
@@ -705,7 +699,7 @@
     "radius": 8,
     "look": "l0"
    },
-   "thought": "Eleven thousand rounds. He never left. Those footsteps are Hollis, still on his route.",
+   "thought": "He never clocked out.",
    "look": "l0"
   },
   {
@@ -787,15 +781,14 @@
    "section": "c0",
    "where": "Pinned map of Level 0",
    "lines": [
-    "LEVEL 0. HOLLIS ROUTE IN RED.",
-    "STAIR DOWN: NEEDS A FUSE."
+    "LEVEL 0. HOLLIS ROUTE IN RED."
    ],
    "glow": {
     "color": "amber",
     "radius": 8,
     "look": "c0"
    },
-   "thought": "Pacer's route is on the map. And the way down.",
+   "thought": "He walks the red line. Stay off it.",
    "look": "c0"
   },
   {
@@ -845,7 +838,6 @@
    "where": "Corkboard of crew photographs",
    "lines": [
     "SIX CREWS.",
-    "Thirty-one names.",
     "Some photos are turned face down."
    ],
    "glow": {
@@ -853,7 +845,7 @@
     "radius": 8,
     "look": "desk"
    },
-   "thought": "Face down. That's how you hide the ones who faded.",
+   "thought": "Face down. The ones who faded.",
    "look": "desk"
   },
   {
@@ -899,15 +891,15 @@
    "where": "Headphones on a pipe with a sticky note",
    "lines": [
     "TOBI WREN. SOUND.",
-    "IT HEARS EVERY STEP. WALK, DO NOT RUN.",
-    "GAIN ALL THE WAY UP. I CANNOT HEAR IT COMING."
+    "GAIN ALL THE WAY UP.",
+    "I CANNOT HEAR IT COMING."
    ],
    "glow": {
     "color": "amber",
     "radius": 8,
     "look": "l1"
    },
-   "thought": "Tobi's. He went silent to hide, and then could not hear it coming. Walk, don't run.",
+   "thought": "Quiet kept him safe. Then it did not.",
    "look": "l1"
   },
   {
@@ -918,14 +910,14 @@
    "lines": [
     "CREW 2. B1.",
     "HANA WENT AHEAD ON FOOT.",
-    "FOLLOW THE WATER. THE FALLS ARE DOWNSTREAM."
+    "OARS LOST. THIRD SEAT LOST."
    ],
    "glow": {
     "color": "amber",
     "radius": 8,
     "look": "l1"
    },
-   "thought": "Hana walked on. The water runs toward the Falls, so I follow the water.",
+   "thought": "A polite way to say it.",
    "look": "l1"
   },
   {
@@ -1093,7 +1085,7 @@
     "radius": 8,
     "look": "l2"
    },
-   "thought": "Something here copies the taps and forgets the breath. That is how I tell Ravi from the Echo.",
+   "thought": "Remember the breath.",
    "look": "l2"
   },
   {
@@ -1111,7 +1103,7 @@
     "radius": 8,
     "look": "l2"
    },
-   "thought": "Someone was carried into a ward and never came out. The things in the dark were staff once.",
+   "thought": "Carried in, never out. The dark things were staff once.",
    "look": "l2"
   },
   {
@@ -1171,16 +1163,16 @@
    "section": "l3",
    "where": "Glowing mineral vein",
    "lines": [
-    "DO NOT TOUCH THE GLOW.",
-    "IT GIVES LIGHT. IT TAKES WARMTH.",
-    "IT FEEDS ON LAMPS. KEEP THE SCANNER LOW."
+    "THE GLOW GIVES LIGHT.",
+    "IT TAKES WARMTH.",
+    "IT FEEDS ON LAMPS."
    ],
    "glow": {
     "color": "amber",
     "radius": 8,
     "look": "l3"
    },
-   "thought": "The glow feeds on light, so a lamp-bag is bait here. Keep low, find Pim.",
+   "thought": "So a lamp-bag is bait here.",
    "look": "l3"
   },
   {
@@ -1250,7 +1242,7 @@
     "radius": 9,
     "look": "l4"
    },
-   "thought": "Everything hangs from the Halden. The Lamp is below this stone. That is the way out.",
+   "thought": "So the way out is down.",
    "look": "l4"
   },
   {
@@ -1383,8 +1375,7 @@
    "where": "Hidden in a desk drawer, Level 0",
    "lines": [
     "Ines Calder. Day one of the Survey.",
-    "The floor above is condemned. We walked into the wall and we are not coming out.",
-    "We call this the Backrooms. Every place somebody forgot ends up here."
+    "We walked into a wall. We are not coming out."
    ],
    "speaker": "Ines Calder"
   },
@@ -1394,9 +1385,8 @@
    "section": "l0",
    "where": "Taped under a break-room table, Level 0",
    "lines": [
-    "Joss. Lamp-bags work. A bulb, a cell, a canvas sack.",
-    "Hang one at every turn and scan it and it wakes up.",
-    "Mapped space holds still. That's the trick. The rest drifts."
+    "Joss. Whoever keeps taking the last tea:",
+    "we can hear you. Cheers."
    ],
    "speaker": "Joss Berrow"
   },
@@ -1406,9 +1396,8 @@
    "section": "l0",
    "where": "Answering machine on the front desk, Level 0",
    "lines": [
-    "Hollis, nights. Round eleven thousand. All quiet.",
-    "Funny. I do not see the other guards any more.",
-    "Hello? Does anyone see me? Hello?"
+    "Hollis, nights. Lost my keys. Found them. Lost them again.",
+    "All quiet."
    ],
    "speaker": "Mr. Hollis"
   },
@@ -1418,9 +1407,8 @@
    "section": "l1",
    "where": "Wedged in a pipe bracket, Level 1",
    "lines": [
-    "Tobi Wren, sound. I can hear the building thinking.",
-    "If I stay quiet, nothing hears me.",
-    "I am going to try that for a while."
+    "Tobi Wren, sound. The pipes sing in B flat.",
+    "I think they are trying to tell me something."
    ],
    "speaker": "Tobi Wren"
   },
@@ -1430,7 +1418,6 @@
    "section": "l1",
    "where": "On a catwalk rail, Level 1",
    "lines": [
-    "I stopped talking. It is better.",
     "I can hear everyone breathing, very far off.",
     "I cannot tell if anyone can hear me. I do not mind."
    ],
@@ -1444,8 +1431,7 @@
    "where": "In the boiler room, Level 1",
    "lines": [
     "Hana. The water was not here yesterday.",
-    "It was here. We just were not looking.",
-    "That is the Backrooms for you. What nobody looks at, changes."
+    "It was here. We just were not looking."
    ],
    "speaker": "Hana Osei"
   },
@@ -1456,8 +1442,7 @@
    "where": "On a ledge by the hammocks, Falls",
    "lines": [
     "Ines. Day forty. I stopped counting.",
-    "We found a place the dark cannot rewrite.",
-    "Everyone remembers a waterfall. That is why it holds."
+    "Somebody hung these hammocks. I never found out who."
    ],
    "speaker": "Ines Calder"
   },
@@ -1479,9 +1464,8 @@
    "section": "l2",
    "where": "Under a bench, Level 2",
    "lines": [
-    "Ravi. Two taps, a breath, one tap.",
-    "It was just a greeting. Now something taps back.",
-    "It does the two. It does not do the breath."
+    "Ravi. Something taps back at me now.",
+    "We have a rhythm. I do not like that we have a rhythm."
    ],
    "speaker": "Ravi Anand"
   },
@@ -1491,9 +1475,8 @@
    "section": "l2",
    "where": "In a linen trolley, Level 2",
    "lines": [
-    "It sounds like me. It learned me in an afternoon.",
     "I said 'hello?' to see. It said 'hello?' first.",
-    "I keep the radio off now."
+    "Now I wait before I answer anyone."
    ],
    "speaker": "Ravi Anand"
   },
@@ -1504,8 +1487,7 @@
    "where": "Nurse station drawer, Level 2",
    "lines": [
     "Ines. Theory.",
-    "The Backrooms are what a world forgets.",
-    "We are not hunted. We are forgotten. There is a difference, and it matters."
+    "We are not hunted. We are forgotten. There is a difference."
    ],
    "speaker": "Ines Calder"
   },
@@ -1527,9 +1509,8 @@
    "section": "l3",
    "where": "Camera case, Level 3",
    "lines": [
-    "Quill. The thing only moves when I am not looking.",
-    "So I look. Forty frames.",
-    "In frame thirty it is closer. Do not stare. It learns the stare."
+    "Quill. Forty frames.",
+    "In frame thirty it is closer. In frame forty it is in the shot."
    ],
    "speaker": "Marlow Quill"
   },
@@ -1539,7 +1520,6 @@
    "section": "l3",
    "where": "Chalk-marked shelf, Level 3",
    "lines": [
-    "Watch it. Then step. Never stare.",
     "If you hear a shutter, do not turn.",
     "Wait for the second click."
    ],
@@ -1551,8 +1531,7 @@
    "section": "l4",
    "where": "On a pillar, Level 4",
    "lines": [
-    "Ines. Last descent. I know where the Lamp must go.",
-    "The Garage is the first Level that ever formed.",
+    "Ines. Last descent. The Garage formed first.",
     "It is not cruel. It is empty. Empty gets hungry for company."
    ],
    "speaker": "Ines Calder"
@@ -1576,8 +1555,7 @@
    "section": "l0",
    "where": "Level 0 start (after Outpost Zero)",
    "lines": [
-    "Base to Theo. Level 0. Keys are the Pacer. Wait for them to pass.",
-    "Find Joss at the supply closet. He has what you need."
+    "Base to Theo. Level 0. I can see your dots from here."
    ],
    "speaker": "Base",
    "vo": "50s to 60s, calm, low, unhurried; teacher voice; never raises it; radio filter on Base lines"
@@ -1588,8 +1566,7 @@
    "section": "l1",
    "where": "Level 1 start",
    "lines": [
-    "Base to Theo. Level 1. The water is safe to wade. Do not stay in it.",
-    "Find Hana at the pump house. Follow the water upstream."
+    "Base to Theo. Level 1. Wetter, smaller, louder. Stay close."
    ],
    "speaker": "Base",
    "vo": "50s to 60s, calm, low, unhurried; teacher voice; never raises it; radio filter on Base lines"
@@ -1600,8 +1577,7 @@
    "section": "l2",
    "where": "Level 2 start",
    "lines": [
-    "Base to Theo. Level 2. Something here wears our voices.",
-    "If I say come to me, do not come. Find Ravi."
+    "Base to Theo. Level 2. Lots of voices here. Not all of them ours."
    ],
    "speaker": "Base",
    "vo": "50s to 60s, calm, low, unhurried; teacher voice; never raises it; radio filter on Base lines"
@@ -1612,8 +1588,7 @@
    "section": "l3",
    "where": "Level 3 start",
    "lines": [
-    "Base to Theo. Level 3. Do not touch the glow.",
-    "Find Pim. Watch for the Still. Watch, then step."
+    "Base to Theo. Level 3. It is quiet. Too quiet. Go slow."
    ],
    "speaker": "Base",
    "vo": "50s to 60s, calm, low, unhurried; teacher voice; never raises it; radio filter on Base lines"
@@ -1624,8 +1599,7 @@
    "section": "l4",
    "where": "Level 4 start",
    "lines": [
-    "Base to Theo. Level 4. Follow the chalk. I will be at the bottom.",
-    "I have been waiting a very long time to say that."
+    "Base to Theo. Level 4. I will be at the bottom. I have waited a long time to say that."
    ],
    "speaker": "Base",
    "vo": "50s to 60s, calm, low, unhurried; teacher voice; never raises it; radio filter on Base lines"
@@ -1636,7 +1610,7 @@
    "section": "any",
    "where": "Random, dark, calm",
    "lines": [
-    "Base to Theo. Tell me what you see."
+    "Base to Theo. Still with me?"
    ],
    "speaker": "Base",
    "vo": "50s to 60s, calm, low, unhurried; teacher voice; never raises it; radio filter on Base lines"
@@ -1647,7 +1621,7 @@
    "section": "any",
    "where": "Random, dark, calm",
    "lines": [
-    "Base to Theo. I can see your dots from here. You are doing well."
+    "Base to Theo. You are doing well. Keep going."
    ],
    "speaker": "Base",
    "vo": "50s to 60s, calm, low, unhurried; teacher voice; never raises it; radio filter on Base lines"
@@ -1702,7 +1676,7 @@
    "section": "any",
    "where": "Respawn at a lamp",
    "lines": [
-    "Easy. Count with me. One. Two. Three."
+    "Up you get. The lamp is warm."
    ],
    "speaker": "Base",
    "vo": "50s to 60s, calm, low, unhurried; teacher voice; never raises it; radio filter on Base lines"
@@ -1713,7 +1687,7 @@
    "section": "any",
    "where": "A surveyor is within ~30 studs, unseen",
    "lines": [
-    "Base to Theo. Green dots ahead. Say hello. Two taps, a breath, one."
+    "Base to Theo. Green dots ahead. Say hello."
    ],
    "speaker": "Base",
    "vo": "50s to 60s, calm, low, unhurried; teacher voice; never raises it; radio filter on Base lines"
@@ -2412,8 +2386,7 @@
    "where": "Hana, found by the pipes in the Flooded Wing (tier 3)",
    "lines": [
     "Hana. Pump house. Took you long enough.",
-    "Stay on my left. Water is loud. Walk.",
-    "Forty steps from the pump to here. Count with me."
+    "Stay on my left. Water is loud. Walk."
    ],
    "speaker": "Hana",
    "vo": "30s, flat, practical, short sentences; hates speeches"
@@ -2425,7 +2398,6 @@
    "where": "Ravi, found behind a curtain in the Wards (tier 5)",
    "lines": [
     "Two taps. A breath. One. You waited. Thank you.",
-    "Do not answer anything that only knocks twice.",
     "Stay behind me. I know the quiet way."
    ],
    "speaker": "Ravi",
@@ -2437,9 +2409,8 @@
    "section": "l3",
    "where": "Pim, found in the Hollow with her lantern (tier 7)",
    "lines": [
-    "Theo? You came all the way down for me? Nobody does that.",
-    "I told them there was a draft. Follow the lantern.",
-    "Keep the light low. The glow does not like me either."
+    "Theo? You came all the way down for me?",
+    "Follow the lantern. Keep the light low."
    ],
    "speaker": "Pim",
    "vo": "late teens or 20, bright, too hopeful; tries not to sound scared"
@@ -3992,47 +3963,15 @@
     },
     {
      "sp": "Ines",
-     "line": "My name is Ines Calder. I run the Survey. We map the Backrooms so that people like you can find their way."
+     "line": "I am Ines. I run the Survey. Your scanner makes no light. It makes a record."
     },
     {
      "sp": "Ines",
-     "line": "The Backrooms are a set of places that were forgotten. An office nobody visits. A pool nobody swims in. A ward nobody staffs."
+     "line": "Dots stay where you look. Mapped space holds still. The rest drifts."
     },
     {
      "sp": "Ines",
-     "line": "When a place is forgotten long enough, it stops belonging to the world. It ends up here."
-    },
-    {
-     "sp": "Ines",
-     "line": "Each place is a Level. They do not connect like a building does. You walk out of one, and you are in the next."
-    },
-    {
-     "sp": "Ines",
-     "line": "The dark is the first danger. Light does not carry here. So the Survey built the scanner you are holding."
-    },
-    {
-     "sp": "Ines",
-     "line": "It does not make light. It makes a record. Where you scan, the dots stay, and mapped space holds still."
-    },
-    {
-     "sp": "Ines",
-     "line": "White is structure. Green is people. Red is anything that used to be a person and is not now."
-    },
-    {
-     "sp": "Ines",
-     "line": "Some of them were surveyors. Be kind to them, and do not stand near them."
-    },
-    {
-     "sp": "Ines",
-     "line": "Find my people. They camp at every Level. Each of them knows something you need."
-    },
-    {
-     "sp": "Ines",
-     "line": "And find the way out. We have never found one. But the scanner says there is a shape in the dark that matches the real world."
-    },
-    {
-     "sp": "Ines",
-     "line": "To prove it, I would need a true measurement of a real place. We have never had one. If you have one, I would very much like to meet you."
+     "line": "Find my people. Every Level has a camp, and each camp knows something you need."
     },
     {
      "stage": "reach"
@@ -4045,18 +3984,10 @@
     },
     {
      "sp": "Theo",
-     "line": "A true measurement of a real place."
-    },
-    {
-     "sp": "Theo",
-     "line": "Forty-one scans of floor three. They are on this unit."
-    },
-    {
-     "sp": "Theo",
-     "line": "I'm not Survey. I just scanned the wrong wall. But they are down here. Find the surveyors. Find Ines."
+     "line": "I am not Survey. I just scanned the wrong wall. Fine. Find the surveyors."
     }
    ],
-   "note": "~60 to 75 seconds with beats; keep skippable. Journal entries 02 and 03 unlock.",
+   "note": "Five spoken lines. It does not explain the Backrooms (Joss does, once), the colours (the intake hint does) or the exit (Pike's tape and the finale do). Journal entries 02 and 03 unlock.",
    "look": "l0",
    "stage": "tape"
   },
@@ -4073,13 +4004,6 @@
     {
      "sp": "Announcer",
      "line": "Halden Building. Fifteen floors of tomorrow."
-    },
-    {
-     "shot": "Ribbon cutting. A young man in a Corbel and Pike survey jacket holds a scanner and waves."
-    },
-    {
-     "sp": "Announcer",
-     "line": "Surveyed to the millimetre by Corbel and Pike."
     },
     {
      "shot": "Camera drifts down a corridor, floor three. At the very end is a door that is not on any plan. It is slightly open. Light is coming out of it."
@@ -4099,11 +4023,7 @@
     },
     {
      "sp": "Theo",
-     "line": "Fifteen floors. The plan I was given had fourteen."
-    },
-    {
-     "sp": "Theo",
-     "line": "That door is on floor three. That is my floor."
+     "line": "Fifteen floors. My plan said fourteen. And that door is on my floor."
     }
    ],
    "look": "l0",
@@ -4124,25 +4044,14 @@
      "line": "Round one. All quiet."
     },
     {
-     "shot": "Time jumps. Same corridor. The carpet is wetter."
-    },
-    {
-     "sp": "Hollis",
-     "line": "Round four hundred. Lights out on three. All quiet."
-    },
-    {
-     "shot": "Time jumps. The man is a little translucent. The footage loses detail where he stands."
+     "shot": "Time jumps. Same corridor. The carpet is wetter. The man is a little translucent. The footage loses detail where he stands."
     },
     {
      "stage": "fade"
     },
     {
      "sp": "Hollis",
-     "line": "Round eleven thousand. Funny. I do not see the other guards any more."
-    },
-    {
-     "sp": "Hollis",
-     "line": "Is anyone there? Can anyone see me?"
+     "line": "Round eleven thousand. I do not see the other guards any more. Can anyone see me?"
     },
     {
      "stage": "gone"
@@ -4153,10 +4062,6 @@
     {
      "sp": "Theo",
      "line": "Nobody saw him, so he started to disappear."
-    },
-    {
-     "sp": "Theo",
-     "line": "That is what fading is. Keep somebody in sight."
     }
    ],
    "look": "l0",
@@ -4174,15 +4079,7 @@
     },
     {
      "sp": "Tobi",
-     "line": "Tobi Wren. I can hear the building thinking."
-    },
-    {
-     "sp": "Tobi",
-     "line": "I have worked out that it hears us. Every scan. Every step."
-    },
-    {
-     "sp": "Tobi",
-     "line": "So I stopped. If I stay silent, maybe nothing hears me."
+     "line": "Tobi Wren. I can hear the building thinking. So I stopped talking."
     },
     {
      "stage": "dim"
@@ -4201,10 +4098,6 @@
     {
      "sp": "Theo",
      "line": "He went quiet so nothing would find him. Then nothing could."
-    },
-    {
-     "sp": "Theo",
-     "line": "Walk. Do not run. Do not ping near the Hush."
     }
    ],
    "look": "l1",
@@ -4222,11 +4115,7 @@
     },
     {
      "sp": "Ravi",
-     "line": "Okay. This is the Echo. It copies voices."
-    },
-    {
-     "sp": "Ravi",
-     "line": "Watch. Two taps. A breath. One."
+     "line": "This is the Echo. Watch. Two taps. A breath. One."
     },
     {
      "shot": "He taps the table. Silence. Then, from the dark behind the camera, two taps. No breath. One tap."
@@ -4240,15 +4129,7 @@
     },
     {
      "sp": "Ravi",
-     "line": "That is my voice. It learned me in an afternoon."
-    },
-    {
-     "sp": "Ravi",
-     "line": "It can copy the words. It can copy the taps. It cannot wait."
-    },
-    {
-     "sp": "Ravi",
-     "line": "So if you hear me and I do not wait, it is not me."
+     "line": "It copies the words. It copies the taps. It cannot wait."
     },
     {
      "sp": "Theo",
@@ -4270,11 +4151,7 @@
     },
     {
      "sp": "Quill",
-     "line": "Frame one. Empty corridor."
-    },
-    {
-     "sp": "Quill",
-     "line": "Frame ten. Empty."
+     "line": "Frame one. Empty corridor. Frame ten. Empty."
     },
     {
      "stage": "shape"
@@ -4291,22 +4168,14 @@
     },
     {
      "sp": "Quill",
-     "line": "It moves when I do not look. So I look."
-    },
-    {
-     "sp": "Quill",
-     "line": "But if I stare, it learns the stare."
+     "line": "It moves when I do not look. So I look. But if I stare, it learns the stare."
     },
     {
      "stage": "shape"
     },
     {
      "sp": "Quill",
-     "line": "Watch it. Then step. Never stare. Remember."
-    },
-    {
-     "sp": "Theo",
-     "line": "Watch it, then step. Do not stare. Got it."
+     "line": "Watch it. Then step. Never stare."
     }
    ],
    "look": "l3",
@@ -4324,43 +4193,19 @@
     },
     {
      "sp": "Pike",
-     "line": "Day one. I am Anselm Pike. I was scanning the Halden before it opened."
+     "line": "Day one. Anselm Pike. I scanned the wall at the end of floor three, and the wall opened."
     },
     {
      "sp": "Pike",
-     "line": "I scanned the wall at the end of floor three, and the wall opened."
+     "line": "Down here there is a light. I call it the Lamp."
     },
     {
      "sp": "Pike",
-     "line": "I have walked down for what feels like a week. I found a light in the dark. I called it the Lamp."
-    },
-    {
-     "sp": "Pike",
-     "line": "I do not know who built this place. I know it hangs from the Halden. Everything does."
-    },
-    {
-     "sp": "Pike",
-     "line": "Here is what I think. The Backrooms is a point cloud of forgotten places, and it has a shape."
-    },
-    {
-     "sp": "Pike",
-     "line": "If anybody ever brings a true scan of the real floor three, the shape will match, and a door will open."
-    },
-    {
-     "sp": "Pike",
-     "line": "That is the exit. That is all I know."
-    },
-    {
-     "sp": "Pike",
-     "line": "If you are watching this: the Lamp is at the bottom. Bring me the real floor."
+     "line": "Bring a true scan of the real floor three, and the shape will match. A door will open."
     },
     {
      "sp": "Theo",
-     "line": "He was the first. Unit zero zero zero seven. And I have the real floor."
-    },
-    {
-     "sp": "Theo",
-     "line": "Down to the Lamp."
+     "line": "He was first. Unit 0007. And I have the real floor."
     }
    ],
    "look": "l4",
@@ -4375,7 +4220,7 @@
    "beats": [
     {
      "sp": "Joss",
-     "line": "Whoa. Easy. Easy. You are real. Green dots, good. Sit."
+     "line": "Whoa. Easy. You are real. Green dots, good. Sit."
     },
     {
      "sp": "Theo",
@@ -4383,50 +4228,18 @@
     },
     {
      "sp": "Joss",
-     "line": "The Backrooms. First of us named it. Do not ask why the name stuck."
+     "line": "The Backrooms. Every Level is a place somebody forgot."
     },
     {
      "sp": "Joss",
-     "line": "Every Level is a place somebody forgot. This one is an office floor. The rest get stranger."
-    },
-    {
-     "sp": "Theo",
-     "line": "How do I get out?"
+     "line": "Take these lamp-bags. Hang one at every turn, scan it, it wakes up."
     },
     {
      "sp": "Joss",
-     "line": "Exits are where a Level touches the real world. Thirty years, no exit. Ines says she is close."
-    },
-    {
-     "sp": "Theo",
-     "line": "Thirty years? I have been gone minutes."
-    },
-    {
-     "sp": "Joss",
-     "line": "Time does not line up down here. Do not trust your watch."
-    },
-    {
-     "sp": "Joss",
-     "line": "Take these. Lamp-bags. Hang one at every turn. Scan it, it wakes up. Light only reaches what is mapped."
-    },
-    {
-     "sp": "Joss",
-     "line": "Listen for keys. That is Hollis. Old night guard. Still on his round. Wait for him to pass."
-    },
-    {
-     "sp": "Joss",
-     "line": "The way down needs a fuse. Breaker room, past the vending machines. Then find Hana at the pump house."
-    },
-    {
-     "sp": "Theo",
-     "line": "Thanks, Joss."
-    },
-    {
-     "sp": "Joss",
-     "line": "Do not thank me. Hang the bags."
+     "line": "The way down needs a fuse. Breaker room, past the vending machines."
     }
    ],
-   "note": "Gives: lamp-bags, the radio frequency. Journal 04. Unlocks goal.l0b.",
+   "note": "Gives: lamp-bags. Journal 04. Unlocks goal.l0b. Hollis, time and Hana are told elsewhere (thought.keys, Lena, the HUD goal).",
    "look": "c0"
   },
   {
@@ -4438,51 +4251,23 @@
    "beats": [
     {
      "sp": "Hana",
-     "line": "You are the new one."
-    },
-    {
-     "sp": "Theo",
-     "line": "Theo."
+     "line": "Sit. Keep your voice down. Water carries."
     },
     {
      "sp": "Hana",
-     "line": "Hana. Sit. Do not talk much. Water carries."
+     "line": "The water runs up a shaft to the Falls. Always follow it."
     },
     {
      "sp": "Hana",
-     "line": "Level 1 was the Halden's basement. Flooded in ninety-six. Forgotten, then drowned, then dropped here."
-    },
-    {
-     "sp": "Theo",
-     "line": "Where does the water go?"
+     "line": "The thing in the pipes is Tobi. He went quiet. Now he is the Hush."
     },
     {
      "sp": "Hana",
-     "line": "Upstream, a shaft. At the top, the Falls. Follow it. Always follow it."
+     "line": "Walk past him. Never run. Never ping."
     },
     {
      "sp": "Hana",
-     "line": "You heard the thing in the pipes. That is Tobi. He went quiet. Now he is the Hush."
-    },
-    {
-     "sp": "Theo",
-     "line": "He is the monster?"
-    },
-    {
-     "sp": "Hana",
-     "line": "He was a person who stopped being heard. The scanner reads that as red. It is not wrong."
-    },
-    {
-     "sp": "Hana",
-     "line": "Walk past him. Do not run. Do not ping. He will not forget you if you do."
-    },
-    {
-     "sp": "Hana",
-     "line": "The valve wheel is in the boiler room. Take it, drain the channel, take the rope for the gap."
-    },
-    {
-     "sp": "Hana",
-     "line": "Then Lena. At the Falls. She will tell you the rest."
+     "line": "The valve wheel is in the boiler room. Drain the channel, then go."
     }
    ],
    "note": "Gives: pencil map, rope hint. Journal 07.",
@@ -4497,59 +4282,23 @@
    "beats": [
     {
      "sp": "Lena",
-     "line": "Theo. We heard you coming a day ago. Come in. Eat."
-    },
-    {
-     "sp": "Theo",
-     "line": "This place is..."
+     "line": "Theo. We heard you coming. Come in. Eat."
     },
     {
      "sp": "Lena",
-     "line": "Real. Yes. The Falls is a Refuge. Everyone remembers a place like it, so the dark cannot rewrite it."
+     "line": "This is the Falls. Everyone remembers a place like it, so the dark cannot rewrite it."
     },
     {
      "sp": "Lena",
-     "line": "That's what holds us together. A memory everyone shares."
-    },
-    {
-     "sp": "Theo",
-     "line": "Joss said thirty years."
+     "line": "Joss says thirty years. Time down here is a rumour."
     },
     {
      "sp": "Lena",
-     "line": "Joss is generous. Time here is a rumour."
+     "line": "When the dark takes you, you wake at the last lamp. That is Ines. It costs her. Fall less."
     },
     {
      "sp": "Lena",
-     "line": "Five Crews went down before you. Six, if you count Crew 6, who never reached the Falls."
-    },
-    {
-     "sp": "Lena",
-     "line": "Some of them walk the Levels now. Not themselves. You have met Hollis. You will meet more."
-    },
-    {
-     "sp": "Theo",
-     "line": "Ines said the scanner has a shape to match. What does that mean?"
-    },
-    {
-     "sp": "Lena",
-     "line": "Ask her. She has been keeping something from the rest of us, and I think it is hope."
-    },
-    {
-     "sp": "Lena",
-     "line": "Take the Brass Key. It opens the doors on Level 2. Ravi's camp is behind them. Do not answer the voices."
-    },
-    {
-     "sp": "Lena",
-     "line": "And Theo. When the dark takes you, you wake at the last lamp. That is her."
-    },
-    {
-     "sp": "Theo",
-     "line": "Ines?"
-    },
-    {
-     "sp": "Lena",
-     "line": "She keeps a Lamp at the bottom. When you fall, she pulls you back to the nearest light. It costs her. Fall less."
+     "line": "Take the Brass Key. It opens the Ward doors."
     }
    ],
    "note": "Gives: Brass Key, the respawn explanation. Journal 08. Unlocks thought.respawn.ines.",
@@ -4564,58 +4313,22 @@
    "beats": [
     {
      "sp": "Ravi",
-     "line": "(whisper) Two taps. A breath. One. Good. You waited. Come in."
+     "line": "(whisper) Good. You waited. Come in. Quick."
     },
     {
      "sp": "Ravi",
-     "line": "You are Theo. Lena's radio said. I keep mine unplugged."
-    },
-    {
-     "sp": "Theo",
-     "line": "Because of the Echo?"
+     "line": "The Wards is where voices end up. The Echo learns them. It learned mine."
     },
     {
      "sp": "Ravi",
-     "line": "It has my voice. If it speaks on a radio, you will think it is me. Or Ines."
+     "line": "The crank for the lift is in the Dormitory. Take it."
     },
     {
      "sp": "Ravi",
-     "line": "Rule seven. Base asks what you see. Base never says come to me."
-    },
-    {
-     "sp": "Theo",
-     "line": "What is it?"
-    },
-    {
-     "sp": "Ravi",
-     "line": "The Wards is where voices end up. People who answered the wrong call. Someone who was nobody's patient."
-    },
-    {
-     "sp": "Ravi",
-     "line": "I do not know what it was. I know it learns."
-    },
-    {
-     "sp": "Theo",
-     "line": "Joss said the Survey's scanner came from somewhere."
-    },
-    {
-     "sp": "Ravi",
-     "line": "From Corbel and Pike. The head of a survey unit, serial zero zero zero seven. Ines found it in the Garage."
-    },
-    {
-     "sp": "Theo",
-     "line": "Zero zero zero seven. Mine is zero zero four one."
-    },
-    {
-     "sp": "Ravi",
-     "line": "Then you know what you are carrying."
-    },
-    {
-     "sp": "Ravi",
-     "line": "The crank for the lift is in the Dormitory. Take it. The Hollow is up. Pim keeps a light there."
+     "line": "The Hollow is up. Pim keeps a light there."
     }
    ],
-   "note": "Gives: crank location, scanner serial hook. Journal 09.",
+   "note": "Gives: crank location. Journal 09.",
    "look": "c2"
   },
   {
@@ -4627,47 +4340,19 @@
    "beats": [
     {
      "sp": "Pim",
-     "line": "Theo! You made it. Nobody makes it. Come sit."
+     "line": "You made it. Nobody makes it. Come sit."
     },
     {
      "sp": "Pim",
-     "line": "I keep the lanterns lit so people can find the camp. It's not much of a job. I love it."
-    },
-    {
-     "sp": "Theo",
-     "line": "You are the youngest in the Survey."
+     "line": "I keep the lanterns lit so people can find camp. Best job ever."
     },
     {
      "sp": "Pim",
-     "line": "I came in nineteen. I don't know how old I am. Does it matter?"
+     "line": "Quill took forty photographs of the Hollow. He thought it would hold still."
     },
     {
      "sp": "Pim",
-     "line": "I found a draft once. It's why I stayed. A draft means air from somewhere else."
-    },
-    {
-     "sp": "Theo",
-     "line": "The Still. Quill."
-    },
-    {
-     "sp": "Pim",
-     "line": "Yes. Marlow. He moves when nobody looks. Watch, then step. Never stare."
-    },
-    {
-     "sp": "Pim",
-     "line": "He used to photograph the Hollow. He thought if he looked at it enough, it would hold still."
-    },
-    {
-     "sp": "Theo",
-     "line": "Did it?"
-    },
-    {
-     "sp": "Pim",
-     "line": "It held still around him. That's why he can't leave."
-    },
-    {
-     "sp": "Pim",
-     "line": "Ines is at the bottom. Garage. Follow the chalk. Take the Lamp Core from the shelf at the last bay."
+     "line": "Ines is at the bottom. Take the Lamp Core from the last bay."
     },
     {
      "sp": "Pim",
@@ -4704,44 +4389,28 @@
      "line": "You never fell. That is not luck. That is care."
     },
     {
-     "sp": "Theo",
-     "line": "I have forty-one scans of the real floor three."
-    },
-    {
      "sp": "Ines",
-     "line": "I know. I watched you collect them on the status screen. Come, put the unit to the board."
+     "line": "Put the unit to the board. Forty-one scans. I watched every one."
     },
     {
      "shot": "Theo places his scanner on the chalkboard rig. The board fills with white dots: every scan the Survey ever made. A gap, the shape of a corridor, glows."
     },
     {
      "sp": "Ines",
-     "line": "The Backrooms is made of forgotten places. A place nobody looks at stops belonging to the world."
-    },
-    {
-     "sp": "Ines",
-     "line": "The Halden was empty ten years. You were the last to look at it, and you looked forty-one times."
-    },
-    {
-     "sp": "Ines",
-     "line": "That is why the wall let you in. And why you can leave."
+     "line": "A forgotten place leaves the world. You looked forty-one times. So you can leave."
     },
     {
      "shot": "The unit's scan slides into the gap. A line of light runs up the ladder shaft. A real door, edges of daylight."
     },
     {
      "sp": "Ines",
-     "line": "The ladder goes up. Pike was right."
-    },
-    {
-     "sp": "Ines",
-     "line": "Or sit with me. Someone has to keep the lamp. Someone has to keep looking."
+     "line": "The ladder goes up. Or sit with me. Someone has to keep the lamp."
     },
     {
      "shot": "Two choices. Climb, or take the lamp."
     }
    ],
-   "note": "Ends with choice.up / choice.stay. Journal 12.",
+   "note": "Ends with choice.up / choice.stay. Journal 12. Six spoken lines for any one player (the falls count is one line or the other).",
    "look": "lamp"
   },
   {
