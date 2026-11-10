@@ -25,6 +25,7 @@ Net.clientToServer = {
 	"Descend", -- (yes: boolean) the answer to a doorway's "go down?" pop-up
 	"PartyReady", -- (on: boolean) Play Together: ready to go in with the others on this server
 	"PartyStart", -- (mode: "continue" | "new" | "daily") go in now, with everyone who is ready
+	"ReturnToTitle", -- () the pause menu: save, leave the run and go back to the title screen
 }
 
 -- Server to client.

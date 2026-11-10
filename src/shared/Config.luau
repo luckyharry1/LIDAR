@@ -327,6 +327,7 @@ Config.Net = {
 		Descend = 2,
 		PartyReady = 4,
 		PartyStart = 2,
+		ReturnToTitle = 1,
 	},
 }
 

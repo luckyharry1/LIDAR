@@ -29,6 +29,7 @@ local FIRST_SCAN_DOTS = 50
 local SWEEP_HINT_SECONDS = 12
 local HINT_SECONDS = 8
 local SPRINT_HINT_AFTER = 35 -- seconds into the first level
+local MENU_HINT_AFTER = 90 -- the menu (and the way back to the title) is mentioned once, later
 local TV_REACH = 3 -- studs: a dot this close to the television's screen counts as a hit on it
 local TV_HITS = 30 -- dots the screen needs before the tape plays: looked at, not brushed past
 local THINK_GAP_SECONDS = 40 -- Theo thinks aloud at most this often
@@ -197,6 +198,9 @@ local function update()
 		end
 		if State.server.tier == 1 and now - levelStartedAt > SPRINT_HINT_AFTER then
 			once("sprint", "[" .. Input.hint("sprint") .. " to run. Running is loud]")
+		end
+		if State.server.tier == 1 and now - levelStartedAt > MENU_HINT_AFTER then
+			once("menu", "Done for now?\n[" .. Input.hint("pause") .. " for the menu]")
 		end
 	end
 end

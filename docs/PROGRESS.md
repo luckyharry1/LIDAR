@@ -985,3 +985,23 @@ including after a pit fall and a respawn.
 Found and not fixed (needs a decision): see the PR description. The big one is that a public
 server is one party's run, so strangers who land on a server are dropped into whatever tier is
 under way.
+
+## Way back to the title (pause menu)
+
+- Tab (keyboard), D-pad Up (gamepad) or the MENU button under the map (touch) opens a pause menu:
+  RESUME, SETTINGS, RETURN TO TITLE. The game does not pause (other players, monsters), and the
+  menu says so. RETURN TO TITLE asks twice (the first press turns the button into "SURE? PRESS
+  AGAIN" for 4 s).
+- `ReturnToTitle` remote (no arguments, 1 per second): `Director.onReturnToTitle` saves the
+  profile (`Data.save`), then puts the member on the title like the ladder ending does: stage
+  "title", character removed, doorway ask cleared, intake room closed if they were the last in
+  it. If they were the last one standing and others are downed it respawns the party; if nobody
+  is left in the run it ends. Others in a party are not touched (no `run.epoch` bump).
+- Mid-run progress that is kept: Static and the last haven (checkpoint). The floor itself starts
+  over. Rejoining from the title drops into the party's survey if one is under way.
+- Tier 1 shows a one-time hint about the menu 90 s in.
+
+Check in Studio: the menu opens from the intake, a level, a haven and the stairwell; on a phone
+the MENU button is clear of the map; leaving in a two-player test leaves the friend playing and
+leaving as the only standing player with a downed friend respawns them; pressing PLAY again
+afterwards works (no stuck "Stepping inside...").

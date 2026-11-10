@@ -1274,6 +1274,19 @@ local function sharedIntake(): TutorialRoom.Tutorial?
 	return nil
 end
 
+-- Takes the intake room down once nobody is left in it.
+local function closeTutorialIfEmpty(tutorial: TutorialRoom.Tutorial?)
+	if tutorial == nil then
+		return
+	end
+	for _, other in members do
+		if other.tutorial == tutorial then
+			return -- someone is still inside
+		end
+	end
+	tutorial.model:Destroy()
+end
+
 local function leaveTutorial(member: Member)
 	local tutorial = member.tutorial
 	member.tutorial = nil
@@ -1291,15 +1304,12 @@ local function leaveTutorial(member: Member)
 	if members[member.player] ~= member then
 		return
 	end
-	joinRun(member, "new")
-	if tutorial then
-		for _, other in members do
-			if other.tutorial == tutorial then
-				return -- someone is still inside
-			end
-		end
-		tutorial.model:Destroy()
+	if member.stage ~= "tutorial" then
+		closeTutorialIfEmpty(tutorial) -- went back to the title while waiting at the door
+		return
 	end
+	joinRun(member, "new")
+	closeTutorialIfEmpty(tutorial)
 end
 
 local function startTutorial(member: Member)
@@ -1939,6 +1949,53 @@ local function onChoose(player: Player, choice: string)
 	sendStateAll()
 end
 
+-- The pause menu's "Return to title", from anywhere in a run (the intake, a level, a haven, the
+-- stairs). Progress is written first. The party carries on without this player; they can step
+-- back in from the title, which joins whatever survey is under way.
+local leavingToTitle: { [Player]: boolean } = {}
+
+local function onReturnToTitle(player: Player)
+	local member = members[player]
+	if member == nil or member.stage == "title" or leavingToTitle[player] then
+		return
+	end
+	leavingToTitle[player] = true
+	toast(player, "Saving your progress...", "info")
+	Data.touch(player)
+	Data.save(player) -- yields; the player is still in the world for this moment
+	leavingToTitle[player] = nil
+	if members[player] ~= member or member.stage == "title" then
+		return
+	end
+	local tutorial = member.tutorial
+	member.tutorial = nil
+	member.stage = "title"
+	member.starting = false
+	member.ready = false
+	member.endingOffered = false
+	member.scanFiring = false
+	member.scanSweeping = false
+	member.crouching = false
+	member.reviveProgress = 0
+	member.respawnCFrame = nil
+	doorwayAsk[player] = nil
+	Telemetry.custom(player, "ReturnToTitle", run.tier)
+	local character = player.Character
+	if character then
+		player.Character = nil
+		character:Destroy()
+	end
+	closeTutorialIfEmpty(tutorial)
+	-- Same as a player leaving the server: the last one standing going must not strand the
+	-- downed ones, and a run nobody is in any more ends.
+	if run.level and countStage("level") == 0 and countStage("downed") > 0 then
+		respawnParty()
+	end
+	endRunIfEmpty()
+	sendStateAll()
+	toast(player, "Saved. The dark will wait.", "good")
+end
+
 local function onFunnel(player: Player, step: string)
 	-- The only step the server cannot observe for itself.
 	if step == "TutorialFirstScan" and members[player] ~= nil then
@@ -2228,6 +2285,7 @@ function Director.start()
 	Remotes.on("SetSetting", onSetSetting)
 	Remotes.on("Funnel", onFunnel)
 	Remotes.on("Choose", onChoose)
+	Remotes.on("ReturnToTitle", onReturnToTitle)
 	Remotes.on("Descend", onDescend)
 	Remotes.on("PartyReady", onPartyReady)
 	Remotes.on("PartyStart", onPartyStart)

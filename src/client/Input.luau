@@ -35,6 +35,7 @@ local HINTS: { [string]: { [Device]: string } } = {
 	sprint = { keyboard = "Hold SHIFT", gamepad = "Click the left stick", touch = "Tap RUN" },
 	ping = { keyboard = "Press G", gamepad = "Press Y", touch = "Tap PING" },
 	interact = { keyboard = "Press E", gamepad = "Press X", touch = "Tap the prompt" },
+	pause = { keyboard = "Press TAB", gamepad = "Press D-pad Up", touch = "Tap MENU" },
 }
 
 -- Keys that toggle a held state instead of holding it.
@@ -65,11 +66,14 @@ local TOUCH_HELD = {
 		y = -28,
 	},
 }
+local PAUSE_BUTTON_TOP = 176 -- px from the top: clear of the Static line and the small map
 local TOUCH_PRESS = {
 	{ name = "sweep", text = "SWEEP", size = 70, x = -136, y = -24 },
 	{ name = "ping", text = "PING", size = 50, x = -112, y = -118 },
 	{ name = "spreadCycle", text = "SPREAD", size = 46, x = -178, y = -108 },
 	{ name = "emote", text = "SAY", size = 46, x = -104, y = -182 },
+	-- Top right, under the Static line and the map: the way out to the title.
+	{ name = "pause", text = "MENU", size = 50, x = -12, y = 0 },
 }
 
 function Input.hint(action: string): string
@@ -78,7 +82,8 @@ function Input.hint(action: string): string
 end
 
 -- Subscribes to a one-shot action: "sweep", "spreadIn", "spreadOut", "spreadCycle", "ping",
--- "photo", "emote", "map".
+-- "photo", "emote", "map", "pause" (the only one that still fires while a menu is open, so the
+-- same key closes the pause menu).
 function Input.onAction(name: string, listener: () -> ())
 	local list = actionListeners[name]
 	if list == nil then
@@ -89,7 +94,7 @@ function Input.onAction(name: string, listener: () -> ())
 end
 
 local function fire(name: string)
-	if State.menuOpen then
+	if State.menuOpen and name ~= "pause" then
 		return
 	end
 	for _, listener in actionListeners[name] or {} do
@@ -237,6 +242,10 @@ local function buildTouchControls()
 	end
 	for _, spec in TOUCH_PRESS do
 		local button = round(spec.name, spec.text, spec.size, spec.x, spec.y)
+		if spec.name == "pause" then
+			button.AnchorPoint = Vector2.new(1, 0)
+			button.Position = UDim2.new(1, spec.x, 0, PAUSE_BUTTON_TOP)
+		end
 		touchButtons[spec.name] = button
 		button.Activated:Connect(function()
 			fire(spec.name)
@@ -317,6 +326,7 @@ function Input.start()
 	bindPress("LidarPhoto", "photo", Enum.KeyCode.P, Enum.KeyCode.DPadRight)
 	bindPress("LidarEmote", "emote", Enum.KeyCode.B, Enum.KeyCode.DPadDown)
 	bindPress("LidarMap", "map", Enum.KeyCode.M, Enum.KeyCode.DPadLeft)
+	bindPress("LidarPause", "pause", Enum.KeyCode.Tab, Enum.KeyCode.DPadUp)
 
 	UserInputService.LastInputTypeChanged:Connect(refreshDevice)
 	State.onState(refreshDevice)
