@@ -985,3 +985,20 @@ including after a pit fall and a respawn.
 Found and not fixed (needs a decision): see the PR description. The big one is that a public
 server is one party's run, so strangers who land on a server are dropped into whatever tier is
 under way.
+
+## Every party on its own server (branch claude/private-runs, on top of PR #25)
+
+- Public servers are lobbies; Play (`Start`) sends one player, GO IN (`PartyStart`) the leader plus
+  everyone ready, to a fresh `ReserveServer` of this same place. `Party.luau` does the reserve and
+  `TeleportAsync` with a `Handoff` (mode + party size, `src/shared/pure/Handoff.luau`, validated on
+  arrival). The reserved server waits up to `Config.Places.arrivalWaitSeconds` for the rest, then
+  starts them as a Play Together crew with no second press. A latecomer to a run in progress goes
+  straight in.
+- Never strands anyone: a failed save hand-off, reserve or teleport toasts one line and starts the
+  run in place. Studio and already-private servers play in place.
+- `Data.handOff` saves and releases the session lock before the teleport; `Data.reclaim` takes it
+  back if the teleport fails. Without it the reserved server could not load the profile.
+- `Remotes.on("Start")` no longer forwards extra client arguments to `onStart` (its `inPlace`
+  argument is server-only).
+- Not testable in Studio: check in a published place. A friend who joins after the party left
+  lands in a lobby; there is no follow flow.

@@ -396,9 +396,14 @@ Config.Monetization = {
 	playSecondsMoving = 60, -- playtime only counts while the player moved within this window
 }
 
--- Place IDs for the reserved-server flow. Zero keeps everything in a single place.
+-- Every party plays on its own reserved server. A public server is only a lobby: pressing Play
+-- there sends you (and whoever you readied up with) to a fresh reserved server, so a stranger
+-- never lands in someone else's run. This needs a published place and is skipped in Studio.
+-- runPlaceId zero reserves servers of this same place; set it to use a separate run place.
 Config.Places = {
+	reserveServers = true,
 	runPlaceId = 0,
+	arrivalWaitSeconds = 12, -- a reserved server waits this long for the rest of the party
 }
 
 return Config
