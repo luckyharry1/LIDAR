@@ -32,6 +32,11 @@ local CARD_SECONDS = 8
 local DOT_QUALITY_NEXT = { auto = "low", low = "medium", medium = "high", high = "auto" }
 local TITLE_LETTERS = { "L", "I", "D", "A", "R" }
 local TITLE_SWEEP_SECONDS = 9
+local LEAVE_CONFIRM_SECONDS = 4
+local PAUSE_NOTE_SOLO =
+	"The dark keeps moving while this is open. If you leave, your Static and last haven are saved. This floor starts over when you come back."
+local PAUSE_NOTE_PARTY =
+	"The dark keeps moving while this is open. If you leave, your Static and last haven are saved and your friends carry on. Rejoin them from the title."
 
 local Menus = {}
 
@@ -68,6 +73,11 @@ local boardBody: TextLabel
 local settingsRows: ScrollingFrame
 local guideBody: TextLabel
 local startRequested = false
+local pauseNote: TextLabel
+local pauseLeave: TextButton
+local leaveArmed = false -- the first press of RETURN TO TITLE asks; the second one goes
+local leaveSent = false
+local settingsFromPause = false
 local noteQueue: { { title: string, body: string } } = {}
 local endingTitle: TextLabel
 local endingBody: TextLabel
@@ -815,8 +825,103 @@ local function buildSettings()
 		-- Settings opened from the title returns to it rather than dropping into the dark.
 		if State.server.stage == "title" then
 			task.defer(Menus.open, "title")
+		elseif settingsFromPause then
+			-- Settings opened from the pause menu go back to it, unless something else took over.
+			task.defer(function()
+				if current == nil and State.server.stage ~= "title" then
+					Menus.open("pause")
+				end
+			end)
 		end
+		settingsFromPause = false
 	end
+end
+
+--------------------------------------------------------------------------------------------
+-- Pause menu: resume, settings, and the way back to the title
+
+local function refreshPause()
+	leaveArmed = false
+	leaveSent = false
+	pauseLeave.Text = "RETURN TO TITLE"
+	pauseLeave.TextColor3 = Ui.colors.warn
+	pauseNote.Text = if State.server.partySize > 1 then PAUSE_NOTE_PARTY else PAUSE_NOTE_SOLO
+end
+
+local function pressLeave()
+	if leaveSent then
+		return
+	end
+	if not leaveArmed then
+		leaveArmed = true
+		pauseLeave.Text = "SURE? PRESS AGAIN"
+		task.delay(LEAVE_CONFIRM_SECONDS, function()
+			if leaveArmed and not leaveSent and current == "pause" then
+				leaveArmed = false
+				pauseLeave.Text = "RETURN TO TITLE"
+			end
+		end)
+		return
+	end
+	leaveSent = true
+	pauseLeave.Text = "SAVING..."
+	send("ReturnToTitle")
+	-- The server answers with the title stage, which closes this window (see Menus.start).
+	task.delay(10, function()
+		if current == "pause" and leaveSent then
+			refreshPause() -- nothing came back (rate limit, busy server): let them try again
+		end
+	end)
+end
+
+local function buildPause()
+	local frame = window("pause", 440, 330)
+	heading(frame, "MENU")
+	pauseNote = Ui.label({
+		TextSize = Ui.text.small,
+		TextColor3 = Ui.colors.dim,
+		TextYAlignment = Enum.TextYAlignment.Top,
+		Position = UDim2.fromOffset(0, 40),
+		Size = UDim2.new(1, 0, 0, 78),
+		Parent = frame,
+	})
+	local list = Ui.new("Frame", {
+		AnchorPoint = Vector2.new(0, 1),
+		Position = UDim2.fromScale(0, 1),
+		Size = UDim2.new(1, 0, 0, 3 * 38 + 2 * 8),
+		BackgroundTransparency = 1,
+		Parent = frame,
+	}, { Ui.list(Enum.FillDirection.Vertical, 8) })
+	local resume = Ui.button({
+		Text = "RESUME",
+		Size = UDim2.new(1, 0, 0, 38),
+		LayoutOrder = 1,
+		Parent = list,
+	}, Menus.close, Ui.colors.good)
+	Ui.button({
+		Text = "SETTINGS",
+		Size = UDim2.new(1, 0, 0, 38),
+		LayoutOrder = 2,
+		Parent = list,
+	}, function()
+		settingsFromPause = true
+		Menus.open("settings")
+	end, Ui.colors.dim)
+	pauseLeave = Ui.button({
+		Text = "RETURN TO TITLE",
+		Size = UDim2.new(1, 0, 0, 38),
+		LayoutOrder = 3,
+		Parent = list,
+	}, pressLeave, Ui.colors.warn)
+	windows.pause.first = resume
+end
+
+function Menus.openPause()
+	if current ~= nil or State.server.stage == "title" then
+		return
+	end
+	refreshPause()
+	Menus.open("pause")
 end
 
 --------------------------------------------------------------------------------------------
@@ -1683,6 +1788,7 @@ function Menus.start()
 	})
 	buildTitle()
 	buildSettings()
+	buildPause()
 	buildParty()
 	buildBench()
 	buildSkins()
@@ -1717,9 +1823,13 @@ function Menus.start()
 				refreshParty()
 			end
 			if previous.stage ~= "title" then
-				-- Back from the dark (the ladder): the title comes back, ready to start again.
+				-- Back from the dark (the ladder, or the pause menu): the title comes back,
+				-- ready to start again.
 				startRequested = false
 				titleButtons.Visible = true
+				if current == "pause" or current == "settings" then
+					Menus.close()
+				end
 				if current == nil then
 					Menus.open("title")
 				end
@@ -1734,6 +1844,13 @@ function Menus.start()
 		end
 		if current == "skins" and server.stage ~= "title" and server.stage ~= "lore" then
 			Menus.close()
+		end
+	end)
+	Input.onAction("pause", function()
+		if current == "pause" then
+			Menus.close()
+		else
+			Menus.openPause()
 		end
 	end)
 	Input.onAction("emote", function()

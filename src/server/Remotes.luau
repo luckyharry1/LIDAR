@@ -137,6 +137,9 @@ local VALIDATORS: { [string]: Validator } = {
 	PartyStart = function(mode)
 		return mode == "continue" or mode == "new" or mode == "daily"
 	end,
+	ReturnToTitle = function(...)
+		return select("#", ...) == 0
+	end,
 }
 
 -- Fail at startup, not at the first call, if a remote is missing its validator or limit.
