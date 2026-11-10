@@ -23,6 +23,7 @@ type Session = {
 	profile: Profile,
 	persistent: boolean, -- false when running on the in-memory fallback
 	dirty: boolean,
+	handedOff: boolean, -- lock given back for a teleport: no more writes from this server
 }
 
 local LOCK_KEY = "sessionLock"
@@ -74,7 +75,8 @@ end
 -- profile. Returns the profile and whether it will be persisted.
 function Data.load(player: Player): (Profile, boolean)
 	local dataStore = getStore()
-	local session: Session = { profile = SaveData.default(), persistent = false, dirty = false }
+	local session: Session =
+		{ profile = SaveData.default(), persistent = false, dirty = false, handedOff = false }
 	if dataStore ~= nil then
 		local lockedElsewhere = false
 		-- In Studio a failure means API access is off; retrying would only delay the session.
@@ -193,10 +195,40 @@ end
 -- Saves now if anything changed (used at lore rooms and by the autosave loop).
 function Data.save(player: Player): boolean
 	local session = sessions[player]
-	if session == nil or not session.dirty then
+	if session == nil or not session.dirty or session.handedOff then
 		return false
 	end
 	return write(player, session, false)
+end
+
+-- Saves and gives the session lock back just before a teleport, so the server the player is
+-- sent to can load the profile at once. Returns false if that did not work, in which case the
+-- caller must not teleport (the new server would not get the progress). If the teleport then
+-- fails, Data.reclaim takes the profile back.
+function Data.handOff(player: Player): boolean
+	local session = sessions[player]
+	if session == nil then
+		return false
+	end
+	if not session.persistent then
+		session.handedOff = true -- nothing is stored: there is no lock to give back
+		return true
+	end
+	session.handedOff = true
+	if write(player, session, true) then
+		return true
+	end
+	session.handedOff = false
+	return false
+end
+
+-- The teleport did not happen: this server owns the profile again. The next save takes the lock.
+function Data.reclaim(player: Player)
+	local session = sessions[player]
+	if session and session.handedOff then
+		session.handedOff = false
+		session.dirty = true
+	end
 end
 
 -- Final save when a player leaves; also gives up the session lock.
@@ -206,6 +238,9 @@ function Data.release(player: Player)
 		return
 	end
 	sessions[player] = nil
+	if session.handedOff then
+		return -- the lock was given back before the teleport; the other server owns it now
+	end
 	write(player, session, true)
 end
 

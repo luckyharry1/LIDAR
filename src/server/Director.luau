@@ -18,6 +18,7 @@ local Difficulty = require(ReplicatedStorage.Shared.pure.Difficulty)
 local Enemies = require(script.Parent.Enemies)
 local EnemyBrain = require(ReplicatedStorage.Shared.pure.EnemyBrain)
 local Leaderboard = require(script.Parent.Leaderboard)
+local Handoff = require(ReplicatedStorage.Shared.pure.Handoff)
 local LevelPlan = require(ReplicatedStorage.Shared.pure.LevelPlan)
 local Lore = require(ReplicatedStorage.Shared.data.Lore)
 local LoreRooms = require(script.Parent.LoreRooms)
@@ -1335,7 +1336,8 @@ local function startTutorial(member: Member)
 	sendStateAll()
 end
 
-local function onStart(player: Player, mode: string)
+-- `inPlace` skips the hand-off to a reserved server: used when that failed, so nobody is stranded.
+local function onStart(player: Player, mode: string, inPlace: boolean?)
 	local member = members[player]
 	if member == nil or member.stage ~= "title" or member.starting then
 		return
@@ -1343,14 +1345,16 @@ local function onStart(player: Player, mode: string)
 	member.starting = true
 	member.ready = false
 	Telemetry.funnel(player, "PressedPlay")
+	if not inPlace and Party.isLobby() then
+		-- A public server is only a lobby: this player goes to a server of their own.
+		if Party.launch({ player }, mode) then
+			return
+		end
+	end
 	while run.phase == "transition" do
 		task.wait(TRANSITION_POLL_SECONDS) -- a level is being built: join once it is ready
 	end
 	if members[player] ~= member then
-		return
-	end
-	if Party.isLobby() then
-		Party.launch(Players:GetPlayers())
 		return
 	end
 	if not profileOf(member).tutorialDone then
@@ -1377,10 +1381,36 @@ local function onPartyStart(player: Player, mode: string)
 	if leader == nil or leader.stage ~= "title" or leader.starting then
 		return
 	end
-	local crew: { Player } = {}
+	local ready: { Player } = {}
 	for other, member in members do
 		if other ~= player and member.stage == "title" and member.ready and not member.starting then
-			table.insert(crew, other)
+			table.insert(ready, other)
+		end
+	end
+	local going = Handoff.crew(player, ready, Config.Coop.maxPlayers)
+	local crew: { Player } = {}
+	for index = 2, #going do
+		table.insert(crew, going[index])
+	end
+	local inPlace = false
+	if Party.isLobby() then
+		-- One reserved server for the leader and everyone readied up with them.
+		for _, other in going do
+			local member = members[other]
+			member.starting = true
+			member.ready = false
+		end
+		sendStateAll()
+		if Party.launch(going, mode) then
+			return
+		end
+		-- No server could be opened: carry on here together, as a single server always has.
+		inPlace = true
+		for _, other in going do
+			local member = members[other]
+			if member then
+				member.starting = false
+			end
 		end
 	end
 	for _, other in crew do
@@ -1395,7 +1425,7 @@ local function onPartyStart(player: Player, mode: string)
 			anyNew = true
 		end
 	end
-	if anyNew and not Party.isLobby() and not run.active then
+	if anyNew and not run.active then
 		local everyone = { leader }
 		for _, other in crew do
 			table.insert(everyone, members[other])
@@ -1409,9 +1439,9 @@ local function onPartyStart(player: Player, mode: string)
 		return
 	end
 	-- The leader's run starts first; the others drop into it (onStart waits out the build).
-	task.spawn(onStart, player, mode)
+	task.spawn(onStart, player, mode, inPlace)
 	for _, other in crew do
-		task.spawn(onStart, other, mode)
+		task.spawn(onStart, other, mode, inPlace)
 	end
 end
 
@@ -1548,6 +1578,46 @@ local function onPassPurchased(player: Player, passId: number, purchased: boolea
 	end)
 end
 
+-- A party that was sent here from a lobby starts together without pressing Play again. The first
+-- arrival waits (briefly) for the rest, then the whole group goes in as a Play Together crew.
+local arrivals: { players: { Player }, expected: number, mode: string, waiting: boolean } =
+	{ players = {}, expected = 0, mode = "continue", waiting = false }
+
+local function queueArrival(player: Player, handoff: Handoff.Handoff)
+	table.insert(arrivals.players, player)
+	if not arrivals.waiting then
+		arrivals.mode = handoff.mode
+	end
+	arrivals.expected = math.max(arrivals.expected, handoff.size)
+	if arrivals.waiting then
+		return
+	end
+	arrivals.waiting = true
+	task.spawn(function()
+		local deadline = os.clock() + Config.Places.arrivalWaitSeconds
+		-- A run already under way means the party is in: a latecomer goes straight after them.
+		while #arrivals.players < arrivals.expected and not run.active and os.clock() < deadline do
+			task.wait(TRANSITION_POLL_SECONDS)
+		end
+		local mode = arrivals.mode
+		local here: { Player } = {}
+		for _, other in arrivals.players do
+			local member = members[other]
+			if member and member.stage == "title" and not member.starting then
+				table.insert(here, other)
+			end
+		end
+		arrivals = { players = {}, expected = 0, mode = "continue", waiting = false }
+		if #here == 0 then
+			return
+		end
+		for index = 2, #here do
+			members[here[index]].ready = true
+		end
+		onPartyStart(here[1], mode)
+	end)
+end
+
 local function onPlayerAdded(player: Player)
 	local profile, persistent = Data.load(player)
 	if not player:IsDescendantOf(Players) then
@@ -1607,6 +1677,11 @@ local function onPlayerAdded(player: Player)
 	end
 
 	task.spawn(checkPasses, member)
+
+	local handoff = Party.arrival(player)
+	if handoff ~= nil and not Party.isLobby() then
+		queueArrival(player, handoff)
+	end
 end
 
 local function endRunIfEmpty()
@@ -1646,6 +1721,7 @@ local function onPlayerRemoving(player: Player)
 	if member.tutorial then
 		member.tutorial.model:Destroy()
 	end
+	Party.forget(player)
 	Data.release(player)
 	if member.stage == "level" and countStage("level") == 0 and countStage("downed") > 0 then
 		respawnParty() -- the last standing player left: do not strand the downed ones
@@ -2216,7 +2292,9 @@ end
 function Director.start()
 	Players.CharacterAutoLoads = false
 
-	Remotes.on("Start", onStart)
+	Remotes.on("Start", function(player: Player, mode: string)
+		onStart(player, mode) -- never forward extra client arguments: inPlace is server-only
+	end)
 	Remotes.on("ScanState", onScanState)
 	Remotes.on("Ping", onPing)
 	Remotes.on("Reveal", onReveal)
@@ -2234,6 +2312,14 @@ function Director.start()
 
 	Players.PlayerAdded:Connect(onPlayerAdded)
 	Players.PlayerRemoving:Connect(onPlayerRemoving)
+	Party.watchFailures(function(player, mode)
+		-- The teleport fell through after it was accepted: play here instead.
+		local member = members[player]
+		if member then
+			member.starting = false
+			task.spawn(onStart, player, mode, true)
+		end
+	end)
 	for _, player in Players:GetPlayers() do
 		task.spawn(onPlayerAdded, player)
 	end

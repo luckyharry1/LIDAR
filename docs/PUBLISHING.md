@@ -54,7 +54,7 @@ What is ready, what is not, in the order to do it.
 
 | Setting | Value | Why |
 | --- | --- | --- |
-| Places > max players | 4 | A run is one party of up to `Config.Coop.maxPlayers` (4). |
+| Places > max players | 4 | A run is one party of up to `Config.Coop.maxPlayers` (4); this also caps the lobby. |
 | Security > Enable Studio Access to API Services | On while testing | Saves and the daily board use DataStores. Without access, Studio keeps profiles in memory and tells the player. Published servers always have access. |
 | Devices | Computer, phone, tablet *(phone controls confirmed on a real phone, 31 Oct)*; console *(your call, untested)* | The input layer handles keyboard and mouse, gamepad and touch. VR is not handled. |
 | Experience questionnaire (maturity) | *(your call)* | The game is a dark horror maze: invisible monsters, jump scares, being chased and caught. The story has no blood, gore or death on screen (people are "lost", never killed). The answers are yours to give. |
@@ -95,14 +95,30 @@ Playtime skins (Tungsten, Glacier, Orchid, Blueprint) need nothing created. Deve
 and the `ProcessReceipt` handler are not used yet; the brainstorm in `docs/MONETIZATION.md`
 lists what would need them.
 
-## 6. Optional: private party servers
+## 6. Every party gets its own server
 
-With `Config.Places.runPlaceId` at zero the whole game runs in one place, and each server is
-one party. To give friends a private instance, add a second place to the experience for runs
-and put its id in `Config.Places.runPlaceId`: the start place becomes a lobby, and pressing
-Play there sends everyone in it to one reserved server of the run place
-(`src/server/Party.luau`). This only works in a published experience and cannot be tested in
-Studio.
+A public server is only a lobby (title, skins, settings, Play Together). Pressing Play there
+saves and releases the player's profile, reserves a fresh server of the same place
+(`TeleportService:ReserveServer`) and teleports them into it; GO IN on the Play Together screen
+sends the leader and everyone readied up to the same one. The mode (continue, new, daily) travels
+as teleport data, and the reserved server starts the arrivals together with no second press of
+Play. A stranger therefore never lands in someone else's run, and a new player never joins a
+run that is already on tier 6. No second place is needed.
+
+- Studio and servers that are already private (a reserved server, a VIP server) run the game
+  in place, so the PC playtest is unchanged. Teleporting cannot be tested in Studio: check it in
+  a published place (start the game from the website with two accounts, one solo, one
+  readied up together).
+- If reserving or teleporting fails, the player gets one friendly line and the run starts in
+  place, as before.
+- Friends gather in the lobby with the INVITE button, ready up and go in together. A friend who
+  joins after the party left lands in a lobby and cannot follow into the reserved server
+  (Roblox does not let anyone join a reserved server through a friend). They can start their
+  own run, or the party can leave and regroup. A "follow" flow through MemoryStore is not built.
+- `Config.Places.reserveServers = false` turns all of this off (one run per server, as in
+  Studio). `Config.Places.runPlaceId` can name a separate run place; zero reserves this one.
+- `Data.handOff` / `Data.reclaim` (`src/server/Data.luau`) give the session lock back before a
+  teleport so the reserved server can load the profile, and take it back if the teleport fails.
 
 ## 7. Analytics
 
