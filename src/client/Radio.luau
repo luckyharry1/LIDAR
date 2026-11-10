@@ -21,7 +21,8 @@ local State = require(script.Parent.State)
 
 local FLOOR_CALL_DELAY = 4.5 -- seconds after a level starts, once its title card has faded
 local BACK_CALL_DELAY = Config.World.respawnSeconds + 0.8
-local DARK_CALL_SECONDS = { 110, 220 } -- Base checks in at a random interval in this range
+local DARK_CALL_SECONDS = { 180, 360 } -- Base checks in at a random interval in this range
+local BACK_COOLDOWN_SECONDS = 90 -- and welcomes you back no more often than this
 local FAKE_RANGE = 30 -- studs: the false Base only speaks this close to a disguised Echo
 local FAKE_COOLDOWN = 40
 local CHECK_HZ = 4
@@ -33,17 +34,46 @@ local nextDarkCall = 0
 local fakeReadyAt = 0
 local nextFake = 1
 local checkTimer = 0
+local caughtCount = 0 -- catches this session
+local lastBackAt = -math.huge
+local unused: { [{ string }]: { string } } = {} -- per pool: the lines not yet said this session
 
-local function say(line: string, fake: boolean?)
+-- Base talks only into a quiet screen (a thought, a card, a tape would be talked over), so a
+-- check-in that finds it busy is simply skipped. The false Base is the exception: it is a scare.
+local function say(line: string, fake: boolean?): boolean
 	if not State.storyLive then
-		return -- the first minutes stay quiet: the first hidden object starts the talking
+		return false -- the first minutes stay quiet: the first hidden object starts the talking
 	end
-	Audio.sequence({ 0.55, 0.62, 0.5 }, 0.035, 0.16) -- a crackle of static first
-	Hud.dialogue(if fake then Lore.radio.fakeSpeaker else Lore.radio.speaker, line)
+	if not fake and Hud.busy() then
+		return false
+	end
+	local speaker = if fake then Lore.radio.fakeSpeaker else Lore.radio.speaker
+	if Hud.dialogue(speaker, line, not fake) then
+		Audio.sequence({ 0.55, 0.62, 0.5 }, 0.035, 0.16) -- a crackle of static first
+		return true
+	end
+	return false
 end
 
-local function pick(lines: { string }): string
-	return lines[math.random(1, #lines)]
+-- A line of the pool that has not been said yet this session. A pool is shuffled and used up
+-- before any line comes round again, so the same sentence is never heard twice in a row.
+local function pick(pool: { string }): string
+	local left = unused[pool]
+	if left == nil or #left == 0 then
+		left = table.clone(pool)
+		unused[pool] = left
+	end
+	return table.remove(left, math.random(1, #left)) :: string
+end
+
+-- Welcome back after a fall. Theo's own thought covers the first one; after that Base, rarely.
+local function welcomeBack()
+	if caughtCount < 2 or os.clock() - lastBackAt < BACK_COOLDOWN_SECONDS then
+		return
+	end
+	if say(pick(Lore.radio.back)) then
+		lastBackAt = os.clock()
+	end
 end
 
 local function resetDarkCall()
@@ -104,16 +134,13 @@ function Radio.start()
 	end);
 	(Net.get("Caught") :: RemoteEvent).OnClientEvent:Connect(
 		function(_kind: string, downed: boolean)
+			caughtCount += 1
 			if not downed then
-				task.delay(BACK_CALL_DELAY, function()
-					say(pick(Lore.radio.back))
-				end)
+				task.delay(BACK_CALL_DELAY, welcomeBack)
 			end
 		end
 	);
-	(Net.get("Revived") :: RemoteEvent).OnClientEvent:Connect(function()
-		say(pick(Lore.radio.back))
-	end);
+	(Net.get("Revived") :: RemoteEvent).OnClientEvent:Connect(welcomeBack);
 	(Net.get("LevelCleared") :: RemoteEvent).OnClientEvent:Connect(function()
 		say(Lore.radio.cleared)
 	end)

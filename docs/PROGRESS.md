@@ -985,3 +985,64 @@ including after a pit fall and a respawn.
 Found and not fixed (needs a decision): see the PR description. The big one is that a public
 server is one party's run, so strangers who land on a server are dropped into whatever tier is
 under way.
+
+## 2026-11-10: Cut the dialogue (branch `claude/less-dialogue`, stacked on PR #25)
+
+Vasco: "the dialogue is way too much and repetitive", things "explained twice", and the player
+"bombarded by text" in several places. Not seen in Studio; the cloud has no Studio. CI is the
+check runner.
+
+Spoken lines per scene (before -> after):
+
+| scene | before | after | | scene | before | after |
+|---|---|---|---|---|---|---|
+| `cs.open` (kept) | 3 | 3 | | `npc.joss` | 13 | 5 |
+| `tape.orientation` | 15 | 5 | | `npc.hana` | 12 | 5 |
+| `tape.halden` | 5 | 3 | | `npc.lena` | 14 | 5 |
+| `tape.hollis` | 6 | 3 | | `npc.ravi` | 13 | 4 |
+| `tape.tobi` | 7 | 4 | | `npc.pim` | 12 | 5 |
+| `tape.ravi` | 7 | 4 | | `npc.ines` | 11 | 7 (6 for one player) |
+| `tape.quill` | 7 | 4 | | `end.up` / `end.stay` | 5 | 5 |
+| `tape.pike` | 10 | 4 | | **all scenes** | **140** | **66** |
+
+A new player's first ten minutes (opening, orientation tape, Joss): 31 spoken lines -> 13.
+Each rescue (`rescue.*`) is two lines, not three, and the camp scene that follows no longer greets
+again. Base's level calls are one line, and idle check-ins come every 3 to 6 minutes, not 2 to 4.
+
+Who tells what now (every fact once; the rest is found, not told):
+- What the Backrooms are: Joss. Levels link: handbook p2. The exit and the true scan: Pike's tape and
+  the finale. Time is a rumour: Lena. Why you wake at a lamp: Lena, then Theo's one thought.
+- Scanner makes a record: the orientation tape. Colours: the intake hint. Red were people:
+  handbook p4. Lamp-bags: Joss, then the tier 3 hint. Tobi is the Hush and how to pass him: Hana.
+- Where to go next: the HUD goal line only (`goal.*` is now two to five words). Base, the
+  whiteboard, the scenes and the plaques no longer repeat it.
+- The Pacer: Theo's thought when he hears the keys. The Echo's tell: `tape.ravi` and the brass plate.
+
+On-screen text (code):
+- `Hud.dialogue(speaker, line, optional)`: an optional line (Theo's thoughts, Base's check-ins) is
+  only said into a quiet screen, not while a line is up or queued, a level card is showing, or
+  within 3 s of the last line; it returns false and is not used up. The queue holds 4 at most.
+  `Hud.busy()` tells the rest. A hint hides while someone is speaking and comes back after.
+- Tutorial hints wait for the screen to be quiet and for scenes to end (up to 30 s) instead of
+  landing on top of them. The first red dot's hint is the crouch control only (the lore is Theo's
+  thought); the duplicate "gold dots" and tier 4 "stay in sight" hints are gone.
+- Base (`Radio`): pools are shuffled and used up before any line repeats; "welcome back" starts at
+  the second catch with a 90 s cooldown (Theo's own thought covers the first); a check-in that
+  finds the screen busy is skipped.
+- A monster's rule is toasted on its first catch only (was the first two).
+- `build_text.py` now checks line length (90), a spoken-line budget per scene, and sentences said
+  twice; `tests/LoreTests.luau` checks the same on the generated file.
+- `docs/story/build_text.py` was behind the copy in the project folder (it lacked the staging cues,
+  the rescue lines and the Nov 1 text). The project folder's version is the base for this change.
+  `LoreText.luau` is the generator's raw output, copied to `src/shared/data/`.
+
+Not touched (other threads own them): the random handbook page that `Director` pops when a page is
+picked up, and the Director toasts. Titles, loading tips (`tip.*` is unused) and journal text
+(`journal.*` is unused) were left alone.
+
+Check in Studio: the intake reads in order (opening, scan, sweep, colours hint, tape in 5 lines,
+gold hint) with no two text boxes on screen at once; Joss in five lines still sends you for the
+fuse and the HUD says "Find the fuse. Go down."; Hana, Lena, Ravi and Pim each still hand over
+their item (wheel, key, crank, Lamp Core); a rescue plays two lines, then walks you out; a first
+catch shows the face, one toast for the monster and Theo's thought, with no Base line on top;
+Base stays quiet during a level card.

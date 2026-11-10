@@ -28,6 +28,7 @@ local State = require(script.Parent.State)
 local FIRST_SCAN_DOTS = 50
 local SWEEP_HINT_SECONDS = 12
 local HINT_SECONDS = 8
+local HINT_PATIENCE_SECONDS = 30 -- a hint waits this long for the screen to be quiet, then gives up
 local SPRINT_HINT_AFTER = 35 -- seconds into the first level
 local TV_REACH = 3 -- studs: a dot this close to the television's screen counts as a hit on it
 local TV_HITS = 30 -- dots the screen needs before the tape plays: looked at, not brushed past
@@ -78,9 +79,12 @@ local function think(key: string)
 	if thoughts[key] or not State.storyLive or now - lastThought < THINK_GAP_SECONDS then
 		return -- quiet until the first hidden object speaks, and never chatty after it
 	end
-	thoughts[key] = true
-	lastThought = now
-	Hud.dialogue("Theo", Lore.thought(key))
+	-- Only into a quiet screen. If someone else is talking the thought is not spent: it comes
+	-- back the next time the same thing happens.
+	if Hud.dialogue("Theo", Lore.thought(key), true) then
+		thoughts[key] = true
+		lastThought = now
+	end
 end
 
 local function tvScreen(): BasePart?
@@ -134,22 +138,30 @@ function setStep(name: string)
 	end
 end
 
--- A hint that shows once per session and clears itself.
+-- A hint that shows once per session and clears itself. It waits its turn: never while a scene
+-- plays, someone is talking or a name is on the screen.
 local function once(key: string, text: string)
 	if shown[key] or step ~= "done" and step ~= "idle" then
 		return
 	end
 	shown[key] = true
-	timedHintUntil = os.clock() + HINT_SECONDS
-	Hud.hint(text)
+	task.spawn(function()
+		local waited = 0
+		while (Hud.busy() or Cutscene.playing) and waited < HINT_PATIENCE_SECONDS do
+			waited += task.wait(0.5)
+		end
+		if step ~= "done" and step ~= "idle" then
+			return
+		end
+		timedHintUntil = os.clock() + HINT_SECONDS
+		Hud.hint(text)
+	end)
 end
 
 -- Shown the first time a player reaches the tier that introduces something new.
 local function tierHint(tier: number): string?
 	if tier == 3 then
 		return poster("rule.09", "Keep your dots on a lamp until it wakes")
-	elseif tier == 4 then
-		return words("rule.10", true)
 	elseif tier == 5 then
 		return words("rule.07", true)
 	elseif tier == 6 then
@@ -286,20 +298,10 @@ function Tutorial.start()
 		elseif State.server.stage == "level" then
 			if enemy then
 				think(monsterThought(State.server.tier))
-				once(
-					"enemy",
-					"Red dots: something that was a person. Get low.\n["
-						.. Input.hint("crouch")
-						.. "]"
-				)
+				once("enemy", "[" .. Input.hint("crouch") .. " to get low]")
 			elseif friend and State.server.rescuesTotal > State.server.rescues then
 				think("surveyor")
 				once("friend", words("rule.10", true))
-			elseif objective and State.server.tier == 1 then
-				once(
-					"objective",
-					"Gold dots are worth the walk.\n[" .. Input.hint("interact") .. " to pick up]"
-				)
 			end
 		end
 	end);

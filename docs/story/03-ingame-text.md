@@ -9,14 +9,14 @@ Placeholders: `{deaths}` `{floor}` `{n}` `{party}`. A `look` names a backdrop in
 
 | id | where | text | Theo thought | look |
 |---|---|---|---|---|
-| `goal.l0` | L0 Office Floor / HUD objective, Level 0 | You are not alone here. Find the Survey. Start with Joss. |  |  |
+| `goal.l0` | L0 Office Floor / HUD objective, Level 0 | Find Joss. |  |  |
 | `goal.l0b` | L0 Office Floor / HUD objective, after Joss | Find the fuse. Go down. |  |  |
-| `goal.l1` | L1 Flooded Wing / HUD objective, Level 1 | Find Hana at the pump house. |  |  |
+| `goal.l1` | L1 Flooded Wing / HUD objective, Level 1 | Find Hana. |  |  |
 | `goal.l1b` | L1 Flooded Wing / HUD objective, after Hana | Follow the water to the Falls. |  |  |
-| `goal.falls` | The Falls / HUD objective, Falls | Talk to Lena. Rest. |  |  |
-| `goal.l2` | L2 Wards / HUD objective, Level 2 | Find Ravi. Do not answer the voices. |  |  |
-| `goal.l3` | L3 Hollow / HUD objective, Level 3 | Find Pim in the Hollow. |  |  |
-| `goal.l4` | L4 Garage / HUD objective, Level 4 | Follow the chalk arrows down to the Lamp. |  |  |
+| `goal.falls` | The Falls / HUD objective, Falls | Talk to Lena. |  |  |
+| `goal.l2` | L2 Wards / HUD objective, Level 2 | Find Ravi. |  |  |
+| `goal.l3` | L3 Hollow / HUD objective, Level 3 | Find Pim. |  |  |
+| `goal.l4` | L4 Garage / HUD objective, Level 4 | Follow the chalk down to the Lamp. |  |  |
 | `goal.lamp` | Lamp Room / HUD objective, Lamp Room | Speak to Ines. |  |  |
 
 ## rule
@@ -24,15 +24,15 @@ Placeholders: `{deaths}` `{floor}` `{n}` `{party}`. A `look` names a backdrop in
 | id | where | text | Theo thought | look |
 |---|---|---|---|---|
 | `rule.01` | Any / Survey Handbook p1; poster in the first room | 1. You have entered the Backrooms.<br>Do not panic. Everyone does it once. |  |  |
-| `rule.02` | Any / Handbook p2 | 2. The Backrooms are made of forgotten places.<br>Offices, pools, wards, caves. Each one is a Level. |  |  |
-| `rule.03` | Any / Handbook p3 | 3. Your scanner does not make light. It makes a record.<br>A dot stays where you looked. Mapped space holds still. |  |  |
-| `rule.04` | Any / Handbook p4; colour key poster | 4. White dots: structure. Green dots: people.<br>Red dots: something that was a person and is not now. |  |  |
-| `rule.05` | Any / Handbook p5 | 5. Every scan is a noise. Some things listen for it.<br>margin: Walk. Do not run. -T.W. |  |  |
+| `rule.02` | Any / Handbook p2 | 2. Levels do not connect like rooms.<br>Walk out of one and you are in the next. |  |  |
+| `rule.03` | Any / Handbook p3 | 3. Scan the same place twice and it lies less.<br>margin: Walls drift when nobody looks. -T.W. |  |  |
+| `rule.04` | Any / Handbook p4; colour key poster | 4. Red dots were people once.<br>They do not know it. Do not stand near them. |  |  |
+| `rule.05` | Any / Handbook p5 | 5. Every scan is a noise. Some things listen for it.<br>margin: Run and you are shouting. -T.W. |  |  |
 | `rule.06` | Any / Handbook p6 | 6. Never run toward a sound you cannot place. |  |  |
-| `rule.07` | Any / Handbook p7 | 7. Radio: Base will ask what you see.<br>Base will never tell you to come to her.<br>margin: If it says come to me, it is not Base. -R.A. |  |  |
-| `rule.08` | Any / Handbook p8 | 8. Crew greet with two taps, a breath, then one.<br>margin: It can copy the taps. It cannot copy the breath. -R.A. |  |  |
-| `rule.09` | Any / Handbook p9 | 9. Lamps wake when scanned. Scan every lamp you find.<br>margin: A bag that glows was hung by a friend. -J.B. |  |  |
-| `rule.10` | Any / Handbook p10 | 10. Stay where someone can see you.<br>A person nobody sees starts to fade.<br>margin: Green is someone looking back. -I.C. |  |  |
+| `rule.07` | Any / Handbook p7 | 7. Base will ask what you see.<br>Base will never tell you to come to her. |  |  |
+| `rule.08` | Any / Handbook p8 | 8. Crew greet with two taps, a breath, then one. |  |  |
+| `rule.09` | Any / Handbook p9 | 9. Lamps wake when scanned. Scan every one you find.<br>margin: A bag that glows was hung by a friend. -J.B. |  |  |
+| `rule.10` | Any / Handbook p10 | 10. Stay where someone can see you.<br>A person nobody sees starts to fade. |  |  |
 | `rule.11` | Any / Handbook p11; Falls wall | 11. Exits exist. We have not found one.<br>Keep mapping. |  |  |
 | `rule.12` | Lamp Room / Handbook p12, handwritten, Lamp Room | Ines Calder: 12. Someone has to keep the lamp. |  |  |
 
@@ -43,7 +43,7 @@ Placeholders: `{deaths}` `{floor}` `{n}` `{party}`. A `look` names a backdrop in
 | `plaque.l0` | L0 Office Floor / Bulletin on the first-room wall; level title card follows | SURVEY BULLETIN<br>LEVEL 0: THE OFFICE FLOOR<br>What: a forgotten workplace, after hours.<br>Hazards: the Pacer. You will hear keys.<br>Survey: 40% mapped. Exit: not found. | Level zero. So there are more. | l0 |
 | `plaque.l1` | L1 Flooded Wing / Bulletin at the stair down; level title card follows | SURVEY BULLETIN<br>LEVEL 1: THE FLOODED WING<br>What: drowned utilities. The water is safe to wade.<br>Do not linger in it.<br>Hazards: the Hush. It hears everything.<br>Survey: 25% mapped. Exit: not found. | Wade, don't linger. Fine. I'll be quick. | l1 |
 | `plaque.falls` | The Falls / Painted board at the Falls entrance | REFUGE: THE FALLS<br>No hostiles. No fading.<br>Everyone rests here.<br>Survey camp: Lena Sorrel. |  | falls |
-| `plaque.l2` | L2 Wards / Bulletin at the ward doors; level title card follows | SURVEY BULLETIN<br>LEVEL 2: THE WARDS<br>What: an abandoned hospital.<br>Hazards: the Echo. It answers back.<br>Do not answer voices.<br>Survey: 15% mapped. Exit: not found. | A hospital. Great. Dark, empty, and it answers back. | l2 |
+| `plaque.l2` | L2 Wards / Bulletin at the ward doors; level title card follows | SURVEY BULLETIN<br>LEVEL 2: THE WARDS<br>What: an abandoned hospital.<br>Hazards: the Echo. It answers back.<br>Survey: 15% mapped. Exit: not found. | A hospital. Great. Dark, empty, and it answers back. | l2 |
 | `plaque.l3` | L3 Hollow / Bulletin at the cave mouth; level title card follows | SURVEY BULLETIN<br>LEVEL 3: THE HOLLOW<br>What: a cave that grows around what it holds.<br>Do not touch the glow.<br>Hazards: the Still. It moves when you look away.<br>Survey: 8% mapped. Exit: not found. | A cave inside a building inside whatever this is. | l3 |
 | `plaque.l4` | L4 Garage / Bulletin on a concrete pillar; level title card follows | SURVEY BULLETIN<br>LEVEL 4: THE GARAGE<br>What: a parking structure that only goes down.<br>The bottom is the Lamp.<br>Hazards: all of them.<br>Survey: 3% mapped. Exit: not found. | Down. Always down. And all of them, at once. | l4 |
 
@@ -53,20 +53,20 @@ Placeholders: `{deaths}` `{floor}` `{n}` `{party}`. A `look` names a backdrop in
 |---|---|---|---|---|
 | `poi.l0.vcr` | L0 Office Floor / CRT and VCR on a cart in the first room: orientation tape inserted | SURVEY ORIENTATION. TAPE 1 OF 9.<br>PRESS PLAY. *Plays tape.orientation on interact.* | A tape already loaded. Somebody left this for whoever came through. | l0 |
 | `poi.l0.desk` | L0 Office Floor / Desk with a Halden Building staff badge and a nameplate | HALDEN BUILDING. A. PIKE.<br>Corbel & Pike Surveying.<br>Valid: 1994. | Halden. Corbel and Pike. That is my company. This is a 1994 badge. | l0 |
-| `poi.l0.whiteboard` | L0 Office Floor / Whiteboard in a meeting room | DAY 3.<br>THE WALLS MOVE WHEN NOBODY WATCHES.<br>SCAN EVERYTHING. DOTS HOLD THE WALLS STILL.<br>FIND JOSS. SUPPLY CLOSET. HE HAS THE LAMPS. | Day three, and they still wrote a plan. Joss, supply closet: that's my first stop. | l0 |
-| `poi.l0.coat` | L0 Office Floor / Coat on a hook; security badge; clipboard | HOLLIS, J. NIGHT SECURITY.<br>ROUND LOG: 11,284.<br>LAST ENTRY: ALL QUIET. | Eleven thousand rounds. He never left. Those footsteps are Hollis, still on his route. | l0 |
+| `poi.l0.whiteboard` | L0 Office Floor / Whiteboard in a meeting room | DAY 3.<br>THE WALLS MOVED WHILE WE SLEPT.<br>NEVER SLEEP UNLIT. | Moving walls. Brilliant. Keep scanning. | l0 |
+| `poi.l0.coat` | L0 Office Floor / Coat on a hook; security badge; clipboard | HOLLIS, J. NIGHT SECURITY.<br>ROUND LOG: 11,284.<br>LAST ENTRY: ALL QUIET. | He never clocked out. | l0 |
 | `poi.l0.copier` | L0 Office Floor / Copier jammed on a page | EXIT GUESSES:<br>1. stairs - no  2. lift - no  3. roof - no ...<br>14. the door at the end of floor 3 - ??? *Replaces the old Copy Room. The copier now holds the Survey's list of failed exit guesses.* | Fourteen guesses. All crossed out. 'The door at the end of floor three.' That's mine. | l0 |
 | `poi.l0.vending` | L0 Office Floor / Vending machine, stocked with identical cans | TEA<br>TEA<br>TEA<br>TEA<br>(coins in the tray: one token, HALDEN STAFF) | Every slot is tea. Someone stocks this. The tray has a staff token. | l0 |
 | `poi.l0.sign` | L0 Office Floor / Arrow sign in a hallway pointing at a wall | EXIT -><br>(pencilled below) it does not go anywhere | The exit sign points at a wall. Of course it does. | l0 |
 | `poi.c0.bench` | Joss's Closet / Lamp-bag workbench | LAMP-BAGS. 41 TODAY.<br>J.B. | He makes them by hand. The cheerful kind of crazy. | c0 |
-| `poi.c0.map` | Joss's Closet / Pinned map of Level 0 | LEVEL 0. HOLLIS ROUTE IN RED.<br>STAIR DOWN: NEEDS A FUSE. | Pacer's route is on the map. And the way down. | c0 |
+| `poi.c0.map` | Joss's Closet / Pinned map of Level 0 | LEVEL 0. HOLLIS ROUTE IN RED. | He walks the red line. Stay off it. | c0 |
 | `poi.desk.radio` | Night Desk (Outpost Zero) / Radio on the desk | SURVEY HANDSET. CHANNEL 1.<br>Base answers if you speak. | A handset. If someone's out there, I can reach her. | desk |
 | `poi.desk.signin` | Night Desk (Outpost Zero) / Sign-in sheet clipped to the desk | SURVEY SIGN-IN<br>CREW 1  IN<br>CREW 2  IN<br>CREW 3  IN<br>CREW 4  IN<br>CREW 5  IN<br>CREW 6  IN<br>CREW 7  IN  (blank) | Seven crews. Mine is the seventh. The name line is blank. | desk |
-| `poi.desk.board` | Night Desk (Outpost Zero) / Corkboard of crew photographs | SIX CREWS.<br>Thirty-one names.<br>Some photos are turned face down. | Face down. That's how you hide the ones who faded. | desk |
+| `poi.desk.board` | Night Desk (Outpost Zero) / Corkboard of crew photographs | SIX CREWS.<br>Some photos are turned face down. | Face down. The ones who faded. | desk |
 | `poi.l1.lifering` | L1 Flooded Wing / Life ring painted HALDEN B3 | LIFE RING. HALDEN B3.<br>Hung 1996, after the flood. | The Halden's basement flooded in '96. This is that basement. Forgotten, then drowned. | l1 |
 | `poi.l1.pumplog` | L1 Flooded Wing / Pump house log taped to a pipe | WATER LEVEL: UP.<br>UP.<br>UP.<br>FOLLOW IT UPSTREAM. IT ENDS SOMEWHERE LIT. -H.O. | Follow the water upstream. Okay. That's a plan. | l1 |
-| `poi.l1.headphones` | L1 Flooded Wing / Headphones on a pipe with a sticky note | TOBI WREN. SOUND.<br>IT HEARS EVERY STEP. WALK, DO NOT RUN.<br>GAIN ALL THE WAY UP. I CANNOT HEAR IT COMING. | Tobi's. He went silent to hide, and then could not hear it coming. Walk, don't run. | l1 |
-| `poi.l1.dinghy` | L1 Flooded Wing / Half-sunk rubber dinghy | CREW 2. B1.<br>HANA WENT AHEAD ON FOOT.<br>FOLLOW THE WATER. THE FALLS ARE DOWNSTREAM. | Hana walked on. The water runs toward the Falls, so I follow the water. | l1 |
+| `poi.l1.headphones` | L1 Flooded Wing / Headphones on a pipe with a sticky note | TOBI WREN. SOUND.<br>GAIN ALL THE WAY UP.<br>I CANNOT HEAR IT COMING. | Quiet kept him safe. Then it did not. | l1 |
+| `poi.l1.dinghy` | L1 Flooded Wing / Half-sunk rubber dinghy | CREW 2. B1.<br>HANA WENT AHEAD ON FOOT.<br>OARS LOST. THIRD SEAT LOST. | A polite way to say it. | l1 |
 | `poi.l1.valve` | L1 Flooded Wing / Valve station with the wheel missing | MAIN VALVE B4.<br>WHEEL REMOVED FOR SAFETY.<br>(by whom?) | Wheel's gone. I need the wheel to drain the channel. | l1 |
 | `poi.l1.tally` | L1 Flooded Wing / Chalk tally on a wall | DAY 1 ||||<br>DAY 2 ||||<br>WATER STOPPED RISING AT 40.<br>THEN IT STARTED FALLING. | Hana counted the water. She's been here a long time. | l1 |
 | `poi.c1.chart` | Pump House / Hand-drawn chart of the water's route | WATER ROUTE<br>Wing -> Channel -> Shaft -> THE FALLS<br>Gate: valve wheel. Rope for the gap. | She mapped the whole route. All I have to do is not die on it. | c1 |
@@ -75,16 +75,16 @@ Placeholders: `{deaths}` `{floor}` `{n}` `{party}`. A `look` names a backdrop in
 | `poi.falls.guestbook` | The Falls / Guest Book on a stone | GUEST BOOK<br>{party}<br>Everyone signs. Nobody says what for. | Everyone signs. That's how you know you're still here. | falls |
 | `poi.l2.pa` | L2 Wards / PA speaker above a nurse station | (PA, crackling) Staff to Ward C.<br>Staff to Ward C.<br>(a pause) ...Staff to Ward C. | Someone is paging staff to a ward that doesn't exist. Or does. | l2 |
 | `poi.l2.chart` | L2 Wards / Patient chart on a bed | PATIENT: UNKNOWN.<br>ADMITTED: ____<br>CONDITION: FORGOTTEN. | Every chart says unknown. Nobody remembers who they were treating. | l2 |
-| `poi.l2.tapcode` | L2 Wards / Brass plate on a pillar | TWO TAPS. A BREATH. ONE.<br>THE CREW GREETING.<br>(scratched below) IF IT DOES NOT BREATHE, IT IS NOT US. | Something here copies the taps and forgets the breath. That is how I tell Ravi from the Echo. | l2 |
-| `poi.l2.gurney` | L2 Wards / Gurney with Survey straps | SURVEY STRETCHER 4.<br>ONCE TO CARRY SOMEONE OUT.<br>ONCE TO CARRY SOMEONE IN. THE NAME IS CROSSED OUT. | Someone was carried into a ward and never came out. The things in the dark were staff once. | l2 |
+| `poi.l2.tapcode` | L2 Wards / Brass plate on a pillar | TWO TAPS. A BREATH. ONE.<br>THE CREW GREETING.<br>(scratched below) IF IT DOES NOT BREATHE, IT IS NOT US. | Remember the breath. | l2 |
+| `poi.l2.gurney` | L2 Wards / Gurney with Survey straps | SURVEY STRETCHER 4.<br>ONCE TO CARRY SOMEONE OUT.<br>ONCE TO CARRY SOMEONE IN. THE NAME IS CROSSED OUT. | Carried in, never out. The dark things were staff once. | l2 |
 | `poi.l2.bell` | L2 Wards / Call bell on a wire | CALL BELL. RING FOR ASSISTANCE.<br>(someone has cut the wire) | Cut the wire. Nobody wants the thing to know where they are. | l2 |
 | `poi.c2.radio` | Ward Station / Unplugged radio on a stool | SURVEY HANDSET. UNPLUGGED.<br>It has my voice, so I keep it dead. -R.A. | He unplugged the radio because the Echo uses it. That's careful. | c2 |
 | `poi.l3.doorframe` | L3 Hollow / Halden door frame grown into cave rock | HALDEN BLDG. FLOOR 3.<br>The door is open. There is only rock on the other side. | A Halden door frame inside a cave. Pieces of the real building are everywhere down here. | l3 |
-| `poi.l3.crystal` | L3 Hollow / Glowing mineral vein | DO NOT TOUCH THE GLOW.<br>IT GIVES LIGHT. IT TAKES WARMTH.<br>IT FEEDS ON LAMPS. KEEP THE SCANNER LOW. | The glow feeds on light, so a lamp-bag is bait here. Keep low, find Pim. | l3 |
+| `poi.l3.crystal` | L3 Hollow / Glowing mineral vein | THE GLOW GIVES LIGHT.<br>IT TAKES WARMTH.<br>IT FEEDS ON LAMPS. | So a lamp-bag is bait here. | l3 |
 | `poi.l3.camera` | L3 Hollow / Camera on a tripod facing the passage | Q. QUILL. PHOTOGRAPHY.<br>Shutter half pressed. Never finished. | He was in the middle of a shot. He never took it. | l3 |
 | `poi.l3.bridge` | L3 Hollow / Rope bridge over a drop | ROPE BRIDGE. ONE AT A TIME.<br>DO NOT LOOK BACK. | One at a time. Don't look back. I'm already regretting this. | l3 |
 | `poi.c3.mugs` | Hollow Camp / Row of mugs on a ledge | FOUR MUGS.<br>P.A.  L.S.  R.A.  H.O.<br>A fifth hook, empty. | Four mugs and a fifth hook. They're waiting for someone to fill it. | c3 |
-| `poi.l4.stone` | L4 Garage / Cornerstone | HALDEN BUILDING. 1994.<br>NOTHING HERE IS OLDER THAN THIS STONE.<br>EVERY LEVEL HANGS FROM IT. THE LAMP IS BELOW. | Everything hangs from the Halden. The Lamp is below this stone. That is the way out. | l4 |
+| `poi.l4.stone` | L4 Garage / Cornerstone | HALDEN BUILDING. 1994.<br>NOTHING HERE IS OLDER THAN THIS STONE.<br>EVERY LEVEL HANGS FROM IT. THE LAMP IS BELOW. | So the way out is down. | l4 |
 | `poi.l4.ticket` | L4 Garage / Ticket machine at a boom gate | ENTERED: TUE 11:42 PM<br>EXIT: _____<br>(machine will not print an exit time) | Eleven forty-two. That's when I walked in. It's been tracking me. | l4 |
 | `poi.l4.chalk` | L4 Garage / Chalk arrows leading downward | Fresh chalk arrows.<br>I.C. | Fresh chalk. She walked this recently. She's close. | l4 |
 | `poi.l4.pike` | L4 Garage / Folding table with a camcorder, unit 0007, and a tape | UNIT 0007. CORBEL & PIKE.<br>TAPE 9 OF 9. FOR WHOEVER BRINGS THE REAL FLOOR. *Plays tape.pike on interact.* | Unit zero zero zero seven. Mine is zero zero four one. He's the first. The last tape is for me. | l4 |
@@ -97,40 +97,40 @@ Placeholders: `{deaths}` `{floor}` `{n}` `{party}`. A `look` names a backdrop in
 
 | id | where | text | Theo thought | look |
 |---|---|---|---|---|
-| `rec.l0.1` | L0 Office Floor / Hidden in a desk drawer, Level 0 | Ines Calder: Ines Calder. Day one of the Survey.<br>The floor above is condemned. We walked into the wall and we are not coming out.<br>We call this the Backrooms. Every place somebody forgot ends up here. |  |  |
-| `rec.l0.2` | L0 Office Floor / Taped under a break-room table, Level 0 | Joss Berrow: Joss. Lamp-bags work. A bulb, a cell, a canvas sack.<br>Hang one at every turn and scan it and it wakes up.<br>Mapped space holds still. That's the trick. The rest drifts. |  |  |
-| `rec.l0.3` | L0 Office Floor / Answering machine on the front desk, Level 0 | Mr. Hollis: Hollis, nights. Round eleven thousand. All quiet.<br>Funny. I do not see the other guards any more.<br>Hello? Does anyone see me? Hello? |  |  |
-| `rec.l1.1` | L1 Flooded Wing / Wedged in a pipe bracket, Level 1 | Tobi Wren: Tobi Wren, sound. I can hear the building thinking.<br>If I stay quiet, nothing hears me.<br>I am going to try that for a while. |  |  |
-| `rec.l1.2` | L1 Flooded Wing / On a catwalk rail, Level 1 | Tobi Wren: I stopped talking. It is better.<br>I can hear everyone breathing, very far off.<br>I cannot tell if anyone can hear me. I do not mind. *Plays near a Hush lair.* |  |  |
-| `rec.l1.3` | L1 Flooded Wing / In the boiler room, Level 1 | Hana Osei: Hana. The water was not here yesterday.<br>It was here. We just were not looking.<br>That is the Backrooms for you. What nobody looks at, changes. |  |  |
-| `rec.falls.1` | The Falls / On a ledge by the hammocks, Falls | Ines Calder: Ines. Day forty. I stopped counting.<br>We found a place the dark cannot rewrite.<br>Everyone remembers a waterfall. That is why it holds. |  |  |
+| `rec.l0.1` | L0 Office Floor / Hidden in a desk drawer, Level 0 | Ines Calder: Ines Calder. Day one of the Survey.<br>We walked into a wall. We are not coming out. |  |  |
+| `rec.l0.2` | L0 Office Floor / Taped under a break-room table, Level 0 | Joss Berrow: Joss. Whoever keeps taking the last tea:<br>we can hear you. Cheers. |  |  |
+| `rec.l0.3` | L0 Office Floor / Answering machine on the front desk, Level 0 | Mr. Hollis: Hollis, nights. Lost my keys. Found them. Lost them again.<br>All quiet. |  |  |
+| `rec.l1.1` | L1 Flooded Wing / Wedged in a pipe bracket, Level 1 | Tobi Wren: Tobi Wren, sound. The pipes sing in B flat.<br>I think they are trying to tell me something. |  |  |
+| `rec.l1.2` | L1 Flooded Wing / On a catwalk rail, Level 1 | Tobi Wren: I can hear everyone breathing, very far off.<br>I cannot tell if anyone can hear me. I do not mind. *Plays near a Hush lair.* |  |  |
+| `rec.l1.3` | L1 Flooded Wing / In the boiler room, Level 1 | Hana Osei: Hana. The water was not here yesterday.<br>It was here. We just were not looking. |  |  |
+| `rec.falls.1` | The Falls / On a ledge by the hammocks, Falls | Ines Calder: Ines. Day forty. I stopped counting.<br>Somebody hung these hammocks. I never found out who. |  |  |
 | `rec.falls.2` | The Falls / Under the camp stove, Falls | Lena Sorrel: Lena. Hammocks up. Soup on.<br>First hot meal in a month.<br>Ravi plays the one song he knows. Badly. I love it. |  |  |
-| `rec.l2.1` | L2 Wards / Under a bench, Level 2 | Ravi Anand: Ravi. Two taps, a breath, one tap.<br>It was just a greeting. Now something taps back.<br>It does the two. It does not do the breath. |  |  |
-| `rec.l2.2` | L2 Wards / In a linen trolley, Level 2 | Ravi Anand: It sounds like me. It learned me in an afternoon.<br>I said 'hello?' to see. It said 'hello?' first.<br>I keep the radio off now. |  |  |
-| `rec.l2.3` | L2 Wards / Nurse station drawer, Level 2 | Ines Calder: Ines. Theory.<br>The Backrooms are what a world forgets.<br>We are not hunted. We are forgotten. There is a difference, and it matters. |  |  |
+| `rec.l2.1` | L2 Wards / Under a bench, Level 2 | Ravi Anand: Ravi. Something taps back at me now.<br>We have a rhythm. I do not like that we have a rhythm. |  |  |
+| `rec.l2.2` | L2 Wards / In a linen trolley, Level 2 | Ravi Anand: I said 'hello?' to see. It said 'hello?' first.<br>Now I wait before I answer anyone. |  |  |
+| `rec.l2.3` | L2 Wards / Nurse station drawer, Level 2 | Ines Calder: Ines. Theory.<br>We are not hunted. We are forgotten. There is a difference. |  |  |
 | `rec.l3.1` | L3 Hollow / In a root hollow, Level 3 | Pim Ashworth: Pim. I found a draft.<br>A draft means a door. Everyone laughed.<br>I will keep the lantern lit anyway. |  |  |
-| `rec.l3.2` | L3 Hollow / Camera case, Level 3 | Marlow Quill: Quill. The thing only moves when I am not looking.<br>So I look. Forty frames.<br>In frame thirty it is closer. Do not stare. It learns the stare. |  |  |
-| `rec.l3.3` | L3 Hollow / Chalk-marked shelf, Level 3 | Marlow Quill: Watch it. Then step. Never stare.<br>If you hear a shutter, do not turn.<br>Wait for the second click. |  |  |
-| `rec.l4.1` | L4 Garage / On a pillar, Level 4 | Ines Calder: Ines. Last descent. I know where the Lamp must go.<br>The Garage is the first Level that ever formed.<br>It is not cruel. It is empty. Empty gets hungry for company. |  |  |
+| `rec.l3.2` | L3 Hollow / Camera case, Level 3 | Marlow Quill: Quill. Forty frames.<br>In frame thirty it is closer. In frame forty it is in the shot. |  |  |
+| `rec.l3.3` | L3 Hollow / Chalk-marked shelf, Level 3 | Marlow Quill: If you hear a shutter, do not turn.<br>Wait for the second click. |  |  |
+| `rec.l4.1` | L4 Garage / On a pillar, Level 4 | Ines Calder: Ines. Last descent. The Garage formed first.<br>It is not cruel. It is empty. Empty gets hungry for company. |  |  |
 
 ## radio
 
 | id | where | text | Theo thought | look |
 |---|---|---|---|---|
 | `radio.first` | Night Desk (Outpost Zero) / First call after picking up the handset | Base: Base to Theo. Can you hear me?<br>I heard your scanner come online. I am Ines. Tell me what you see. *Her first words. She uses Theo's name because she saw it on the scanner's status screen.* |  |  |
-| `radio.l0` | L0 Office Floor / Level 0 start (after Outpost Zero) | Base: Base to Theo. Level 0. Keys are the Pacer. Wait for them to pass.<br>Find Joss at the supply closet. He has what you need. |  |  |
-| `radio.l1` | L1 Flooded Wing / Level 1 start | Base: Base to Theo. Level 1. The water is safe to wade. Do not stay in it.<br>Find Hana at the pump house. Follow the water upstream. |  |  |
-| `radio.l2` | L2 Wards / Level 2 start | Base: Base to Theo. Level 2. Something here wears our voices.<br>If I say come to me, do not come. Find Ravi. |  |  |
-| `radio.l3` | L3 Hollow / Level 3 start | Base: Base to Theo. Level 3. Do not touch the glow.<br>Find Pim. Watch for the Still. Watch, then step. |  |  |
-| `radio.l4` | L4 Garage / Level 4 start | Base: Base to Theo. Level 4. Follow the chalk. I will be at the bottom.<br>I have been waiting a very long time to say that. |  |  |
-| `radio.idle.1` | Any / Random, dark, calm | Base: Base to Theo. Tell me what you see. |  |  |
-| `radio.idle.2` | Any / Random, dark, calm | Base: Base to Theo. I can see your dots from here. You are doing well. |  |  |
+| `radio.l0` | L0 Office Floor / Level 0 start (after Outpost Zero) | Base: Base to Theo. Level 0. I can see your dots from here. |  |  |
+| `radio.l1` | L1 Flooded Wing / Level 1 start | Base: Base to Theo. Level 1. Wetter, smaller, louder. Stay close. |  |  |
+| `radio.l2` | L2 Wards / Level 2 start | Base: Base to Theo. Level 2. Lots of voices here. Not all of them ours. |  |  |
+| `radio.l3` | L3 Hollow / Level 3 start | Base: Base to Theo. Level 3. It is quiet. Too quiet. Go slow. |  |  |
+| `radio.l4` | L4 Garage / Level 4 start | Base: Base to Theo. Level 4. I will be at the bottom. I have waited a long time to say that. |  |  |
+| `radio.idle.1` | Any / Random, dark, calm | Base: Base to Theo. Still with me? |  |  |
+| `radio.idle.2` | Any / Random, dark, calm | Base: Base to Theo. You are doing well. Keep going. |  |  |
 | `radio.idle.3` | Any / Random, dark, calm | Base: Base to Theo. Count with me. One. Two. Three. Still here. |  |  |
 | `radio.clear` | Any / After a level clear | Base: Base to Theo. Logged. Rest if you find a lamp. |  |  |
 | `radio.back.1` | Any / Respawn at a lamp | Base: Welcome back, Theo. Breathe. You are lit. |  |  |
 | `radio.back.2` | Any / Respawn at a lamp | Base: I have you. I always do. Rest a moment. |  |  |
-| `radio.back.3` | Any / Respawn at a lamp | Base: Easy. Count with me. One. Two. Three. |  |  |
-| `radio.surveyor.near` | Any / A surveyor is within ~30 studs, unseen | Base: Base to Theo. Green dots ahead. Say hello. Two taps, a breath, one. |  |  |
+| `radio.back.3` | Any / Respawn at a lamp | Base: Up you get. The lamp is warm. |  |  |
+| `radio.surveyor.near` | Any / A surveyor is within ~30 studs, unseen | Base: Base to Theo. Green dots ahead. Say hello. |  |  |
 | `radio.fake.1` | L2 Wards / Near the Echo ONLY | Base?: Theo. This way. Come to me. *Real Base never says 'come to me'. Plays slightly before the real radio click.* |  |  |
 | `radio.fake.2` | L2 Wards / Near the Echo ONLY | Base?: Put the scanner down. It is safe. Come to me. |  |  |
 | `radio.fake.3` | L2 Wards / Near the Echo ONLY | Base?: Turn left. Left. Now. Come to me. |  |  |
@@ -140,39 +140,39 @@ Placeholders: `{deaths}` `{floor}` `{n}` `{party}`. A `look` names a backdrop in
 
 | id | where | text | Theo thought | look |
 |---|---|---|---|---|
-| `thought.wake` | Any / Right after the opening cutscene | Theo: Okay. Okay. Scanner still works. Hands still work.<br>This is not floor three. |  |  |
-| `thought.firstdot` | Any / First time a dot lands | Theo: Dots. They stay where I look. So I can see by remembering. |  |  |
-| `thought.firstwall` | Any / First time a wall fills in | Theo: That is a wall. A real one. I can build a map out of this. |  |  |
-| `thought.lampwake` | Any / First lamp-bag wakes | Theo: Lamp-bag. It lit the second I scanned it. Somebody wanted me to find this. |  |  |
-| `thought.lamplight` | Any / Any lamp wakes (rotate) | Theo: The wall's yellow. The floor's carpet. This place is a real place. |  |  |
-| `thought.keys` | Any / Pacer first heard | Theo: Keys. Someone is walking a round. I should not be where they are walking. |  |  |
-| `thought.hush` | Any / Hush first heard | Theo: It's listening. I can hear it listening. Don't scan. Don't breathe. |  |  |
-| `thought.echo` | Any / Echo first heard | Theo: That voice is wrong. Too early, no pauses. Do not answer. |  |  |
-| `thought.still` | Any / Still first noticed closer | Theo: It was over there. Now it's over here. Do not look away. Do not stare. |  |  |
-| `thought.respawn.first` | Any / First time Theo wakes at a lamp after being caught | Theo: I woke up at the lamp. Something pulled me back. I'm not testing that twice. |  |  |
-| `thought.respawn.ines` | Any / Respawn after Lena has explained | Theo: Ines, again. Thank you. I'll try to fall less. |  |  |
-| `thought.pit` | Any / Near a pit for the first time | Theo: Painted edge. Somebody didn't want the next person to fall. |  |  |
-| `thought.plate` | Any / Near an alarm plate for the first time | Theo: A plate and a bell. Something listens to the floor. Step around. |  |  |
-| `thought.water` | Any / First time in the water | Theo: Ankle deep. Cold. It's blue. It has to come from somewhere. |  |  |
-| `thought.falls` | Any / First step into the Falls | Theo: Colour. Real colour. I forgot what it looked like. |  |  |
-| `thought.tapes` | Any / First tape picked up | Theo: A tape. Somebody wanted to be found. I should watch it. |  |  |
-| `thought.surveyor` | Any / First time a green dot is a surveyor | Theo: Green. A person. A real one. Don't scare them. Don't be scared. |  |  |
-| `thought.heat` | Any / Scanner overheating | Theo: Scanner's getting hot. Ease off. Stay quiet. |  |  |
-| `thought.fading` | Any / First time he sees a red dot he recognises as a former surveyor | Theo: That red used to be a person. Ines said so. I didn't believe it until now. |  |  |
-| `thought.lamp.near` | Any / Hearing the Lamp hum far below | Theo: There's a hum. Steady. That's not a monster. That's a light. |  |  |
+| `thought.wake` | Any / Right after the opening cutscene | Theo: Okay. Scanner works. Hands work. |  |  |
+| `thought.firstdot` | Any / First time a dot lands | Theo: The dots stay. I see by remembering. |  |  |
+| `thought.firstwall` | Any / First time a wall fills in | Theo: A wall. A real one. |  |  |
+| `thought.lampwake` | Any / First lamp-bag wakes | Theo: It lit the second I looked. Somebody wanted me to find this. |  |  |
+| `thought.lamplight` | Any / Any lamp wakes (rotate) | Theo: Yellow wall. Carpet. A real place, once. |  |  |
+| `thought.keys` | Any / Pacer first heard | Theo: Keys. Hollis, still on his round. Wait for him to pass. |  |  |
+| `thought.hush` | Any / Hush first heard | Theo: It's listening. Don't scan. Don't breathe. |  |  |
+| `thought.echo` | Any / Echo first heard | Theo: That voice is wrong. No pauses. Do not answer. |  |  |
+| `thought.still` | Any / Still first noticed closer | Theo: It was over there. Now it's here. Watch it. |  |  |
+| `thought.respawn.first` | Any / First time Theo wakes at a lamp after being caught | Theo: Back at the lamp. Something pulled me. Not testing that twice. |  |  |
+| `thought.respawn.ines` | Any / Respawn after Lena has explained | Theo: Thanks, Ines. I'll try to fall less. |  |  |
+| `thought.pit` | Any / Near a pit for the first time | Theo: A painted edge. Somebody cared. |  |  |
+| `thought.plate` | Any / Near an alarm plate for the first time | Theo: A plate and a bell. Step around. |  |  |
+| `thought.water` | Any / First time in the water | Theo: Cold. Blue. It has to come from somewhere. |  |  |
+| `thought.falls` | Any / First step into the Falls | Theo: Colour. I forgot what it looked like. |  |  |
+| `thought.tapes` | Any / First tape picked up | Theo: A tape. Somebody wanted to be found. |  |  |
+| `thought.surveyor` | Any / First time a green dot is a surveyor | Theo: Green. A real person. Don't scare them. |  |  |
+| `thought.heat` | Any / Scanner overheating | Theo: Scanner's hot. Ease off. |  |  |
+| `thought.fading` | Any / First time he sees a red dot he recognises as a former surveyor | Theo: That red was a person. I believe it now. |  |  |
+| `thought.lamp.near` | Any / Hearing the Lamp hum far below | Theo: A steady hum. Not a monster. A light. |  |  |
 
 ## journal
 
 | id | where | text | Theo thought | look |
 |---|---|---|---|---|
 | `journal.01` | Any / Theo's journal (unlocks as learned): on waking | Halden Building, floor 3. I put my hand on the wall and there was no wall.<br>Now I am somewhere yellow and wet. Scanner still works. Start there. |  |  |
-| `journal.02` | L0 Office Floor / Theo's journal (unlocks as learned): after the orientation tape | The Backrooms. A place made of forgotten places.<br>Offices, pools, wards, caves. Each one a Level. You walk out of one and into the next. |  |  |
-| `journal.03` | L0 Office Floor / Theo's journal (unlocks as learned): after the orientation tape | The scanner makes a record, not light.<br>Dots stay. Mapped space holds still. The rest moves. |  |  |
-| `journal.04` | L0 Office Floor / Theo's journal (unlocks as learned): after Joss | Joss Berrow. Rigger. Thirty years in the Survey, if time even counts here.<br>Gave me lamp-bags. Scan a bag and it wakes up. |  |  |
+| `journal.02` | L0 Office Floor / Theo's journal (unlocks as learned): after the orientation tape | Ines runs the Survey. She wants a true scan of a real place.<br>I have forty-one of floor three. |  |  |
+| `journal.03` | L0 Office Floor / Theo's journal (unlocks as learned): after the orientation tape | Red dots were people. Green dots are people still.<br>I keep that straight. |  |  |
+| `journal.04` | L0 Office Floor / Theo's journal (unlocks as learned): after Joss | Joss Berrow. Rigger. Cheerful in a way that worries me.<br>Gave me lamp-bags. |  |  |
 | `journal.05` | L0 Office Floor / Theo's journal (unlocks as learned): after the Halden tape | The Halden Building had a door on floor 3 that was not on the plan.<br>A man in a Corbel and Pike jacket stood next to it in 1994. That is my company. |  |  |
 | `journal.06` | L0 Office Floor / Theo's journal (unlocks as learned): after the Hollis tape | Hollis, night security. Still doing his rounds. Nobody can see him, so he fades.<br>That is what fading is. Nobody sees you, so you stop being you. |  |  |
 | `journal.07` | L1 Flooded Wing / Theo's journal (unlocks as learned): after Hana | Hana Osei, hydrologist. The water leads to the Falls.<br>Tobi Wren went quiet so nothing would hear him. Now nothing can. He is the Hush. |  |  |
-| `journal.08` | The Falls / Theo's journal (unlocks as learned): after Lena | The Falls is a Refuge. Everyone remembers a place like it, so the dark cannot rewrite it.<br>Five Crews went down. The wall of names has thirty-one on it. I am not on it yet. |  |  |
+| `journal.08` | The Falls / Theo's journal (unlocks as learned): after Lena | The Falls holds because everyone remembers a place like it.<br>There is a space on the roster for me. |  |  |
 | `journal.09` | L2 Wards / Theo's journal (unlocks as learned): after Ravi | Ravi Anand. The Echo copies his voice. It cannot copy the pause.<br>The scanner head in the Survey's rig is from Corbel and Pike. Serial 0007. Mine is 0041. |  |  |
 | `journal.10` | L3 Hollow / Theo's journal (unlocks as learned): after Pim | Pim Ashworth, youngest in the Survey. Keeps the Hollow lit for whoever comes next.<br>Quill is the Still. He took forty photographs of it. In the thirtieth it was closer. |  |  |
 | `journal.11` | L4 Garage / Theo's journal (unlocks as learned): after the Pike tape | Anselm Pike, Corbel and Pike, 1994. First one through. Unit 0007.<br>He says a true scan of the real floor will match the cloud. I have forty-one. |  |  |

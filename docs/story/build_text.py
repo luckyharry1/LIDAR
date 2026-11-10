@@ -21,6 +21,8 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 MAX_LINE = 100
+SPOKEN_MAX = 90  # characters in one spoken or thought line
+SPOKEN_BUDGET = {"cs.open": 3, "tape.orientation": 5, "npc.ines": 7}  # spoken lines per scene; others: tape 4, camp 5
 
 E = []
 SCENES = []
@@ -209,38 +211,37 @@ def warm(r, look=None):
 
 # ===================================================================== THE GOAL
 # HUD objective text. Plain, direct: the player always knows what to do next.
-add("goal.l0", "goal", "l0", "HUD objective, Level 0", ["You are not alone here. Find the Survey. Start with Joss."])
+add("goal.l0", "goal", "l0", "HUD objective, Level 0", ["Find Joss."])
 add("goal.l0b", "goal", "l0", "HUD objective, after Joss", ["Find the fuse. Go down."])
-add("goal.l1", "goal", "l1", "HUD objective, Level 1", ["Find Hana at the pump house."])
+add("goal.l1", "goal", "l1", "HUD objective, Level 1", ["Find Hana."])
 add("goal.l1b", "goal", "l1", "HUD objective, after Hana", ["Follow the water to the Falls."])
-add("goal.falls", "goal", "falls", "HUD objective, Falls", ["Talk to Lena. Rest."])
-add("goal.l2", "goal", "l2", "HUD objective, Level 2", ["Find Ravi. Do not answer the voices."])
-add("goal.l3", "goal", "l3", "HUD objective, Level 3", ["Find Pim in the Hollow."])
-add("goal.l4", "goal", "l4", "HUD objective, Level 4", ["Follow the chalk arrows down to the Lamp."])
+add("goal.falls", "goal", "falls", "HUD objective, Falls", ["Talk to Lena."])
+add("goal.l2", "goal", "l2", "HUD objective, Level 2", ["Find Ravi."])
+add("goal.l3", "goal", "l3", "HUD objective, Level 3", ["Find Pim."])
+add("goal.l4", "goal", "l4", "HUD objective, Level 4", ["Follow the chalk down to the Lamp."])
 add("goal.lamp", "goal", "lamp", "HUD objective, Lamp Room", ["Speak to Ines."])
 
 # ===================================================================== SURVEY RULES (posters, plain)
 add("rule.01", "rule", "any", "Survey Handbook p1; poster in the first room",
     ["1. You have entered the Backrooms.", "Do not panic. Everyone does it once."])
 add("rule.02", "rule", "any", "Handbook p2",
-    ["2. The Backrooms are made of forgotten places.", "Offices, pools, wards, caves. Each one is a Level."])
+    ["2. Levels do not connect like rooms.", "Walk out of one and you are in the next."])
 add("rule.03", "rule", "any", "Handbook p3",
-    ["3. Your scanner does not make light. It makes a record.", "A dot stays where you looked. Mapped space holds still."])
+    ["3. Scan the same place twice and it lies less.", "margin: Walls drift when nobody looks. -T.W."])
 add("rule.04", "rule", "any", "Handbook p4; colour key poster",
-    ["4. White dots: structure. Green dots: people.", "Red dots: something that was a person and is not now."])
+    ["4. Red dots were people once.", "They do not know it. Do not stand near them."])
 add("rule.05", "rule", "any", "Handbook p5",
-    ["5. Every scan is a noise. Some things listen for it.", "margin: Walk. Do not run. -T.W."])
+    ["5. Every scan is a noise. Some things listen for it.", "margin: Run and you are shouting. -T.W."])
 add("rule.06", "rule", "any", "Handbook p6",
     ["6. Never run toward a sound you cannot place."])
 add("rule.07", "rule", "any", "Handbook p7",
-    ["7. Radio: Base will ask what you see.", "Base will never tell you to come to her.",
-     "margin: If it says come to me, it is not Base. -R.A."])
+    ["7. Base will ask what you see.", "Base will never tell you to come to her."])
 add("rule.08", "rule", "any", "Handbook p8",
-    ["8. Crew greet with two taps, a breath, then one.", "margin: It can copy the taps. It cannot copy the breath. -R.A."])
+    ["8. Crew greet with two taps, a breath, then one."])
 add("rule.09", "rule", "any", "Handbook p9",
-    ["9. Lamps wake when scanned. Scan every lamp you find.", "margin: A bag that glows was hung by a friend. -J.B."])
+    ["9. Lamps wake when scanned. Scan every one you find.", "margin: A bag that glows was hung by a friend. -J.B."])
 add("rule.10", "rule", "any", "Handbook p10",
-    ["10. Stay where someone can see you.", "A person nobody sees starts to fade.", "margin: Green is someone looking back. -I.C."])
+    ["10. Stay where someone can see you.", "A person nobody sees starts to fade."])
 add("rule.11", "rule", "any", "Handbook p11; Falls wall",
     ["11. Exits exist. We have not found one.", "Keep mapping."])
 add("rule.12", "rule", "lamp", "Handbook p12, handwritten, Lamp Room",
@@ -259,7 +260,7 @@ add("plaque.falls", "plaque", "falls", "Painted board at the Falls entrance",
     ["REFUGE: THE FALLS", "No hostiles. No fading.", "Everyone rests here.", "Survey camp: Lena Sorrel."], look="falls")
 add("plaque.l2", "plaque", "l2", "Bulletin at the ward doors; level title card follows",
     ["SURVEY BULLETIN", "LEVEL 2: THE WARDS", "What: an abandoned hospital.", "Hazards: the Echo. It answers back.",
-     "Do not answer voices.", "Survey: 15% mapped. Exit: not found."],
+     "Survey: 15% mapped. Exit: not found."],
     thought="A hospital. Great. Dark, empty, and it answers back.", look="l2")
 add("plaque.l3", "plaque", "l3", "Bulletin at the cave mouth; level title card follows",
     ["SURVEY BULLETIN", "LEVEL 3: THE HOLLOW", "What: a cave that grows around what it holds.",
@@ -274,20 +275,20 @@ add("plaque.l4", "plaque", "l4", "Bulletin on a concrete pillar; level title car
 J = "Theo's journal (unlocks as learned)"
 add("journal.01", "journal", "any", J + ": on waking", ["Halden Building, floor 3. I put my hand on the wall and there was no wall.",
     "Now I am somewhere yellow and wet. Scanner still works. Start there."])
-add("journal.02", "journal", "l0", J + ": after the orientation tape", ["The Backrooms. A place made of forgotten places.",
-    "Offices, pools, wards, caves. Each one a Level. You walk out of one and into the next."])
-add("journal.03", "journal", "l0", J + ": after the orientation tape", ["The scanner makes a record, not light.",
-    "Dots stay. Mapped space holds still. The rest moves."])
-add("journal.04", "journal", "l0", J + ": after Joss", ["Joss Berrow. Rigger. Thirty years in the Survey, if time even counts here.",
-    "Gave me lamp-bags. Scan a bag and it wakes up."])
+add("journal.02", "journal", "l0", J + ": after the orientation tape", ["Ines runs the Survey. She wants a true scan of a real place.",
+    "I have forty-one of floor three."])
+add("journal.03", "journal", "l0", J + ": after the orientation tape", ["Red dots were people. Green dots are people still.",
+    "I keep that straight."])
+add("journal.04", "journal", "l0", J + ": after Joss", ["Joss Berrow. Rigger. Cheerful in a way that worries me.",
+    "Gave me lamp-bags."])
 add("journal.05", "journal", "l0", J + ": after the Halden tape", ["The Halden Building had a door on floor 3 that was not on the plan.",
     "A man in a Corbel and Pike jacket stood next to it in 1994. That is my company."])
 add("journal.06", "journal", "l0", J + ": after the Hollis tape", ["Hollis, night security. Still doing his rounds. Nobody can see him, so he fades.",
     "That is what fading is. Nobody sees you, so you stop being you."])
 add("journal.07", "journal", "l1", J + ": after Hana", ["Hana Osei, hydrologist. The water leads to the Falls.",
     "Tobi Wren went quiet so nothing would hear him. Now nothing can. He is the Hush."])
-add("journal.08", "journal", "falls", J + ": after Lena", ["The Falls is a Refuge. Everyone remembers a place like it, so the dark cannot rewrite it.",
-    "Five Crews went down. The wall of names has thirty-one on it. I am not on it yet."])
+add("journal.08", "journal", "falls", J + ": after Lena", ["The Falls holds because everyone remembers a place like it.",
+    "There is a space on the roster for me."])
 add("journal.09", "journal", "l2", J + ": after Ravi", ["Ravi Anand. The Echo copies his voice. It cannot copy the pause.",
     "The scanner head in the Survey's rig is from Corbel and Pike. Serial 0007. Mine is 0041."])
 add("journal.10", "journal", "l3", J + ": after Pim", ["Pim Ashworth, youngest in the Survey. Keeps the Hollow lit for whoever comes next.",
@@ -300,26 +301,26 @@ add("journal.12", "journal", "lamp", J + ": after Ines", ["A forgotten place sto
 # ===================================================================== THOUGHTS (Theo, direct)
 T = "Theo thought (subtitle + voice)"
 for tid, where, line, vo in [
-    ("wake", "Right after the opening cutscene", ["Okay. Okay. Scanner still works. Hands still work.", "This is not floor three."], "shaky, whispered"),
-    ("firstdot", "First time a dot lands", ["Dots. They stay where I look. So I can see by remembering."], "surprised, quiet"),
-    ("firstwall", "First time a wall fills in", ["That is a wall. A real one. I can build a map out of this."], "relieved, whispered"),
-    ("lampwake", "First lamp-bag wakes", ["Lamp-bag. It lit the second I scanned it. Somebody wanted me to find this."], "grateful"),
-    ("lamplight", "Any lamp wakes (rotate)", ["The wall's yellow. The floor's carpet. This place is a real place."], "calm"),
-    ("keys", "Pacer first heard", ["Keys. Someone is walking a round. I should not be where they are walking."], "tense, whisper"),
-    ("hush", "Hush first heard", ["It's listening. I can hear it listening. Don't scan. Don't breathe."], "very quiet"),
-    ("echo", "Echo first heard", ["That voice is wrong. Too early, no pauses. Do not answer."], "whisper"),
-    ("still", "Still first noticed closer", ["It was over there. Now it's over here. Do not look away. Do not stare."], "controlled"),
-    ("respawn.first", "First time Theo wakes at a lamp after being caught", ["I woke up at the lamp. Something pulled me back. I'm not testing that twice."], "shaky"),
-    ("respawn.ines", "Respawn after Lena has explained", ["Ines, again. Thank you. I'll try to fall less."], "rueful"),
-    ("pit", "Near a pit for the first time", ["Painted edge. Somebody didn't want the next person to fall."], "careful"),
-    ("plate", "Near an alarm plate for the first time", ["A plate and a bell. Something listens to the floor. Step around."], "careful"),
-    ("water", "First time in the water", ["Ankle deep. Cold. It's blue. It has to come from somewhere."], "curious"),
-    ("falls", "First step into the Falls", ["Colour. Real colour. I forgot what it looked like."], "awed"),
-    ("tapes", "First tape picked up", ["A tape. Somebody wanted to be found. I should watch it."], "thoughtful"),
-    ("surveyor", "First time a green dot is a surveyor", ["Green. A person. A real one. Don't scare them. Don't be scared."], "hopeful"),
-    ("heat", "Scanner overheating", ["Scanner's getting hot. Ease off. Stay quiet."], "quiet"),
-    ("fading", "First time he sees a red dot he recognises as a former surveyor", ["That red used to be a person. Ines said so. I didn't believe it until now."], "grim"),
-    ("lamp.near", "Hearing the Lamp hum far below", ["There's a hum. Steady. That's not a monster. That's a light."], "drawn"),
+    ("wake", "Right after the opening cutscene", ["Okay. Scanner works. Hands work."], "shaky, whispered"),
+    ("firstdot", "First time a dot lands", ["The dots stay. I see by remembering."], "surprised, quiet"),
+    ("firstwall", "First time a wall fills in", ["A wall. A real one."], "relieved, whispered"),
+    ("lampwake", "First lamp-bag wakes", ["It lit the second I looked. Somebody wanted me to find this."], "grateful"),
+    ("lamplight", "Any lamp wakes (rotate)", ["Yellow wall. Carpet. A real place, once."], "calm"),
+    ("keys", "Pacer first heard", ["Keys. Hollis, still on his round. Wait for him to pass."], "tense, whisper"),
+    ("hush", "Hush first heard", ["It's listening. Don't scan. Don't breathe."], "very quiet"),
+    ("echo", "Echo first heard", ["That voice is wrong. No pauses. Do not answer."], "whisper"),
+    ("still", "Still first noticed closer", ["It was over there. Now it's here. Watch it."], "controlled"),
+    ("respawn.first", "First time Theo wakes at a lamp after being caught", ["Back at the lamp. Something pulled me. Not testing that twice."], "shaky"),
+    ("respawn.ines", "Respawn after Lena has explained", ["Thanks, Ines. I'll try to fall less."], "rueful"),
+    ("pit", "Near a pit for the first time", ["A painted edge. Somebody cared."], "careful"),
+    ("plate", "Near an alarm plate for the first time", ["A plate and a bell. Step around."], "careful"),
+    ("water", "First time in the water", ["Cold. Blue. It has to come from somewhere."], "curious"),
+    ("falls", "First step into the Falls", ["Colour. I forgot what it looked like."], "awed"),
+    ("tapes", "First tape picked up", ["A tape. Somebody wanted to be found."], "thoughtful"),
+    ("surveyor", "First time a green dot is a surveyor", ["Green. A real person. Don't scare them."], "hopeful"),
+    ("heat", "Scanner overheating", ["Scanner's hot. Ease off."], "quiet"),
+    ("fading", "First time he sees a red dot he recognises as a former surveyor", ["That red was a person. I believe it now."], "grim"),
+    ("lamp.near", "Hearing the Lamp hum far below", ["A steady hum. Not a monster. A light."], "drawn"),
 ]:
     add("thought." + tid, "thought", "any", where, line, speaker="Theo", vo=VOICES["Theo"] + "; " + vo)
 
@@ -335,9 +336,9 @@ poi("poi.l0.vcr", "l0", "CRT and VCR on a cart in the first room: orientation ta
 poi("poi.l0.desk", "l0", "Desk with a Halden Building staff badge and a nameplate",
     ["HALDEN BUILDING. A. PIKE.", "Corbel & Pike Surveying.", "Valid: 1994."], "Halden. Corbel and Pike. That is my company. This is a 1994 badge.", "l0")
 poi("poi.l0.whiteboard", "l0", "Whiteboard in a meeting room",
-    ["DAY 3.", "THE WALLS MOVE WHEN NOBODY WATCHES.", "SCAN EVERYTHING. DOTS HOLD THE WALLS STILL.", "FIND JOSS. SUPPLY CLOSET. HE HAS THE LAMPS."], "Day three, and they still wrote a plan. Joss, supply closet: that's my first stop.", "l0")
+    ["DAY 3.", "THE WALLS MOVED WHILE WE SLEPT.", "NEVER SLEEP UNLIT."], "Moving walls. Brilliant. Keep scanning.", "l0")
 poi("poi.l0.coat", "l0", "Coat on a hook; security badge; clipboard",
-    ["HOLLIS, J. NIGHT SECURITY.", "ROUND LOG: 11,284.", "LAST ENTRY: ALL QUIET."], "Eleven thousand rounds. He never left. Those footsteps are Hollis, still on his route.", "l0")
+    ["HOLLIS, J. NIGHT SECURITY.", "ROUND LOG: 11,284.", "LAST ENTRY: ALL QUIET."], "He never clocked out.", "l0")
 poi("poi.l0.copier", "l0", "Copier jammed on a page",
     ["EXIT GUESSES:", "1. stairs - no  2. lift - no  3. roof - no ...", "14. the door at the end of floor 3 - ???"],
     "Fourteen guesses. All crossed out. 'The door at the end of floor three.' That's mine.", "l0",
@@ -351,7 +352,7 @@ poi("poi.l0.sign", "l0", "Arrow sign in a hallway pointing at a wall",
 poi("poi.c0.bench", "c0", "Lamp-bag workbench",
     ["LAMP-BAGS. 41 TODAY.", "J.B."], "He makes them by hand. The cheerful kind of crazy.", "c0", 7)
 poi("poi.c0.map", "c0", "Pinned map of Level 0",
-    ["LEVEL 0. HOLLIS ROUTE IN RED.", "STAIR DOWN: NEEDS A FUSE."], "Pacer's route is on the map. And the way down.", "c0")
+    ["LEVEL 0. HOLLIS ROUTE IN RED."], "He walks the red line. Stay off it.", "c0")
 
 # --- Outpost Zero / Night Desk
 poi("poi.desk.radio", "desk", "Radio on the desk",
@@ -360,7 +361,7 @@ poi("poi.desk.signin", "desk", "Sign-in sheet clipped to the desk",
     ["SURVEY SIGN-IN", "CREW 1  IN", "CREW 2  IN", "CREW 3  IN", "CREW 4  IN", "CREW 5  IN", "CREW 6  IN", "CREW 7  IN  (blank)"],
     "Seven crews. Mine is the seventh. The name line is blank.", "desk")
 poi("poi.desk.board", "desk", "Corkboard of crew photographs",
-    ["SIX CREWS.", "Thirty-one names.", "Some photos are turned face down."], "Face down. That's how you hide the ones who faded.", "desk")
+    ["SIX CREWS.", "Some photos are turned face down."], "Face down. The ones who faded.", "desk")
 
 # --- Level 1
 poi("poi.l1.lifering", "l1", "Life ring painted HALDEN B3",
@@ -368,9 +369,9 @@ poi("poi.l1.lifering", "l1", "Life ring painted HALDEN B3",
 poi("poi.l1.pumplog", "l1", "Pump house log taped to a pipe",
     ["WATER LEVEL: UP.", "UP.", "UP.", "FOLLOW IT UPSTREAM. IT ENDS SOMEWHERE LIT. -H.O."], "Follow the water upstream. Okay. That's a plan.", "l1")
 poi("poi.l1.headphones", "l1", "Headphones on a pipe with a sticky note",
-    ["TOBI WREN. SOUND.", "IT HEARS EVERY STEP. WALK, DO NOT RUN.", "GAIN ALL THE WAY UP. I CANNOT HEAR IT COMING."], "Tobi's. He went silent to hide, and then could not hear it coming. Walk, don't run.", "l1")
+    ["TOBI WREN. SOUND.", "GAIN ALL THE WAY UP.", "I CANNOT HEAR IT COMING."], "Quiet kept him safe. Then it did not.", "l1")
 poi("poi.l1.dinghy", "l1", "Half-sunk rubber dinghy",
-    ["CREW 2. B1.", "HANA WENT AHEAD ON FOOT.", "FOLLOW THE WATER. THE FALLS ARE DOWNSTREAM."], "Hana walked on. The water runs toward the Falls, so I follow the water.", "l1")
+    ["CREW 2. B1.", "HANA WENT AHEAD ON FOOT.", "OARS LOST. THIRD SEAT LOST."], "A polite way to say it.", "l1")
 poi("poi.l1.valve", "l1", "Valve station with the wheel missing",
     ["MAIN VALVE B4.", "WHEEL REMOVED FOR SAFETY.", "(by whom?)"], "Wheel's gone. I need the wheel to drain the channel.", "l1")
 poi("poi.l1.tally", "l1", "Chalk tally on a wall",
@@ -395,9 +396,9 @@ poi("poi.l2.pa", "l2", "PA speaker above a nurse station",
 poi("poi.l2.chart", "l2", "Patient chart on a bed",
     ["PATIENT: UNKNOWN.", "ADMITTED: ____", "CONDITION: FORGOTTEN."], "Every chart says unknown. Nobody remembers who they were treating.", "l2")
 poi("poi.l2.tapcode", "l2", "Brass plate on a pillar",
-    ["TWO TAPS. A BREATH. ONE.", "THE CREW GREETING.", "(scratched below) IF IT DOES NOT BREATHE, IT IS NOT US."], "Something here copies the taps and forgets the breath. That is how I tell Ravi from the Echo.", "l2")
+    ["TWO TAPS. A BREATH. ONE.", "THE CREW GREETING.", "(scratched below) IF IT DOES NOT BREATHE, IT IS NOT US."], "Remember the breath.", "l2")
 poi("poi.l2.gurney", "l2", "Gurney with Survey straps",
-    ["SURVEY STRETCHER 4.", "ONCE TO CARRY SOMEONE OUT.", "ONCE TO CARRY SOMEONE IN. THE NAME IS CROSSED OUT."], "Someone was carried into a ward and never came out. The things in the dark were staff once.", "l2")
+    ["SURVEY STRETCHER 4.", "ONCE TO CARRY SOMEONE OUT.", "ONCE TO CARRY SOMEONE IN. THE NAME IS CROSSED OUT."], "Carried in, never out. The dark things were staff once.", "l2")
 poi("poi.l2.bell", "l2", "Call bell on a wire",
     ["CALL BELL. RING FOR ASSISTANCE.", "(someone has cut the wire)"], "Cut the wire. Nobody wants the thing to know where they are.", "l2")
 
@@ -409,7 +410,7 @@ poi("poi.c2.radio", "c2", "Unplugged radio on a stool",
 poi("poi.l3.doorframe", "l3", "Halden door frame grown into cave rock",
     ["HALDEN BLDG. FLOOR 3.", "The door is open. There is only rock on the other side."], "A Halden door frame inside a cave. Pieces of the real building are everywhere down here.", "l3")
 poi("poi.l3.crystal", "l3", "Glowing mineral vein",
-    ["DO NOT TOUCH THE GLOW.", "IT GIVES LIGHT. IT TAKES WARMTH.", "IT FEEDS ON LAMPS. KEEP THE SCANNER LOW."], "The glow feeds on light, so a lamp-bag is bait here. Keep low, find Pim.", "l3")
+    ["THE GLOW GIVES LIGHT.", "IT TAKES WARMTH.", "IT FEEDS ON LAMPS."], "So a lamp-bag is bait here.", "l3")
 poi("poi.l3.camera", "l3", "Camera on a tripod facing the passage",
     ["Q. QUILL. PHOTOGRAPHY.", "Shutter half pressed. Never finished."], "He was in the middle of a shot. He never took it.", "l3")
 poi("poi.l3.bridge", "l3", "Rope bridge over a drop",
@@ -421,7 +422,7 @@ poi("poi.c3.mugs", "c3", "Row of mugs on a ledge",
 
 # --- Level 4
 poi("poi.l4.stone", "l4", "Cornerstone",
-    ["HALDEN BUILDING. 1994.", "NOTHING HERE IS OLDER THAN THIS STONE.", "EVERY LEVEL HANGS FROM IT. THE LAMP IS BELOW."], "Everything hangs from the Halden. The Lamp is below this stone. That is the way out.", "l4", 9)
+    ["HALDEN BUILDING. 1994.", "NOTHING HERE IS OLDER THAN THIS STONE.", "EVERY LEVEL HANGS FROM IT. THE LAMP IS BELOW."], "So the way out is down.", "l4", 9)
 poi("poi.l4.ticket", "l4", "Ticket machine at a boom gate",
     ["ENTERED: TUE 11:42 PM", "EXIT: _____", "(machine will not print an exit time)"], "Eleven forty-two. That's when I walked in. It's been tracking me.", "l4")
 poi("poi.l4.chalk", "l4", "Chalk arrows leading downward",
@@ -442,47 +443,37 @@ poi("poi.lamp.ladder", "lamp", "Ladder shaft with a thread of daylight",
 
 # ===================================================================== RECORDERS (hidden, clear, short)
 add("rec.l0.1", "recorder", "l0", "Hidden in a desk drawer, Level 0",
-    ["Ines Calder. Day one of the Survey.", "The floor above is condemned. We walked into the wall and we are not coming out.",
-     "We call this the Backrooms. Every place somebody forgot ends up here."], speaker="Ines Calder")
+    ["Ines Calder. Day one of the Survey.", "We walked into a wall. We are not coming out."], speaker="Ines Calder")
 add("rec.l0.2", "recorder", "l0", "Taped under a break-room table, Level 0",
-    ["Joss. Lamp-bags work. A bulb, a cell, a canvas sack.", "Hang one at every turn and scan it and it wakes up.",
-     "Mapped space holds still. That's the trick. The rest drifts."], speaker="Joss Berrow")
+    ["Joss. Whoever keeps taking the last tea:", "we can hear you. Cheers."], speaker="Joss Berrow")
 add("rec.l0.3", "recorder", "l0", "Answering machine on the front desk, Level 0",
-    ["Hollis, nights. Round eleven thousand. All quiet.", "Funny. I do not see the other guards any more.",
-     "Hello? Does anyone see me? Hello?"], speaker="Mr. Hollis")
+    ["Hollis, nights. Lost my keys. Found them. Lost them again.", "All quiet."], speaker="Mr. Hollis")
 add("rec.l1.1", "recorder", "l1", "Wedged in a pipe bracket, Level 1",
-    ["Tobi Wren, sound. I can hear the building thinking.", "If I stay quiet, nothing hears me.",
-     "I am going to try that for a while."], speaker="Tobi Wren")
+    ["Tobi Wren, sound. The pipes sing in B flat.", "I think they are trying to tell me something."], speaker="Tobi Wren")
 add("rec.l1.2", "recorder", "l1", "On a catwalk rail, Level 1",
-    ["I stopped talking. It is better.", "I can hear everyone breathing, very far off.",
-     "I cannot tell if anyone can hear me. I do not mind."], speaker="Tobi Wren", note="Plays near a Hush lair.")
+    ["I can hear everyone breathing, very far off.", "I cannot tell if anyone can hear me. I do not mind."], speaker="Tobi Wren", note="Plays near a Hush lair.")
 add("rec.l1.3", "recorder", "l1", "In the boiler room, Level 1",
-    ["Hana. The water was not here yesterday.", "It was here. We just were not looking.",
-     "That is the Backrooms for you. What nobody looks at, changes."], speaker="Hana Osei")
+    ["Hana. The water was not here yesterday.", "It was here. We just were not looking."], speaker="Hana Osei")
 add("rec.falls.1", "recorder", "falls", "On a ledge by the hammocks, Falls",
-    ["Ines. Day forty. I stopped counting.", "We found a place the dark cannot rewrite.",
-     "Everyone remembers a waterfall. That is why it holds."], speaker="Ines Calder")
+    ["Ines. Day forty. I stopped counting.", "Somebody hung these hammocks. I never found out who."], speaker="Ines Calder")
 add("rec.falls.2", "recorder", "falls", "Under the camp stove, Falls",
     ["Lena. Hammocks up. Soup on.", "First hot meal in a month.", "Ravi plays the one song he knows. Badly. I love it."], speaker="Lena Sorrel")
 add("rec.l2.1", "recorder", "l2", "Under a bench, Level 2",
-    ["Ravi. Two taps, a breath, one tap.", "It was just a greeting. Now something taps back.",
-     "It does the two. It does not do the breath."], speaker="Ravi Anand")
+    ["Ravi. Something taps back at me now.", "We have a rhythm. I do not like that we have a rhythm."], speaker="Ravi Anand")
 add("rec.l2.2", "recorder", "l2", "In a linen trolley, Level 2",
-    ["It sounds like me. It learned me in an afternoon.", "I said 'hello?' to see. It said 'hello?' first.",
-     "I keep the radio off now."], speaker="Ravi Anand")
+    ["I said 'hello?' to see. It said 'hello?' first.", "Now I wait before I answer anyone."], speaker="Ravi Anand")
 add("rec.l2.3", "recorder", "l2", "Nurse station drawer, Level 2",
-    ["Ines. Theory.", "The Backrooms are what a world forgets.", "We are not hunted. We are forgotten. There is a difference, and it matters."],
+    ["Ines. Theory.", "We are not hunted. We are forgotten. There is a difference."],
     speaker="Ines Calder")
 add("rec.l3.1", "recorder", "l3", "In a root hollow, Level 3",
     ["Pim. I found a draft.", "A draft means a door. Everyone laughed.", "I will keep the lantern lit anyway."], speaker="Pim Ashworth")
 add("rec.l3.2", "recorder", "l3", "Camera case, Level 3",
-    ["Quill. The thing only moves when I am not looking.", "So I look. Forty frames.", "In frame thirty it is closer. Do not stare. It learns the stare."],
+    ["Quill. Forty frames.", "In frame thirty it is closer. In frame forty it is in the shot."],
     speaker="Marlow Quill")
 add("rec.l3.3", "recorder", "l3", "Chalk-marked shelf, Level 3",
-    ["Watch it. Then step. Never stare.", "If you hear a shutter, do not turn.", "Wait for the second click."], speaker="Marlow Quill")
+    ["If you hear a shutter, do not turn.", "Wait for the second click."], speaker="Marlow Quill")
 add("rec.l4.1", "recorder", "l4", "On a pillar, Level 4",
-    ["Ines. Last descent. I know where the Lamp must go.", "The Garage is the first Level that ever formed.",
-     "It is not cruel. It is empty. Empty gets hungry for company."], speaker="Ines Calder")
+    ["Ines. Last descent. The Garage formed first.", "It is not cruel. It is empty. Empty gets hungry for company."], speaker="Ines Calder")
 
 # ===================================================================== RADIO (voiced, direct)
 # Base = Ines. Real Base asks what you see and gives plain guidance. Fake Base commands and
@@ -494,24 +485,19 @@ def radio(id, section, where, lines, who="Base", note=None, vo_extra=""):
 radio("radio.first", "desk", "First call after picking up the handset",
       ["Base to Theo. Can you hear me?", "I heard your scanner come online. I am Ines. Tell me what you see."],
       note="Her first words. She uses Theo's name because she saw it on the scanner's status screen.")
-radio("radio.l0", "l0", "Level 0 start (after Outpost Zero)",
-      ["Base to Theo. Level 0. Keys are the Pacer. Wait for them to pass.", "Find Joss at the supply closet. He has what you need."])
-radio("radio.l1", "l1", "Level 1 start",
-      ["Base to Theo. Level 1. The water is safe to wade. Do not stay in it.", "Find Hana at the pump house. Follow the water upstream."])
-radio("radio.l2", "l2", "Level 2 start",
-      ["Base to Theo. Level 2. Something here wears our voices.", "If I say come to me, do not come. Find Ravi."])
-radio("radio.l3", "l3", "Level 3 start",
-      ["Base to Theo. Level 3. Do not touch the glow.", "Find Pim. Watch for the Still. Watch, then step."])
-radio("radio.l4", "l4", "Level 4 start",
-      ["Base to Theo. Level 4. Follow the chalk. I will be at the bottom.", "I have been waiting a very long time to say that."])
-radio("radio.idle.1", "any", "Random, dark, calm", ["Base to Theo. Tell me what you see."])
-radio("radio.idle.2", "any", "Random, dark, calm", ["Base to Theo. I can see your dots from here. You are doing well."])
+radio("radio.l0", "l0", "Level 0 start (after Outpost Zero)", ["Base to Theo. Level 0. I can see your dots from here."])
+radio("radio.l1", "l1", "Level 1 start", ["Base to Theo. Level 1. Wetter, smaller, louder. Stay close."])
+radio("radio.l2", "l2", "Level 2 start", ["Base to Theo. Level 2. Lots of voices here. Not all of them ours."])
+radio("radio.l3", "l3", "Level 3 start", ["Base to Theo. Level 3. It is quiet. Too quiet. Go slow."])
+radio("radio.l4", "l4", "Level 4 start", ["Base to Theo. Level 4. I will be at the bottom. I have waited a long time to say that."])
+radio("radio.idle.1", "any", "Random, dark, calm", ["Base to Theo. Still with me?"])
+radio("radio.idle.2", "any", "Random, dark, calm", ["Base to Theo. You are doing well. Keep going."])
 radio("radio.idle.3", "any", "Random, dark, calm", ["Base to Theo. Count with me. One. Two. Three. Still here."])
 radio("radio.clear", "any", "After a level clear", ["Base to Theo. Logged. Rest if you find a lamp."])
 radio("radio.back.1", "any", "Respawn at a lamp", ["Welcome back, Theo. Breathe. You are lit."])
 radio("radio.back.2", "any", "Respawn at a lamp", ["I have you. I always do. Rest a moment."])
-radio("radio.back.3", "any", "Respawn at a lamp", ["Easy. Count with me. One. Two. Three."])
-radio("radio.surveyor.near", "any", "A surveyor is within ~30 studs, unseen", ["Base to Theo. Green dots ahead. Say hello. Two taps, a breath, one."])
+radio("radio.back.3", "any", "Respawn at a lamp", ["Up you get. The lamp is warm."])
+radio("radio.surveyor.near", "any", "A surveyor is within ~30 studs, unseen", ["Base to Theo. Green dots ahead. Say hello."])
 radio("radio.fake.1", "l2", "Near the Echo ONLY", ["Theo. This way. Come to me."], who="Base?",
       note="Real Base never says 'come to me'. Plays slightly before the real radio click.")
 radio("radio.fake.2", "l2", "Near the Echo ONLY", ["Put the scanner down. It is safe. Come to me."], who="Base?")
@@ -625,233 +611,158 @@ scene("cs.open", "cutscene", "The Halden Building", "New Game start", "Automatic
     ("Theo", "This is not floor three. Nobody sent me here. Scan the room. Find a door."),
 ], note="About 30 seconds. Staged in the client (Stage.luau, set office): scanner sweeps the floor, Theo leans on the wall, it melts, black, the title, a low shot of the melted wall. Ends on the first playable frame.", look="l0", stage="office")
 
-# --- TAPE 1: ORIENTATION (the clear opening explanation)
+# --- TAPE 1: ORIENTATION (who is talking, what the scanner is for, go find my people: nothing else)
 scene("tape.orientation", "tape", "Survey Orientation (Tape 1 of 9)", "CRT/VCR in the first room (poi.l0.vcr); lit and playable on the first dot", "Interact; auto-offers at 20 seconds idle", [
     ("~", "CRT static. A woman at a desk with a banker's lamp. Camcorder angle, slightly too low. Wall maps behind her."),
     ("Ines", "Hello. If you are watching this, you came through a wall. Everyone does."),
-    ("Ines", "My name is Ines Calder. I run the Survey. We map the Backrooms so that people like you can find their way."),
-    ("Ines", "The Backrooms are a set of places that were forgotten. An office nobody visits. A pool nobody swims in. A ward nobody staffs."),
-    ("Ines", "When a place is forgotten long enough, it stops belonging to the world. It ends up here."),
-    ("Ines", "Each place is a Level. They do not connect like a building does. You walk out of one, and you are in the next."),
-    ("Ines", "The dark is the first danger. Light does not carry here. So the Survey built the scanner you are holding."),
-    ("Ines", "It does not make light. It makes a record. Where you scan, the dots stay, and mapped space holds still."),
-    ("Ines", "White is structure. Green is people. Red is anything that used to be a person and is not now."),
-    ("Ines", "Some of them were surveyors. Be kind to them, and do not stand near them."),
-    ("Ines", "Find my people. They camp at every Level. Each of them knows something you need."),
-    ("Ines", "And find the way out. We have never found one. But the scanner says there is a shape in the dark that matches the real world."),
-    ("Ines", "To prove it, I would need a true measurement of a real place. We have never had one. If you have one, I would very much like to meet you."),
+    ("Ines", "I am Ines. I run the Survey. Your scanner makes no light. It makes a record."),
+    ("Ines", "Dots stay where you look. Mapped space holds still. The rest drifts."),
+    ("Ines", "Find my people. Every Level has a camp, and each camp knows something you need."),
     ("@", "reach"),
     ("~", "She reaches forward. The tape cuts to static."),
     ("@", "static"),
-    ("Theo", "A true measurement of a real place."),
-    ("Theo", "Forty-one scans of floor three. They are on this unit."),
-    ("Theo", "I'm not Survey. I just scanned the wrong wall. But they are down here. Find the surveyors. Find Ines."),
-], note="~60 to 75 seconds with beats; keep skippable. Journal entries 02 and 03 unlock.", look="l0")
+    ("Theo", "I am not Survey. I just scanned the wrong wall. Fine. Find the surveyors."),
+], note="Five spoken lines. It does not explain the Backrooms (Joss does, once), the colours (the intake hint does) or the exit (Pike's tape and the finale do). Journal entries 02 and 03 unlock.", look="l0")
 
 # --- TAPE 2: HALDEN PROMO
 scene("tape.halden", "tape", "Halden Building: Where Tomorrow Works", "VCR in the Level 0 break room", "Interact", [
     ("~", "A promo VHS from 1994, saturated colour. Fast pans of a glass lobby, escalators, an atrium with a fountain."),
     ("Announcer", "Halden Building. Fifteen floors of tomorrow."),
-    ("~", "Ribbon cutting. A young man in a Corbel and Pike survey jacket holds a scanner and waves."),
-    ("Announcer", "Surveyed to the millimetre by Corbel and Pike."),
     ("~", "Camera drifts down a corridor, floor three. At the very end is a door that is not on any plan. It is slightly open. Light is coming out of it."),
     ("@", "door"),
     ("Announcer", "From the lobby to floor... three..."),
     ("~", "Tape glitches. Static. End."),
     ("@", "static"),
-    ("Theo", "Fifteen floors. The plan I was given had fourteen."),
-    ("Theo", "That door is on floor three. That is my floor."),
+    ("Theo", "Fifteen floors. My plan said fourteen. And that door is on my floor."),
 ], look="l0")
 
 # --- TAPE 3: HOLLIS
 scene("tape.hollis", "tape", "Security Camera 4 (night)", "Monitor in the Level 0 security booth", "Interact", [
     ("~", "Grey security footage. A man in a security jacket, keys on his belt, walks the corridor with a flashlight."),
     ("Hollis", "Round one. All quiet."),
-    ("~", "Time jumps. Same corridor. The carpet is wetter."),
-    ("Hollis", "Round four hundred. Lights out on three. All quiet."),
-    ("~", "Time jumps. The man is a little translucent. The footage loses detail where he stands."),
+    ("~", "Time jumps. Same corridor. The carpet is wetter. The man is a little translucent. The footage loses detail where he stands."),
     ("@", "fade"),
-    ("Hollis", "Round eleven thousand. Funny. I do not see the other guards any more."),
-    ("Hollis", "Is anyone there? Can anyone see me?"),
+    ("Hollis", "Round eleven thousand. I do not see the other guards any more. Can anyone see me?"),
     ("@", "gone"),
     ("~", "The man stops. Looks straight into the camera. The footage keeps going, but he is gone from the frame. Keys, faint, continue."),
     ("Theo", "Nobody saw him, so he started to disappear."),
-    ("Theo", "That is what fading is. Keep somebody in sight."),
 ], look="l0")
 
 # --- TAPE 4: TOBI
 scene("tape.tobi", "tape", "Walkman Diary: T. Wren", "Cassette player in the Level 1 pump room", "Interact", [
     ("~", "A cassette player on a shelf, red record light. Water dripping in the background, very close to the mic."),
-    ("Tobi", "Tobi Wren. I can hear the building thinking."),
-    ("Tobi", "I have worked out that it hears us. Every scan. Every step."),
-    ("Tobi", "So I stopped. If I stay silent, maybe nothing hears me."),
+    ("Tobi", "Tobi Wren. I can hear the building thinking. So I stopped talking."),
     ("@", "dim"),
     ("~", "Longer silence. Dripping. A faint, patient breath."),
     ("Tobi", "It worked. I could not hear anyone, and nobody could hear me."),
     ("Tobi", "That's the problem."),
     ("Theo", "He went quiet so nothing would find him. Then nothing could."),
-    ("Theo", "Walk. Do not run. Do not ping near the Hush."),
 ], look="l1")
 
 # --- TAPE 5: RAVI
 scene("tape.ravi", "tape", "Ravi's Demonstration", "TV in the Level 2 day room", "Interact", [
     ("~", "A ward day room. Ravi, nervous, sits close to the camera. A radio on the table."),
-    ("Ravi", "Okay. This is the Echo. It copies voices."),
-    ("Ravi", "Watch. Two taps. A breath. One."),
+    ("Ravi", "This is the Echo. Watch. Two taps. A breath. One."),
     ("~", "He taps the table. Silence. Then, from the dark behind the camera, two taps. No breath. One tap."),
     ("@", "echo"),
     ("Echo", "Ravi? Ravi? Ravi?"),
-    ("Ravi", "That is my voice. It learned me in an afternoon."),
-    ("Ravi", "It can copy the words. It can copy the taps. It cannot wait."),
-    ("Ravi", "So if you hear me and I do not wait, it is not me."),
+    ("Ravi", "It copies the words. It copies the taps. It cannot wait."),
     ("Theo", "It doesn't breathe. That is the tell."),
 ], look="l2")
 
 # --- TAPE 6: QUILL
 scene("tape.quill", "tape", "Contact Sheet: M. Quill", "Projector in the Level 3 cave", "Interact", [
     ("~", "A slide projector throws images on the cave wall: a corridor, frame by frame."),
-    ("Quill", "Frame one. Empty corridor."),
-    ("Quill", "Frame ten. Empty."),
+    ("Quill", "Frame one. Empty corridor. Frame ten. Empty."),
     ("@", "shape"),
     ("Quill", "Frame thirty. A shape at the far end."),
     ("~", "A shape at the end of the corridor, drawn closer in each frame."),
     ("@", "shape"),
-    ("Quill", "It moves when I do not look. So I look."),
-    ("Quill", "But if I stare, it learns the stare."),
+    ("Quill", "It moves when I do not look. So I look. But if I stare, it learns the stare."),
     ("@", "shape"),
-    ("Quill", "Watch it. Then step. Never stare. Remember."),
-    ("Theo", "Watch it, then step. Do not stare. Got it."),
+    ("Quill", "Watch it. Then step. Never stare."),
 ], look="l3")
 
-# --- TAPE 7: PIKE (the key reveal)
+# --- TAPE 7: PIKE (the key reveal: told here, found late, and again in the finale)
 scene("tape.pike", "tape", "Tape 9 of 9: A. Pike", "Camcorder on the folding table in the Garage", "Interact", [
     ("~", "A young man in a Corbel and Pike jacket. Same face as the ribbon-cutting. Sodium light. A small lamp beside him."),
-    ("Pike", "Day one. I am Anselm Pike. I was scanning the Halden before it opened."),
-    ("Pike", "I scanned the wall at the end of floor three, and the wall opened."),
-    ("Pike", "I have walked down for what feels like a week. I found a light in the dark. I called it the Lamp."),
-    ("Pike", "I do not know who built this place. I know it hangs from the Halden. Everything does."),
-    ("Pike", "Here is what I think. The Backrooms is a point cloud of forgotten places, and it has a shape."),
-    ("Pike", "If anybody ever brings a true scan of the real floor three, the shape will match, and a door will open."),
-    ("Pike", "That is the exit. That is all I know."),
-    ("Pike", "If you are watching this: the Lamp is at the bottom. Bring me the real floor."),
-    ("Theo", "He was the first. Unit zero zero zero seven. And I have the real floor."),
-    ("Theo", "Down to the Lamp."),
+    ("Pike", "Day one. Anselm Pike. I scanned the wall at the end of floor three, and the wall opened."),
+    ("Pike", "Down here there is a light. I call it the Lamp."),
+    ("Pike", "Bring a true scan of the real floor three, and the shape will match. A door will open."),
+    ("Theo", "He was first. Unit 0007. And I have the real floor."),
 ], look="l4")
 
 # --- RESCUED IN THE MAZE: what a surveyor says when found sitting in the dark and helped up.
-# Short, in voice; the game picks one per rescue and then they walk you out. Pim is a woman.
+# Two lines, in voice; the game plays them and then they walk you out. Pim is a woman. The camp
+# scenes that follow do not greet again.
 add("rescue.hana", "rescue", "l1", "Hana, found by the pipes in the Flooded Wing (tier 3)",
-    ["Hana. Pump house. Took you long enough.", "Stay on my left. Water is loud. Walk.",
-     "Forty steps from the pump to here. Count with me."], speaker="Hana", vo=VOICES["Hana"])
+    ["Hana. Pump house. Took you long enough.", "Stay on my left. Water is loud. Walk."],
+    speaker="Hana", vo=VOICES["Hana"])
 add("rescue.ravi", "rescue", "l2", "Ravi, found behind a curtain in the Wards (tier 5)",
-    ["Two taps. A breath. One. You waited. Thank you.", "Do not answer anything that only knocks twice.",
-     "Stay behind me. I know the quiet way."], speaker="Ravi", vo=VOICES["Ravi"])
+    ["Two taps. A breath. One. You waited. Thank you.", "Stay behind me. I know the quiet way."],
+    speaker="Ravi", vo=VOICES["Ravi"])
 add("rescue.pim", "rescue", "l3", "Pim, found in the Hollow with her lantern (tier 7)",
-    ["Theo? You came all the way down for me? Nobody does that.", "I told them there was a draft. Follow the lantern.",
-     "Keep the light low. The glow does not like me either."], speaker="Pim", vo=VOICES["Pim"])
+    ["Theo? You came all the way down for me?", "Follow the lantern. Keep the light low."],
+    speaker="Pim", vo=VOICES["Pim"])
 
-# --- DIALOGUE: JOSS (Supply Closet, after tier 1)
+# --- DIALOGUE: JOSS (Supply Closet, after tier 1). Five lines. He owns: what the Backrooms are, lamp-bags, the fuse.
 scene("npc.joss", "dialogue", "Joss Berrow", "Supply Closet (c0), after tier 1", "Walk up to the green dot; scene plays; he hands over lamp-bags", [
-    ("Joss", "Whoa. Easy. Easy. You are real. Green dots, good. Sit."),
+    ("Joss", "Whoa. Easy. You are real. Green dots, good. Sit."),
     ("Theo", "Where am I?"),
-    ("Joss", "The Backrooms. First of us named it. Do not ask why the name stuck."),
-    ("Joss", "Every Level is a place somebody forgot. This one is an office floor. The rest get stranger."),
-    ("Theo", "How do I get out?"),
-    ("Joss", "Exits are where a Level touches the real world. Thirty years, no exit. Ines says she is close."),
-    ("Theo", "Thirty years? I have been gone minutes."),
-    ("Joss", "Time does not line up down here. Do not trust your watch."),
-    ("Joss", "Take these. Lamp-bags. Hang one at every turn. Scan it, it wakes up. Light only reaches what is mapped."),
-    ("Joss", "Listen for keys. That is Hollis. Old night guard. Still on his round. Wait for him to pass."),
-    ("Joss", "The way down needs a fuse. Breaker room, past the vending machines. Then find Hana at the pump house."),
-    ("Theo", "Thanks, Joss."),
-    ("Joss", "Do not thank me. Hang the bags."),
-], note="Gives: lamp-bags, the radio frequency. Journal 04. Unlocks goal.l0b.", look="c0")
+    ("Joss", "The Backrooms. Every Level is a place somebody forgot."),
+    ("Joss", "Take these lamp-bags. Hang one at every turn, scan it, it wakes up."),
+    ("Joss", "The way down needs a fuse. Breaker room, past the vending machines."),
+], note="Gives: lamp-bags. Journal 04. Unlocks goal.l0b. Hollis, time and Hana are told elsewhere (thought.keys, Lena, the HUD goal).", look="c0")
 
-# --- DIALOGUE: HANA (Pump House, after tier 3)
+# --- DIALOGUE: HANA (Pump House, after tier 3). Five lines. She owns: the water's way, Tobi is the Hush, how to pass him, the wheel.
 scene("npc.hana", "dialogue", "Hana Osei", "Pump House (c1), after tier 3", "Walk up", [
-    ("Hana", "You are the new one."),
-    ("Theo", "Theo."),
-    ("Hana", "Hana. Sit. Do not talk much. Water carries."),
-    ("Hana", "Level 1 was the Halden's basement. Flooded in ninety-six. Forgotten, then drowned, then dropped here."),
-    ("Theo", "Where does the water go?"),
-    ("Hana", "Upstream, a shaft. At the top, the Falls. Follow it. Always follow it."),
-    ("Hana", "You heard the thing in the pipes. That is Tobi. He went quiet. Now he is the Hush."),
-    ("Theo", "He is the monster?"),
-    ("Hana", "He was a person who stopped being heard. The scanner reads that as red. It is not wrong."),
-    ("Hana", "Walk past him. Do not run. Do not ping. He will not forget you if you do."),
-    ("Hana", "The valve wheel is in the boiler room. Take it, drain the channel, take the rope for the gap."),
-    ("Hana", "Then Lena. At the Falls. She will tell you the rest."),
+    ("Hana", "Sit. Keep your voice down. Water carries."),
+    ("Hana", "The water runs up a shaft to the Falls. Always follow it."),
+    ("Hana", "The thing in the pipes is Tobi. He went quiet. Now he is the Hush."),
+    ("Hana", "Walk past him. Never run. Never ping."),
+    ("Hana", "The valve wheel is in the boiler room. Drain the channel, then go."),
 ], note="Gives: pencil map, rope hint. Journal 07.", look="c1")
 
-# --- DIALOGUE: LENA (Falls, after tier 4)
+# --- DIALOGUE: LENA (Falls, after tier 4). Five lines. She owns: why the Falls is safe, time, falling, the key.
 scene("npc.lena", "dialogue", "Lena Sorrel", "The Falls, after tier 4", "Walk up to the camp", [
-    ("Lena", "Theo. We heard you coming a day ago. Come in. Eat."),
-    ("Theo", "This place is..."),
-    ("Lena", "Real. Yes. The Falls is a Refuge. Everyone remembers a place like it, so the dark cannot rewrite it."),
-    ("Lena", "That's what holds us together. A memory everyone shares."),
-    ("Theo", "Joss said thirty years."),
-    ("Lena", "Joss is generous. Time here is a rumour."),
-    ("Lena", "Five Crews went down before you. Six, if you count Crew 6, who never reached the Falls."),
-    ("Lena", "Some of them walk the Levels now. Not themselves. You have met Hollis. You will meet more."),
-    ("Theo", "Ines said the scanner has a shape to match. What does that mean?"),
-    ("Lena", "Ask her. She has been keeping something from the rest of us, and I think it is hope."),
-    ("Lena", "Take the Brass Key. It opens the doors on Level 2. Ravi's camp is behind them. Do not answer the voices."),
-    ("Lena", "And Theo. When the dark takes you, you wake at the last lamp. That is her."),
-    ("Theo", "Ines?"),
-    ("Lena", "She keeps a Lamp at the bottom. When you fall, she pulls you back to the nearest light. It costs her. Fall less."),
+    ("Lena", "Theo. We heard you coming. Come in. Eat."),
+    ("Lena", "This is the Falls. Everyone remembers a place like it, so the dark cannot rewrite it."),
+    ("Lena", "Joss says thirty years. Time down here is a rumour."),
+    ("Lena", "When the dark takes you, you wake at the last lamp. That is Ines. It costs her. Fall less."),
+    ("Lena", "Take the Brass Key. It opens the Ward doors."),
 ], note="Gives: Brass Key, the respawn explanation. Journal 08. Unlocks thought.respawn.ines.", look="falls")
 
-# --- DIALOGUE: RAVI (Ward Station, after tier 5)
+# --- DIALOGUE: RAVI (Ward Station, after tier 5). Four lines. He owns: where voices go, the crank. (Taps: tape.ravi. Radio: handbook 7.)
 scene("npc.ravi", "dialogue", "Ravi Anand", "Ward Station (c2), after tier 5", "Tap twice at the curtain, wait, tap once; scene plays", [
-    ("Ravi", "(whisper) Two taps. A breath. One. Good. You waited. Come in."),
-    ("Ravi", "You are Theo. Lena's radio said. I keep mine unplugged."),
-    ("Theo", "Because of the Echo?"),
-    ("Ravi", "It has my voice. If it speaks on a radio, you will think it is me. Or Ines."),
-    ("Ravi", "Rule seven. Base asks what you see. Base never says come to me."),
-    ("Theo", "What is it?"),
-    ("Ravi", "The Wards is where voices end up. People who answered the wrong call. Someone who was nobody's patient."),
-    ("Ravi", "I do not know what it was. I know it learns."),
-    ("Theo", "Joss said the Survey's scanner came from somewhere."),
-    ("Ravi", "From Corbel and Pike. The head of a survey unit, serial zero zero zero seven. Ines found it in the Garage."),
-    ("Theo", "Zero zero zero seven. Mine is zero zero four one."),
-    ("Ravi", "Then you know what you are carrying."),
-    ("Ravi", "The crank for the lift is in the Dormitory. Take it. The Hollow is up. Pim keeps a light there."),
-], note="Gives: crank location, scanner serial hook. Journal 09.", look="c2")
+    ("Ravi", "(whisper) Good. You waited. Come in. Quick."),
+    ("Ravi", "The Wards is where voices end up. The Echo learns them. It learned mine."),
+    ("Ravi", "The crank for the lift is in the Dormitory. Take it."),
+    ("Ravi", "The Hollow is up. Pim keeps a light there."),
+], note="Gives: crank location. Journal 09.", look="c2")
 
-# --- DIALOGUE: PIM (Hollow Camp, after tier 7)
+# --- DIALOGUE: PIM (Hollow Camp, after tier 7). Five lines. She owns: the lanterns, the Lamp Core.
 scene("npc.pim", "dialogue", "Pim Ashworth", "Hollow Camp (c3), after tier 7", "Walk up", [
-    ("Pim", "Theo! You made it. Nobody makes it. Come sit."),
-    ("Pim", "I keep the lanterns lit so people can find the camp. It's not much of a job. I love it."),
-    ("Theo", "You are the youngest in the Survey."),
-    ("Pim", "I came in nineteen. I don't know how old I am. Does it matter?"),
-    ("Pim", "I found a draft once. It's why I stayed. A draft means air from somewhere else."),
-    ("Theo", "The Still. Quill."),
-    ("Pim", "Yes. Marlow. He moves when nobody looks. Watch, then step. Never stare."),
-    ("Pim", "He used to photograph the Hollow. He thought if he looked at it enough, it would hold still."),
-    ("Theo", "Did it?"),
-    ("Pim", "It held still around him. That's why he can't leave."),
-    ("Pim", "Ines is at the bottom. Garage. Follow the chalk. Take the Lamp Core from the shelf at the last bay."),
+    ("Pim", "You made it. Nobody makes it. Come sit."),
+    ("Pim", "I keep the lanterns lit so people can find camp. Best job ever."),
+    ("Pim", "Quill took forty photographs of the Hollow. He thought it would hold still."),
+    ("Pim", "Ines is at the bottom. Take the Lamp Core from the last bay."),
     ("Pim", "See you up there, Theo. I mean it."),
 ], note="Gives: the Lamp Core clue, flash bulb. Journal 10.", look="c3")
 
-# --- DIALOGUE: INES (Lamp Room, finale)
+# --- DIALOGUE: INES (Lamp Room, finale). Six lines for any one player (the falls count is one line or the other).
 scene("npc.ines", "dialogue", "Ines Calder", "The Lamp Room, after tier 8", "Walk up to the green dot", [
     ("~", "A tall dome. A great brass Lamp. A woman at a desk looks up. Green dot, steady. Her eyes find Theo's scanner first."),
     ("Ines", "Theo. Good. The dots held."),
     ("Theo", "Ines. You pulled me back."),
     ("Ines", "{deaths} times. Each night, a little further."),
     ("Ines", "You never fell. That is not luck. That is care."),
-    ("Theo", "I have forty-one scans of the real floor three."),
-    ("Ines", "I know. I watched you collect them on the status screen. Come, put the unit to the board."),
+    ("Ines", "Put the unit to the board. Forty-one scans. I watched every one."),
     ("~", "Theo places his scanner on the chalkboard rig. The board fills with white dots: every scan the Survey ever made. A gap, the shape of a corridor, glows."),
-    ("Ines", "The Backrooms is made of forgotten places. A place nobody looks at stops belonging to the world."),
-    ("Ines", "The Halden was empty ten years. You were the last to look at it, and you looked forty-one times."),
-    ("Ines", "That is why the wall let you in. And why you can leave."),
+    ("Ines", "A forgotten place leaves the world. You looked forty-one times. So you can leave."),
     ("~", "The unit's scan slides into the gap. A line of light runs up the ladder shaft. A real door, edges of daylight."),
-    ("Ines", "The ladder goes up. Pike was right."),
-    ("Ines", "Or sit with me. Someone has to keep the lamp. Someone has to keep looking."),
+    ("Ines", "The ladder goes up. Or sit with me. Someone has to keep the lamp."),
     ("~", "Two choices. Climb, or take the lamp."),
-], note="Ends with choice.up / choice.stay. Journal 12.", look="lamp")
+], note="Ends with choice.up / choice.stay. Journal 12. Six spoken lines for any one player (the falls count is one line or the other).", look="lamp")
 
 # --- ENDINGS
 scene("end.up", "cutscene", "Up", "After choice.up", "Cutscene, then credits card", [
@@ -923,6 +834,50 @@ def validate():
         if len(ln) > 260 or (i.split(".")[0] not in ("cs", "tape", "npc", "end") and len(ln) > MAX_LINE):
             print("LONG", i, len(ln))
             ok = False
+    # Budgets (Vasco, 2026-11-10: "the dialogue is way too much and repetitive"). A new line has
+    # to earn its place: spoken lines per scene, spoken line length, and no sentence said twice.
+    spoken_seen = {}
+    for sc in SCENES:
+        spoken = [b for b in sc["beats"] if "sp" in b]
+        if sc["id"] in SPOKEN_BUDGET:
+            cap = SPOKEN_BUDGET[sc["id"]]
+        elif sc["kind"] == "tape":
+            cap = 4
+        elif sc["kind"] == "dialogue":
+            cap = 5
+        else:
+            cap = 99
+        if len(spoken) > cap:
+            print("TOO MANY LINES", sc["id"], len(spoken), "max", cap)
+            ok = False
+        for b in spoken:
+            line = b["line"]
+            if sc["kind"] != "cutscene" and len(line) > SPOKEN_MAX:
+                print("SPOKEN LINE TOO LONG", sc["id"], len(line), line)
+                ok = False
+            key = line.lower()
+            if key in spoken_seen and len(key) > 12:
+                print("SAID TWICE", sc["id"], "and", spoken_seen[key], line)
+                ok = False
+            spoken_seen[key] = sc["id"]
+    thoughts_seen = {}
+    for e in E:
+        if e.get("legacy"):
+            continue
+        texts = [e["thought"]] if "thought" in e else []
+        if e["kind"] in ("thought", "radio", "recorder"):
+            texts += [" ".join(e["lines"])]
+        if e["kind"] in ("thought", "radio"):
+            for ln in e["lines"] + ([e["thought"]] if "thought" in e else []):
+                if len(ln) > SPOKEN_MAX:
+                    print("LINE TOO LONG", e["id"], len(ln), ln)
+                    ok = False
+        for t in texts:
+            key = t.lower()
+            if key in thoughts_seen and len(key) > 12:
+                print("SAID TWICE", e["id"], "and", thoughts_seen[key])
+                ok = False
+            thoughts_seen[key] = e["id"]
     return ok
 
 

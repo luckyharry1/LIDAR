@@ -26,27 +26,17 @@ All spoken lines are voiced (see `05-voice-and-radio.md`) and subtitled. Tapes p
 - **Where:** CRT/VCR in the first room (poi.l0.vcr); lit and playable on the first dot
 - **Trigger:** Interact; auto-offers at 20 seconds idle
 - **Backdrop:** `l0`
-- **Note:** ~60 to 75 seconds with beats; keep skippable. Journal entries 02 and 03 unlock.
+- **Note:** Five spoken lines. It does not explain the Backrooms (Joss does, once), the colours (the intake hint does) or the exit (Pike's tape and the finale do). Journal entries 02 and 03 unlock.
 
 > *[CRT static. A woman at a desk with a banker's lamp. Camcorder angle, slightly too low. Wall maps behind her.]*
 > **Ines:** Hello. If you are watching this, you came through a wall. Everyone does.
-> **Ines:** My name is Ines Calder. I run the Survey. We map the Backrooms so that people like you can find their way.
-> **Ines:** The Backrooms are a set of places that were forgotten. An office nobody visits. A pool nobody swims in. A ward nobody staffs.
-> **Ines:** When a place is forgotten long enough, it stops belonging to the world. It ends up here.
-> **Ines:** Each place is a Level. They do not connect like a building does. You walk out of one, and you are in the next.
-> **Ines:** The dark is the first danger. Light does not carry here. So the Survey built the scanner you are holding.
-> **Ines:** It does not make light. It makes a record. Where you scan, the dots stay, and mapped space holds still.
-> **Ines:** White is structure. Green is people. Red is anything that used to be a person and is not now.
-> **Ines:** Some of them were surveyors. Be kind to them, and do not stand near them.
-> **Ines:** Find my people. They camp at every Level. Each of them knows something you need.
-> **Ines:** And find the way out. We have never found one. But the scanner says there is a shape in the dark that matches the real world.
-> **Ines:** To prove it, I would need a true measurement of a real place. We have never had one. If you have one, I would very much like to meet you.
+> **Ines:** I am Ines. I run the Survey. Your scanner makes no light. It makes a record.
+> **Ines:** Dots stay where you look. Mapped space holds still. The rest drifts.
+> **Ines:** Find my people. Every Level has a camp, and each camp knows something you need.
 > *[staging: reach]*
 > *[She reaches forward. The tape cuts to static.]*
 > *[staging: static]*
-> **Theo:** A true measurement of a real place.
-> **Theo:** Forty-one scans of floor three. They are on this unit.
-> **Theo:** I'm not Survey. I just scanned the wrong wall. But they are down here. Find the surveyors. Find Ines.
+> **Theo:** I am not Survey. I just scanned the wrong wall. Fine. Find the surveyors.
 
 ## Halden Building: Where Tomorrow Works (`tape.halden`, tape)
 
@@ -56,15 +46,12 @@ All spoken lines are voiced (see `05-voice-and-radio.md`) and subtitled. Tapes p
 
 > *[A promo VHS from 1994, saturated colour. Fast pans of a glass lobby, escalators, an atrium with a fountain.]*
 > **Announcer:** Halden Building. Fifteen floors of tomorrow.
-> *[Ribbon cutting. A young man in a Corbel and Pike survey jacket holds a scanner and waves.]*
-> **Announcer:** Surveyed to the millimetre by Corbel and Pike.
 > *[Camera drifts down a corridor, floor three. At the very end is a door that is not on any plan. It is slightly open. Light is coming out of it.]*
 > *[staging: door]*
 > **Announcer:** From the lobby to floor... three...
 > *[Tape glitches. Static. End.]*
 > *[staging: static]*
-> **Theo:** Fifteen floors. The plan I was given had fourteen.
-> **Theo:** That door is on floor three. That is my floor.
+> **Theo:** Fifteen floors. My plan said fourteen. And that door is on my floor.
 
 ## Security Camera 4 (night) (`tape.hollis`, tape)
 
@@ -74,16 +61,12 @@ All spoken lines are voiced (see `05-voice-and-radio.md`) and subtitled. Tapes p
 
 > *[Grey security footage. A man in a security jacket, keys on his belt, walks the corridor with a flashlight.]*
 > **Hollis:** Round one. All quiet.
-> *[Time jumps. Same corridor. The carpet is wetter.]*
-> **Hollis:** Round four hundred. Lights out on three. All quiet.
-> *[Time jumps. The man is a little translucent. The footage loses detail where he stands.]*
+> *[Time jumps. Same corridor. The carpet is wetter. The man is a little translucent. The footage loses detail where he stands.]*
 > *[staging: fade]*
-> **Hollis:** Round eleven thousand. Funny. I do not see the other guards any more.
-> **Hollis:** Is anyone there? Can anyone see me?
+> **Hollis:** Round eleven thousand. I do not see the other guards any more. Can anyone see me?
 > *[staging: gone]*
 > *[The man stops. Looks straight into the camera. The footage keeps going, but he is gone from the frame. Keys, faint, continue.]*
 > **Theo:** Nobody saw him, so he started to disappear.
-> **Theo:** That is what fading is. Keep somebody in sight.
 
 ## Walkman Diary: T. Wren (`tape.tobi`, tape)
 
@@ -92,15 +75,12 @@ All spoken lines are voiced (see `05-voice-and-radio.md`) and subtitled. Tapes p
 - **Backdrop:** `l1`
 
 > *[A cassette player on a shelf, red record light. Water dripping in the background, very close to the mic.]*
-> **Tobi:** Tobi Wren. I can hear the building thinking.
-> **Tobi:** I have worked out that it hears us. Every scan. Every step.
-> **Tobi:** So I stopped. If I stay silent, maybe nothing hears me.
+> **Tobi:** Tobi Wren. I can hear the building thinking. So I stopped talking.
 > *[staging: dim]*
 > *[Longer silence. Dripping. A faint, patient breath.]*
 > **Tobi:** It worked. I could not hear anyone, and nobody could hear me.
 > **Tobi:** That's the problem.
 > **Theo:** He went quiet so nothing would find him. Then nothing could.
-> **Theo:** Walk. Do not run. Do not ping near the Hush.
 
 ## Ravi's Demonstration (`tape.ravi`, tape)
 
@@ -109,14 +89,11 @@ All spoken lines are voiced (see `05-voice-and-radio.md`) and subtitled. Tapes p
 - **Backdrop:** `l2`
 
 > *[A ward day room. Ravi, nervous, sits close to the camera. A radio on the table.]*
-> **Ravi:** Okay. This is the Echo. It copies voices.
-> **Ravi:** Watch. Two taps. A breath. One.
+> **Ravi:** This is the Echo. Watch. Two taps. A breath. One.
 > *[He taps the table. Silence. Then, from the dark behind the camera, two taps. No breath. One tap.]*
 > *[staging: echo]*
 > **Echo:** Ravi? Ravi? Ravi?
-> **Ravi:** That is my voice. It learned me in an afternoon.
-> **Ravi:** It can copy the words. It can copy the taps. It cannot wait.
-> **Ravi:** So if you hear me and I do not wait, it is not me.
+> **Ravi:** It copies the words. It copies the taps. It cannot wait.
 > **Theo:** It doesn't breathe. That is the tell.
 
 ## Contact Sheet: M. Quill (`tape.quill`, tape)
@@ -126,17 +103,14 @@ All spoken lines are voiced (see `05-voice-and-radio.md`) and subtitled. Tapes p
 - **Backdrop:** `l3`
 
 > *[A slide projector throws images on the cave wall: a corridor, frame by frame.]*
-> **Quill:** Frame one. Empty corridor.
-> **Quill:** Frame ten. Empty.
+> **Quill:** Frame one. Empty corridor. Frame ten. Empty.
 > *[staging: shape]*
 > **Quill:** Frame thirty. A shape at the far end.
 > *[A shape at the end of the corridor, drawn closer in each frame.]*
 > *[staging: shape]*
-> **Quill:** It moves when I do not look. So I look.
-> **Quill:** But if I stare, it learns the stare.
+> **Quill:** It moves when I do not look. So I look. But if I stare, it learns the stare.
 > *[staging: shape]*
-> **Quill:** Watch it. Then step. Never stare. Remember.
-> **Theo:** Watch it, then step. Do not stare. Got it.
+> **Quill:** Watch it. Then step. Never stare.
 
 ## Tape 9 of 9: A. Pike (`tape.pike`, tape)
 
@@ -145,37 +119,23 @@ All spoken lines are voiced (see `05-voice-and-radio.md`) and subtitled. Tapes p
 - **Backdrop:** `l4`
 
 > *[A young man in a Corbel and Pike jacket. Same face as the ribbon-cutting. Sodium light. A small lamp beside him.]*
-> **Pike:** Day one. I am Anselm Pike. I was scanning the Halden before it opened.
-> **Pike:** I scanned the wall at the end of floor three, and the wall opened.
-> **Pike:** I have walked down for what feels like a week. I found a light in the dark. I called it the Lamp.
-> **Pike:** I do not know who built this place. I know it hangs from the Halden. Everything does.
-> **Pike:** Here is what I think. The Backrooms is a point cloud of forgotten places, and it has a shape.
-> **Pike:** If anybody ever brings a true scan of the real floor three, the shape will match, and a door will open.
-> **Pike:** That is the exit. That is all I know.
-> **Pike:** If you are watching this: the Lamp is at the bottom. Bring me the real floor.
-> **Theo:** He was the first. Unit zero zero zero seven. And I have the real floor.
-> **Theo:** Down to the Lamp.
+> **Pike:** Day one. Anselm Pike. I scanned the wall at the end of floor three, and the wall opened.
+> **Pike:** Down here there is a light. I call it the Lamp.
+> **Pike:** Bring a true scan of the real floor three, and the shape will match. A door will open.
+> **Theo:** He was first. Unit 0007. And I have the real floor.
 
 ## Joss Berrow (`npc.joss`, dialogue)
 
 - **Where:** Supply Closet (c0), after tier 1
 - **Trigger:** Walk up to the green dot; scene plays; he hands over lamp-bags
 - **Backdrop:** `c0`
-- **Note:** Gives: lamp-bags, the radio frequency. Journal 04. Unlocks goal.l0b.
+- **Note:** Gives: lamp-bags. Journal 04. Unlocks goal.l0b. Hollis, time and Hana are told elsewhere (thought.keys, Lena, the HUD goal).
 
-> **Joss:** Whoa. Easy. Easy. You are real. Green dots, good. Sit.
+> **Joss:** Whoa. Easy. You are real. Green dots, good. Sit.
 > **Theo:** Where am I?
-> **Joss:** The Backrooms. First of us named it. Do not ask why the name stuck.
-> **Joss:** Every Level is a place somebody forgot. This one is an office floor. The rest get stranger.
-> **Theo:** How do I get out?
-> **Joss:** Exits are where a Level touches the real world. Thirty years, no exit. Ines says she is close.
-> **Theo:** Thirty years? I have been gone minutes.
-> **Joss:** Time does not line up down here. Do not trust your watch.
-> **Joss:** Take these. Lamp-bags. Hang one at every turn. Scan it, it wakes up. Light only reaches what is mapped.
-> **Joss:** Listen for keys. That is Hollis. Old night guard. Still on his round. Wait for him to pass.
-> **Joss:** The way down needs a fuse. Breaker room, past the vending machines. Then find Hana at the pump house.
-> **Theo:** Thanks, Joss.
-> **Joss:** Do not thank me. Hang the bags.
+> **Joss:** The Backrooms. Every Level is a place somebody forgot.
+> **Joss:** Take these lamp-bags. Hang one at every turn, scan it, it wakes up.
+> **Joss:** The way down needs a fuse. Breaker room, past the vending machines.
 
 ## Hana Osei (`npc.hana`, dialogue)
 
@@ -184,18 +144,11 @@ All spoken lines are voiced (see `05-voice-and-radio.md`) and subtitled. Tapes p
 - **Backdrop:** `c1`
 - **Note:** Gives: pencil map, rope hint. Journal 07.
 
-> **Hana:** You are the new one.
-> **Theo:** Theo.
-> **Hana:** Hana. Sit. Do not talk much. Water carries.
-> **Hana:** Level 1 was the Halden's basement. Flooded in ninety-six. Forgotten, then drowned, then dropped here.
-> **Theo:** Where does the water go?
-> **Hana:** Upstream, a shaft. At the top, the Falls. Follow it. Always follow it.
-> **Hana:** You heard the thing in the pipes. That is Tobi. He went quiet. Now he is the Hush.
-> **Theo:** He is the monster?
-> **Hana:** He was a person who stopped being heard. The scanner reads that as red. It is not wrong.
-> **Hana:** Walk past him. Do not run. Do not ping. He will not forget you if you do.
-> **Hana:** The valve wheel is in the boiler room. Take it, drain the channel, take the rope for the gap.
-> **Hana:** Then Lena. At the Falls. She will tell you the rest.
+> **Hana:** Sit. Keep your voice down. Water carries.
+> **Hana:** The water runs up a shaft to the Falls. Always follow it.
+> **Hana:** The thing in the pipes is Tobi. He went quiet. Now he is the Hush.
+> **Hana:** Walk past him. Never run. Never ping.
+> **Hana:** The valve wheel is in the boiler room. Drain the channel, then go.
 
 ## Lena Sorrel (`npc.lena`, dialogue)
 
@@ -204,41 +157,23 @@ All spoken lines are voiced (see `05-voice-and-radio.md`) and subtitled. Tapes p
 - **Backdrop:** `falls`
 - **Note:** Gives: Brass Key, the respawn explanation. Journal 08. Unlocks thought.respawn.ines.
 
-> **Lena:** Theo. We heard you coming a day ago. Come in. Eat.
-> **Theo:** This place is...
-> **Lena:** Real. Yes. The Falls is a Refuge. Everyone remembers a place like it, so the dark cannot rewrite it.
-> **Lena:** That's what holds us together. A memory everyone shares.
-> **Theo:** Joss said thirty years.
-> **Lena:** Joss is generous. Time here is a rumour.
-> **Lena:** Five Crews went down before you. Six, if you count Crew 6, who never reached the Falls.
-> **Lena:** Some of them walk the Levels now. Not themselves. You have met Hollis. You will meet more.
-> **Theo:** Ines said the scanner has a shape to match. What does that mean?
-> **Lena:** Ask her. She has been keeping something from the rest of us, and I think it is hope.
-> **Lena:** Take the Brass Key. It opens the doors on Level 2. Ravi's camp is behind them. Do not answer the voices.
-> **Lena:** And Theo. When the dark takes you, you wake at the last lamp. That is her.
-> **Theo:** Ines?
-> **Lena:** She keeps a Lamp at the bottom. When you fall, she pulls you back to the nearest light. It costs her. Fall less.
+> **Lena:** Theo. We heard you coming. Come in. Eat.
+> **Lena:** This is the Falls. Everyone remembers a place like it, so the dark cannot rewrite it.
+> **Lena:** Joss says thirty years. Time down here is a rumour.
+> **Lena:** When the dark takes you, you wake at the last lamp. That is Ines. It costs her. Fall less.
+> **Lena:** Take the Brass Key. It opens the Ward doors.
 
 ## Ravi Anand (`npc.ravi`, dialogue)
 
 - **Where:** Ward Station (c2), after tier 5
 - **Trigger:** Tap twice at the curtain, wait, tap once; scene plays
 - **Backdrop:** `c2`
-- **Note:** Gives: crank location, scanner serial hook. Journal 09.
+- **Note:** Gives: crank location. Journal 09.
 
-> **Ravi:** (whisper) Two taps. A breath. One. Good. You waited. Come in.
-> **Ravi:** You are Theo. Lena's radio said. I keep mine unplugged.
-> **Theo:** Because of the Echo?
-> **Ravi:** It has my voice. If it speaks on a radio, you will think it is me. Or Ines.
-> **Ravi:** Rule seven. Base asks what you see. Base never says come to me.
-> **Theo:** What is it?
-> **Ravi:** The Wards is where voices end up. People who answered the wrong call. Someone who was nobody's patient.
-> **Ravi:** I do not know what it was. I know it learns.
-> **Theo:** Joss said the Survey's scanner came from somewhere.
-> **Ravi:** From Corbel and Pike. The head of a survey unit, serial zero zero zero seven. Ines found it in the Garage.
-> **Theo:** Zero zero zero seven. Mine is zero zero four one.
-> **Ravi:** Then you know what you are carrying.
-> **Ravi:** The crank for the lift is in the Dormitory. Take it. The Hollow is up. Pim keeps a light there.
+> **Ravi:** (whisper) Good. You waited. Come in. Quick.
+> **Ravi:** The Wards is where voices end up. The Echo learns them. It learned mine.
+> **Ravi:** The crank for the lift is in the Dormitory. Take it.
+> **Ravi:** The Hollow is up. Pim keeps a light there.
 
 ## Pim Ashworth (`npc.pim`, dialogue)
 
@@ -247,17 +182,10 @@ All spoken lines are voiced (see `05-voice-and-radio.md`) and subtitled. Tapes p
 - **Backdrop:** `c3`
 - **Note:** Gives: the Lamp Core clue, flash bulb. Journal 10.
 
-> **Pim:** Theo! You made it. Nobody makes it. Come sit.
-> **Pim:** I keep the lanterns lit so people can find the camp. It's not much of a job. I love it.
-> **Theo:** You are the youngest in the Survey.
-> **Pim:** I came in nineteen. I don't know how old I am. Does it matter?
-> **Pim:** I found a draft once. It's why I stayed. A draft means air from somewhere else.
-> **Theo:** The Still. Quill.
-> **Pim:** Yes. Marlow. He moves when nobody looks. Watch, then step. Never stare.
-> **Pim:** He used to photograph the Hollow. He thought if he looked at it enough, it would hold still.
-> **Theo:** Did it?
-> **Pim:** It held still around him. That's why he can't leave.
-> **Pim:** Ines is at the bottom. Garage. Follow the chalk. Take the Lamp Core from the shelf at the last bay.
+> **Pim:** You made it. Nobody makes it. Come sit.
+> **Pim:** I keep the lanterns lit so people can find camp. Best job ever.
+> **Pim:** Quill took forty photographs of the Hollow. He thought it would hold still.
+> **Pim:** Ines is at the bottom. Take the Lamp Core from the last bay.
 > **Pim:** See you up there, Theo. I mean it.
 
 ## Ines Calder (`npc.ines`, dialogue)
@@ -265,22 +193,18 @@ All spoken lines are voiced (see `05-voice-and-radio.md`) and subtitled. Tapes p
 - **Where:** The Lamp Room, after tier 8
 - **Trigger:** Walk up to the green dot
 - **Backdrop:** `lamp`
-- **Note:** Ends with choice.up / choice.stay. Journal 12.
+- **Note:** Ends with choice.up / choice.stay. Journal 12. Six spoken lines for any one player (the falls count is one line or the other).
 
 > *[A tall dome. A great brass Lamp. A woman at a desk looks up. Green dot, steady. Her eyes find Theo's scanner first.]*
 > **Ines:** Theo. Good. The dots held.
 > **Theo:** Ines. You pulled me back.
 > **Ines:** {deaths} times. Each night, a little further.
 > **Ines:** You never fell. That is not luck. That is care.
-> **Theo:** I have forty-one scans of the real floor three.
-> **Ines:** I know. I watched you collect them on the status screen. Come, put the unit to the board.
+> **Ines:** Put the unit to the board. Forty-one scans. I watched every one.
 > *[Theo places his scanner on the chalkboard rig. The board fills with white dots: every scan the Survey ever made. A gap, the shape of a corridor, glows.]*
-> **Ines:** The Backrooms is made of forgotten places. A place nobody looks at stops belonging to the world.
-> **Ines:** The Halden was empty ten years. You were the last to look at it, and you looked forty-one times.
-> **Ines:** That is why the wall let you in. And why you can leave.
+> **Ines:** A forgotten place leaves the world. You looked forty-one times. So you can leave.
 > *[The unit's scan slides into the gap. A line of light runs up the ladder shaft. A real door, edges of daylight.]*
-> **Ines:** The ladder goes up. Pike was right.
-> **Ines:** Or sit with me. Someone has to keep the lamp. Someone has to keep looking.
+> **Ines:** The ladder goes up. Or sit with me. Someone has to keep the lamp.
 > *[Two choices. Climb, or take the lamp.]*
 
 ## Up (`end.up`, cutscene)

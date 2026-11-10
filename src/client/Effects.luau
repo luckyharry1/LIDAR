@@ -51,7 +51,7 @@ local TRAIL_SIZE = 0.14
 local TRAIL_LIFETIME = 40 -- seconds: long enough to follow it to the door
 local SHAKE_SECONDS = 0.35
 local CATCH_HOLD_SECONDS = 0.4 -- a catch shows its face this long before the screen goes black
-local RULE_TOASTS = 2 -- a monster's rule is spelled out the first times it catches you
+local RULE_TOASTS = 1 -- a monster's rule is spelled out the first time it catches you, once
 local SHAKE_STRENGTH = 0.5
 local MIRROR_HEIGHT = 5
 local ZONE_HZ = 6
@@ -123,7 +123,7 @@ local function onCaught(enemyKind: string, downed: boolean)
 	if def then
 		local name = if entity then entity.name else def.displayName
 		Hud.toast("Caught by " .. name .. ".", "warn")
-		-- Its rule is a lesson for the first catches; after that it is a lecture.
+		-- Its rule is a lesson the first time; after that it is a lecture.
 		local times = (caughtBy[enemyKind] or 0) + 1
 		caughtBy[enemyKind] = times
 		if times <= RULE_TOASTS then
