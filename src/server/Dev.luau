@@ -19,6 +19,12 @@
 --   workspace:SetAttribute("DevScare", os.clock()) play the close encounter (jumpscare) now, on
 --                                                        any level (the client plays it for itself)
 --   workspace:SetAttribute("DevCommand", "lights on")    light the maze to inspect it ("lights off")
+--
+-- From the Studio command bar while playing (client side, the client reads it):
+--   workspace:SetAttribute("DevScene", "cs.open")        play one cutscene by id (cs.open, tape,
+--                                                        tape.halden, npc.ines, end.up, ...)
+--   workspace:SetAttribute("DevScene", "all")            play every cutscene one after another;
+--                                                        hold Q to skip the one on screen
 
 local RunService = game:GetService("RunService")
 

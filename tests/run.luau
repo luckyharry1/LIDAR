@@ -15,6 +15,7 @@ local suites: { { name: string, tests: { [string]: () -> () } } } = {
 	{ name = "Dread", tests = require("./DreadTests") },
 	{ name = "Simulation", tests = require("./SimTests") },
 	{ name = "Lore", tests = require("./LoreTests") },
+	{ name = "Stage", tests = require("./StageTests") },
 	{ name = "Source", tests = require("./SourceTests") },
 }
 
