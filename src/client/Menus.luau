@@ -12,6 +12,7 @@ local UserInputService = game:GetService("UserInputService")
 
 local Audio = require(script.Parent.Audio)
 local Config = require(ReplicatedStorage.Shared.Config)
+local Cutscene = require(script.Parent.Cutscene)
 local Dots = require(script.Parent.Dots)
 local DotRules = require(ReplicatedStorage.Shared.pure.DotRules)
 local Enemies = require(ReplicatedStorage.Shared.data.Enemies)
@@ -1382,19 +1383,34 @@ function Menus.askDescend(body: string)
 end
 
 --------------------------------------------------------------------------------------------
--- The finale: Ines speaks, then the choice. There is no close button: it is answered once.
+-- The finale: Ines speaks (a filmed scene on the lamp set), then the choice, then the ending
+-- the player chose is filmed too. There is no close button: the choice is answered once.
 
+local endingBusy = false -- Ines is speaking, or an ending is playing
+
+-- Closes the choice, plays that ending's scene, and only then tells the server: for "up" the
+-- server answers by putting the player on the title screen, and that must not happen under a
+-- playing cutscene. A skipped scene counts as seen.
 local function choose(choice: string)
-	send("Choose", choice)
-	Menus.close()
-	local card = Lore.ending.cards[choice]
-	if card then
-		task.defer(Menus.showNote, card.title, card.body)
+	if endingBusy then
+		return
 	end
+	endingBusy = true
+	Menus.close()
+	local function answered()
+		endingBusy = false
+		send("Choose", choice)
+	end
+	local sceneId = Lore.ending.scenes[choice]
+	if sceneId == nil then
+		answered()
+		return
+	end
+	Cutscene.play(sceneId, answered)
 end
 
 local function buildEnding()
-	local frame = window("ending", 600, 380)
+	local frame = window("ending", 520, 220)
 	endingTitle = heading(frame, "")
 	endingBody = scrollBody(frame, UDim2.fromOffset(0, 44), UDim2.new(1, 0, 1, -100), {
 		TextSize = Ui.text.body,
@@ -1421,15 +1437,35 @@ local function buildEnding()
 	windows.ending.first = up
 end
 
--- Ines's last words and the choice. Waits for the page the player is reading to be put back.
+-- Ines's last words, filmed, and then the choice. Waits for the page the player is reading to
+-- be put back. The server's text of what she says (`body`) is for clients without pictures; this
+-- one plays the scene instead, with the count of falls filled in and the lines that do not fit
+-- left out.
 function Menus.showEnding(title: string, body: string)
 	if current == "note" then
 		pendingEnding = { title = title, body = body }
 		return
 	end
-	endingTitle.Text = string.upper(title)
-	setBody(endingBody, body)
-	Menus.open("ending")
+	if endingBusy then
+		return
+	end
+	endingBusy = true
+	local deaths = State.profile.stats.deaths
+	local function askChoice()
+		endingBusy = false
+		if State.server.stage ~= "lore" then
+			return -- they left the Lamp Room (a skipped or cut scene); the server would ignore it
+		end
+		endingTitle.Text = string.upper(title)
+		setBody(endingBody, Lore.ending.ask)
+		Menus.open("ending")
+	end
+	-- The third argument ({ values, keep }) is the pictures thread's; an older Cutscene ignores it.
+	local cutscene: any = Cutscene
+	cutscene.play(Lore.ending.scenes.opening, askChoice, {
+		values = { deaths = deaths },
+		keep = Lore.endingKeep(deaths),
+	})
 end
 
 function Menus.showNote(title: string, body: string)

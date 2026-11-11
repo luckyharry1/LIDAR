@@ -51,7 +51,7 @@ Placeholders: `{deaths}` `{floor}` `{n}` `{party}`. A `look` names a backdrop in
 
 | id | where | text | Theo thought | look |
 |---|---|---|---|---|
-| `poi.l0.vcr` | L0 Office Floor / CRT and VCR on a cart in the first room: orientation tape inserted | SURVEY ORIENTATION. TAPE 1 OF 9.<br>PRESS PLAY. *Plays tape.orientation on interact.* | A tape already loaded. Somebody left this for whoever came through. | l0 |
+| `poi.l0.vcr` | L0 Office Floor / CRT and VCR on a cart in the first room: orientation tape inserted | SURVEY ORIENTATION. TAPE 1 OF 7.<br>PRESS PLAY. *The TV wakes once 30 dots have landed on it; its Watch prompt then plays tape.orientation (as often as you like).* | A tape already loaded. Somebody left this for whoever came through. | l0 |
 | `poi.l0.desk` | L0 Office Floor / Desk with a Halden Building staff badge and a nameplate | HALDEN BUILDING. A. PIKE.<br>Corbel & Pike Surveying.<br>Valid: 1994. | Halden. Corbel and Pike. That is my company. This is a 1994 badge. | l0 |
 | `poi.l0.whiteboard` | L0 Office Floor / Whiteboard in a meeting room | DAY 3.<br>THE WALLS MOVED WHILE WE SLEPT.<br>NEVER SLEEP UNLIT. | Moving walls. Brilliant. Keep scanning. | l0 |
 | `poi.l0.coat` | L0 Office Floor / Coat on a hook; security badge; clipboard | HOLLIS, J. NIGHT SECURITY.<br>ROUND LOG: 11,284.<br>LAST ENTRY: ALL QUIET. | He never clocked out. | l0 |
@@ -87,7 +87,7 @@ Placeholders: `{deaths}` `{floor}` `{n}` `{party}`. A `look` names a backdrop in
 | `poi.l4.stone` | L4 Garage / Cornerstone | HALDEN BUILDING. 1994.<br>NOTHING HERE IS OLDER THAN THIS STONE.<br>EVERY LEVEL HANGS FROM IT. THE LAMP IS BELOW. | So the way out is down. | l4 |
 | `poi.l4.ticket` | L4 Garage / Ticket machine at a boom gate | ENTERED: TUE 11:42 PM<br>EXIT: _____<br>(machine will not print an exit time) | Eleven forty-two. That's when I walked in. It's been tracking me. | l4 |
 | `poi.l4.chalk` | L4 Garage / Chalk arrows leading downward | Fresh chalk arrows.<br>I.C. | Fresh chalk. She walked this recently. She's close. | l4 |
-| `poi.l4.pike` | L4 Garage / Folding table with a camcorder, unit 0007, and a tape | UNIT 0007. CORBEL & PIKE.<br>TAPE 9 OF 9. FOR WHOEVER BRINGS THE REAL FLOOR. *Plays tape.pike on interact.* | Unit zero zero zero seven. Mine is zero zero four one. He's the first. The last tape is for me. | l4 |
+| `poi.l4.pike` | L4 Garage / Folding table with a camcorder, unit 0007, and a tape | UNIT 0007. CORBEL & PIKE.<br>TAPE 7 OF 7. FOR WHOEVER BRINGS THE REAL FLOOR. *Plays tape.pike on interact.* | Unit zero zero zero seven. Mine is zero zero four one. He's the first. The last tape is for me. | l4 |
 | `poi.l4.pit` | L4 Garage / Wall of a drop shaft | MARKED EDGE.<br>JOSS PAINTED THE EDGE SO YOU WOULD FEEL IT FIRST. | He painted the edge so you'd feel it first. He thought of that. | l4 |
 | `poi.lamp.lamp` | Lamp Room / The Lamp | THE LAMP.<br>Nobody built it. Pike lit it. Ines keeps it. | That's the Lamp. All the Levels hang off that. | lamp |
 | `poi.lamp.board` | Lamp Room / Chalkboard of the whole point cloud | EVERY SCAN OF EVERY SURVEYOR.<br>ALL OF THIS.<br>(a gap the shape of a corridor) | The whole Survey's work on one board. And one gap that's the exact shape of floor three. | lamp |
@@ -262,6 +262,7 @@ Placeholders: `{deaths}` `{floor}` `{n}` `{party}`. A `look` names a backdrop in
 |---|---|---|---|---|
 | `choice.up` | Lamp Room / Dialogue choice 1 | Climb the ladder. |  |  |
 | `choice.stay` | Lamp Room / Dialogue choice 2 | Take the lamp. |  |  |
+| `choice.ask` | Lamp Room / Choice window, after Ines has finished | Climb, or keep the lamp? |  |  |
 
 ## sign
 

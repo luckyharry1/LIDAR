@@ -24,6 +24,14 @@ MAX_LINE = 100
 SPOKEN_MAX = 90  # characters in one spoken or thought line
 SPOKEN_BUDGET = {"cs.open": 3, "tape.orientation": 5, "npc.ines": 7}  # spoken lines per scene; others: tape 4, camp 5
 
+# The staging cues each set knows (the contract with client/Stage.luau). A cue not listed here
+# does nothing in the game, so the generator refuses it.
+CUES = {
+    "office": {"office", "lean", "dark", "wake"},
+    "tape": {"reach", "static", "door", "fade", "gone", "dim", "echo", "shape"},
+    "lamp": {"lamp", "board", "ladder", "climb", "morning", "scan42", "take", "keep"},
+}
+
 E = []
 SCENES = []
 
@@ -331,8 +339,8 @@ def poi(id, section, where, lines, thought, look, radius=8, note=None):
 
 # --- Level 0
 poi("poi.l0.vcr", "l0", "CRT and VCR on a cart in the first room: orientation tape inserted",
-    ["SURVEY ORIENTATION. TAPE 1 OF 9.", "PRESS PLAY."], "A tape already loaded. Somebody left this for whoever came through.", "l0", 9,
-    "Plays tape.orientation on interact.")
+    ["SURVEY ORIENTATION. TAPE 1 OF 7.", "PRESS PLAY."], "A tape already loaded. Somebody left this for whoever came through.", "l0", 9,
+    "The TV wakes once 30 dots have landed on it; its Watch prompt then plays tape.orientation (as often as you like).")
 poi("poi.l0.desk", "l0", "Desk with a Halden Building staff badge and a nameplate",
     ["HALDEN BUILDING. A. PIKE.", "Corbel & Pike Surveying.", "Valid: 1994."], "Halden. Corbel and Pike. That is my company. This is a 1994 badge.", "l0")
 poi("poi.l0.whiteboard", "l0", "Whiteboard in a meeting room",
@@ -428,7 +436,7 @@ poi("poi.l4.ticket", "l4", "Ticket machine at a boom gate",
 poi("poi.l4.chalk", "l4", "Chalk arrows leading downward",
     ["Fresh chalk arrows.", "I.C."], "Fresh chalk. She walked this recently. She's close.", "l4")
 poi("poi.l4.pike", "l4", "Folding table with a camcorder, unit 0007, and a tape",
-    ["UNIT 0007. CORBEL & PIKE.", "TAPE 9 OF 9. FOR WHOEVER BRINGS THE REAL FLOOR."], "Unit zero zero zero seven. Mine is zero zero four one. He's the first. The last tape is for me.", "l4", 9,
+    ["UNIT 0007. CORBEL & PIKE.", "TAPE 7 OF 7. FOR WHOEVER BRINGS THE REAL FLOOR."], "Unit zero zero zero seven. Mine is zero zero four one. He's the first. The last tape is for me.", "l4", 9,
     "Plays tape.pike on interact.")
 poi("poi.l4.pit", "l4", "Wall of a drop shaft",
     ["MARKED EDGE.", "JOSS PAINTED THE EDGE SO YOU WOULD FEEL IT FIRST."], "He painted the edge so you'd feel it first. He thought of that.", "l4")
@@ -586,6 +594,7 @@ add("sign.relay.3", "sign", "relay", "Poster on a Relay floor", ["CREW 8: THE KE
 # ===================================================================== CHOICES, NOTES (misc)
 add("choice.up", "choice", "lamp", "Dialogue choice 1", ["Climb the ladder."])
 add("choice.stay", "choice", "lamp", "Dialogue choice 2", ["Take the lamp."])
+add("choice.ask", "choice", "lamp", "Choice window, after Ines has finished", ["Climb, or keep the lamp?"])
 add("note.dorm.board", "note", "dorm", "Corkboard: WHO IS STILL OUT",
     ["WHO IS STILL OUT", "HOLLIS  rounds  (the Pacer)", "WREN  listening  (the Hush)", "QUILL  watching  (the Still)",
      "ANAND  alive, hiding", "ASHWORTH  alive, keeping a lamp"],
@@ -612,7 +621,7 @@ scene("cs.open", "cutscene", "The Halden Building", "New Game start", "Automatic
 ], note="About 30 seconds. Staged in the client (Stage.luau, set office): scanner sweeps the floor, Theo leans on the wall, it melts, black, the title, a low shot of the melted wall. Ends on the first playable frame.", look="l0", stage="office")
 
 # --- TAPE 1: ORIENTATION (who is talking, what the scanner is for, go find my people: nothing else)
-scene("tape.orientation", "tape", "Survey Orientation (Tape 1 of 9)", "CRT/VCR in the first room (poi.l0.vcr); lit and playable on the first dot", "Interact; auto-offers at 20 seconds idle", [
+scene("tape.orientation", "tape", "Tape 1 of 7: Survey Orientation", "TV on a cart in the intake room (poi.l0.vcr); wakes after 30 dots land on it", "Watch prompt on the screen, once it has woken; can be watched again", [
     ("~", "CRT static. A woman at a desk with a banker's lamp. Camcorder angle, slightly too low. Wall maps behind her."),
     ("Ines", "Hello. If you are watching this, you came through a wall. Everyone does."),
     ("Ines", "I am Ines. I run the Survey. Your scanner makes no light. It makes a record."),
@@ -625,7 +634,7 @@ scene("tape.orientation", "tape", "Survey Orientation (Tape 1 of 9)", "CRT/VCR i
 ], note="Five spoken lines. It does not explain the Backrooms (Joss does, once), the colours (the intake hint does) or the exit (Pike's tape and the finale do). Journal entries 02 and 03 unlock.", look="l0")
 
 # --- TAPE 2: HALDEN PROMO
-scene("tape.halden", "tape", "Halden Building: Where Tomorrow Works", "VCR in the Level 0 break room", "Interact", [
+scene("tape.halden", "tape", "Tape 2 of 7: Where Tomorrow Works", "TV and VCR in Joss's Supply Closet (copyroom)", "Watch prompt, once the room's lamp is lit; can be watched again", [
     ("~", "A promo VHS from 1994, saturated colour. Fast pans of a glass lobby, escalators, an atrium with a fountain."),
     ("Announcer", "Halden Building. Fifteen floors of tomorrow."),
     ("~", "Camera drifts down a corridor, floor three. At the very end is a door that is not on any plan. It is slightly open. Light is coming out of it."),
@@ -637,7 +646,7 @@ scene("tape.halden", "tape", "Halden Building: Where Tomorrow Works", "VCR in th
 ], look="l0")
 
 # --- TAPE 3: HOLLIS
-scene("tape.hollis", "tape", "Security Camera 4 (night)", "Monitor in the Level 0 security booth", "Interact", [
+scene("tape.hollis", "tape", "Tape 3 of 7: Security Camera 4", "Security monitor on the desk at the Night Desk (office)", "Watch prompt, once the room's lamp is lit; can be watched again", [
     ("~", "Grey security footage. A man in a security jacket, keys on his belt, walks the corridor with a flashlight."),
     ("Hollis", "Round one. All quiet."),
     ("~", "Time jumps. Same corridor. The carpet is wetter. The man is a little translucent. The footage loses detail where he stands."),
@@ -649,7 +658,7 @@ scene("tape.hollis", "tape", "Security Camera 4 (night)", "Monitor in the Level 
 ], look="l0")
 
 # --- TAPE 4: TOBI
-scene("tape.tobi", "tape", "Walkman Diary: T. Wren", "Cassette player in the Level 1 pump room", "Interact", [
+scene("tape.tobi", "tape", "Tape 4 of 7: Walkman Diary", "Cassette player with a small screen in Hana's Pump House (drybooth)", "Watch prompt, once the room's lamp is lit; can be watched again", [
     ("~", "A cassette player on a shelf, red record light. Water dripping in the background, very close to the mic."),
     ("Tobi", "Tobi Wren. I can hear the building thinking. So I stopped talking."),
     ("@", "dim"),
@@ -660,7 +669,7 @@ scene("tape.tobi", "tape", "Walkman Diary: T. Wren", "Cassette player in the Lev
 ], look="l1")
 
 # --- TAPE 5: RAVI
-scene("tape.ravi", "tape", "Ravi's Demonstration", "TV in the Level 2 day room", "Interact", [
+scene("tape.ravi", "tape", "Tape 5 of 7: Ravi's Demonstration", "TV on a trolley in Ravi's Ward Station (pottingshed)", "Watch prompt, once the room's lamp is lit; can be watched again", [
     ("~", "A ward day room. Ravi, nervous, sits close to the camera. A radio on the table."),
     ("Ravi", "This is the Echo. Watch. Two taps. A breath. One."),
     ("~", "He taps the table. Silence. Then, from the dark behind the camera, two taps. No breath. One tap."),
@@ -671,7 +680,7 @@ scene("tape.ravi", "tape", "Ravi's Demonstration", "TV in the Level 2 day room",
 ], look="l2")
 
 # --- TAPE 6: QUILL
-scene("tape.quill", "tape", "Contact Sheet: M. Quill", "Projector in the Level 3 cave", "Interact", [
+scene("tape.quill", "tape", "Tape 6 of 7: Contact Sheet", "Slide projector and screen in the Dormitory (breakroom)", "Watch prompt, once the room's lamp is lit; can be watched again", [
     ("~", "A slide projector throws images on the cave wall: a corridor, frame by frame."),
     ("Quill", "Frame one. Empty corridor. Frame ten. Empty."),
     ("@", "shape"),
@@ -684,7 +693,7 @@ scene("tape.quill", "tape", "Contact Sheet: M. Quill", "Projector in the Level 3
 ], look="l3")
 
 # --- TAPE 7: PIKE (the key reveal: told here, found late, and again in the finale)
-scene("tape.pike", "tape", "Tape 9 of 9: A. Pike", "Camcorder on the folding table in the Garage", "Interact", [
+scene("tape.pike", "tape", "Tape 7 of 7: A. Pike", "Camcorder with its screen open on the desk in Pim's Hollow Camp (archivenook)", "Watch prompt, once the room's lamp is lit; can be watched again", [
     ("~", "A young man in a Corbel and Pike jacket. Same face as the ribbon-cutting. Sodium light. A small lamp beside him."),
     ("Pike", "Day one. Anselm Pike. I scanned the wall at the end of floor three, and the wall opened."),
     ("Pike", "Down here there is a light. I call it the Lamp."),
@@ -749,40 +758,53 @@ scene("npc.pim", "dialogue", "Pim Ashworth", "Hollow Camp (c3), after tier 7", "
     ("Pim", "See you up there, Theo. I mean it."),
 ], note="Gives: the Lamp Core clue, flash bulb. Journal 10.", look="c3")
 
-# --- DIALOGUE: INES (Lamp Room, finale). Six lines for any one player (the falls count is one line or the other).
-scene("npc.ines", "dialogue", "Ines Calder", "The Lamp Room, after tier 8", "Walk up to the green dot", [
+# --- DIALOGUE: INES (Lamp Room, finale). Seven spoken lines in the file; six for any one player
+# (the falls count is one line or the other). Played as a scene on the lamp set (Stage.luau):
+# the client fills {deaths} and drops the lines that do not apply (Lore.endingKeep).
+scene("npc.ines", "dialogue", "Ines Calder", "The Lamp Room, after tier 8", "Reading the last page in the Lamp Room (the server sends Ending); then the choice window", [
+    ("@", "lamp"),
     ("~", "A tall dome. A great brass Lamp. A woman at a desk looks up. Green dot, steady. Her eyes find Theo's scanner first."),
     ("Ines", "Theo. Good. The dots held."),
     ("Theo", "Ines. You pulled me back."),
     ("Ines", "{deaths} times. Each night, a little further."),
     ("Ines", "You never fell. That is not luck. That is care."),
     ("Ines", "Put the unit to the board. Forty-one scans. I watched every one."),
+    ("@", "board"),
     ("~", "Theo places his scanner on the chalkboard rig. The board fills with white dots: every scan the Survey ever made. A gap, the shape of a corridor, glows."),
     ("Ines", "A forgotten place leaves the world. You looked forty-one times. So you can leave."),
+    ("@", "ladder"),
     ("~", "The unit's scan slides into the gap. A line of light runs up the ladder shaft. A real door, edges of daylight."),
     ("Ines", "The ladder goes up. Or sit with me. Someone has to keep the lamp."),
     ("~", "Two choices. Climb, or take the lamp."),
-], note="Ends with choice.up / choice.stay. Journal 12. Six spoken lines for any one player (the falls count is one line or the other).", look="lamp")
+], note="Ends with choice.ask, then choice.up / choice.stay. Journal 12. Six spoken lines for any one player (the falls count is one line or the other).", look="lamp", stage="lamp")
 
-# --- ENDINGS
-scene("end.up", "cutscene", "Up", "After choice.up", "Cutscene, then credits card", [
-    ("~", "Theo climbs. The air changes first: cold, clean, damp with rain."),
-    ("~", "A door. He steps through. Halden Building, floor three, early light. The wall is a wall."),
+# --- ENDINGS (cues on the lamp set; captions are big centred text). Nothing here promises a mode
+# that does not exist: the game has no Night Shift.
+scene("end.up", "cutscene", "Up", "After choice.up", "Cutscene, then the server returns the player to the title", [
+    ("@", "climb"),
+    ("~", "Theo climbs. The dark falls away below. The air changes first: cold, clean, damp with rain. The frame whites out."),
+    ("@", "morning"),
+    ("~", "A door. He steps through. Halden Building, floor three, cold early light. The wall is a wall. The tripod scanner stands where it stood."),
     ("Theo", "It's morning."),
-    ("~", "He checks his phone. Time: 11:43 PM. One minute after he leaned on the wall."),
+    ("^", "11:43 PM"),
     ("Theo", "One minute."),
-    ("~", "He looks at the plaque in the stairwell: HALDEN BUILDING. FIFTEEN FLOORS."),
+    ("^", "HALDEN BUILDING. FIFTEEN FLOORS."),
     ("Theo", "Fifteen."),
-    ("~", "Behind him, the scanner chimes. SCAN 42 OF 42 BEGINNING. Nobody pressed anything."),
-    ("~", "Card: THE BACKROOMS: MAPPED. Credits. Next run: Night Shift +."),
-], note="The stinger: fifteen floors, and a scan starting by itself. Keeps the mystery open.", look="lamp")
+    ("@", "scan42"),
+    ("~", "Behind him the scanner's lens lights by itself and white dots sweep the room. Nobody pressed anything."),
+    ("^", "SCAN 42 OF 42"),
+    ("^", "THE BACKROOMS: MAPPED"),
+], note="The stinger: fifteen floors, and a scan starting by itself. Keeps the mystery open.", look="lamp", stage="lamp")
 scene("end.stay", "cutscene", "The Lamp", "After choice.stay", "Cutscene, then The Relay begins", [
-    ("~", "Theo takes the Lamp's handle. It is heavier than it looks. Ines lets go."),
+    ("@", "take"),
+    ("~", "Theo takes the Lamp's handle. It is heavier than it looks. Ines lets go and steps back. The Lamp flares."),
     ("Ines", "It listens to whoever is looking at it. That is the whole trick."),
     ("Theo", "Somebody will wake up scared in an office tomorrow. I would want a light."),
-    ("~", "The ladder is still there. He does not climb it."),
-    ("~", "Card: THE RELAY. Floor 1. Each floor is lit by the last person to pass it."),
-], note="Starts endless mode. The daily seed is tonight's floor.", look="lamp")
+    ("@", "keep"),
+    ("~", "The ladder is still there. He does not climb it. The daylight at the top fades; the Lamp stays lit; small lights come on one below another, far down in the dark."),
+    ("^", "THE RELAY"),
+    ("^", "Every floor is lit by the last one through."),
+], note="Starts endless mode. The daily seed is tonight's floor.", look="lamp", stage="lamp")
 
 
 for _s in SCENES:
@@ -834,6 +856,14 @@ def validate():
         if len(ln) > 260 or (i.split(".")[0] not in ("cs", "tape", "npc", "end") and len(ln) > MAX_LINE):
             print("LONG", i, len(ln))
             ok = False
+    # Every staging cue must belong to the scene's set (the pictures are drawn by client/Stage.luau).
+    for sc in SCENES:
+        for b in sc["beats"]:
+            if "stage" in b:
+                cues = CUES.get(sc.get("stage", ""))
+                if cues is None or b["stage"] not in cues:
+                    print("UNKNOWN CUE", sc["id"], sc.get("stage"), b["stage"])
+                    ok = False
     # Budgets (Vasco, 2026-11-10: "the dialogue is way too much and repetitive"). A new line has
     # to earn its place: spoken lines per scene, spoken line length, and no sentence said twice.
     spoken_seen = {}
@@ -985,7 +1015,7 @@ def main():
 
     cs = ["# Cutscenes, videotapes and surveyor dialogue", "",
           "Generated by `build_text.py`. A `~` beat is a picture or sound direction; spoken beats give the speaker. ",
-          "All spoken lines are voiced (see `05-voice-and-radio.md`) and subtitled. Tapes play on a CRT or projector in the world; the screen is lit the moment the first dot lands on it.", ""]
+          "All spoken lines are voiced (see `05-voice-and-radio.md`) and subtitled. Tapes play from a screen in the world (a Watch prompt, once the room is lit or the intake TV has woken) and can be watched again. The endings and the finale are filmed on the lamp set.", ""]
     for s in SCENES:
         cs += ["## %s (`%s`, %s)" % (s["title"], s["id"], s["kind"]), "", "- **Where:** " + s["where"], "- **Trigger:** " + s["trigger"]]
         if s.get("look"):

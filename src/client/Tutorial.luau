@@ -1,7 +1,8 @@
 --!strict
 -- Teaching by doing, and telling the story as we go. A new player first sees the opening
 -- cutscene (Theo falls through a wall into the Backrooms), then the intake room walks them
--- through scatter, the Survey's orientation tape on a television, the sweep and the door.
+-- through scatter, the sweep and the door, and a television that wakes by itself when enough
+-- dots land on it: its tape (the Survey's orientation) is the player's to watch or leave.
 -- Theo thinks out loud at each first (subtitled), and lines from the Survey manual
 -- (src/shared/data/LoreText) carry the rules, with the control for the device in the player's
 -- hands in brackets underneath, shown only when it is relevant. After the intake, hints
@@ -31,7 +32,8 @@ local HINT_SECONDS = 8
 local HINT_PATIENCE_SECONDS = 30 -- a hint waits this long for the screen to be quiet, then gives up
 local SPRINT_HINT_AFTER = 35 -- seconds into the first level
 local TV_REACH = 3 -- studs: a dot this close to the television's screen counts as a hit on it
-local TV_HITS = 30 -- dots the screen needs before the tape plays: looked at, not brushed past
+local TV_HITS = 30 -- dots the screen needs before it wakes: looked at, not brushed past
+local TV_HINT = "A screen just woke up. Go look."
 local THINK_GAP_SECONDS = 40 -- Theo thinks aloud at most this often
 local PROFILE_WAIT_SECONDS = 3 -- how long to wait for a saved profile before assuming a new player
 
@@ -45,7 +47,9 @@ local timedHintUntil = 0
 local levelStartedAt = 0
 local thoughts: { [string]: boolean } = {} -- Theo says each of these once per session
 local tvHits = 0
-local tvPlayed = false
+local tvAwake = false
+local tvHintUntil = 0 -- while the "screen woke" hint is up, the step's own hint is put back after it
+local intake = 0 -- counts intakes, so a late callback of an earlier one does nothing
 local lastThought = -1000
 
 -- The printed lines of a story entry (margin notes left out unless asked for), joined.
@@ -95,47 +99,66 @@ end
 
 local setStep: (name: string) -> ()
 
--- The orientation tape. The screen wakes (a cold blue glow), the tape plays, and the intake
--- carries on with the sweep.
-local function playTape()
-	if tvPlayed then
+-- What the hint line says for an intake step ("" for none).
+local function stepHint(name: string): string
+	if name == "scan" then
+		return "Scan.\n[" .. Input.hint("fire") .. "]"
+	elseif name == "sweep" then
+		return "[" .. Input.hint("sweep") .. "] sweeps the whole view"
+	elseif name == "find" then
+		return "White: walls. Green: friends. Red: danger.\n["
+			.. Input.hint("spread")
+			.. " widens the scatter]"
+	elseif name == "door" then
+		return "Gold dots are the way on.\n[" .. Input.hint("interact") .. "]"
+	end
+	return ""
+end
+
+-- The intake television wakes: it lights up with a Watch prompt, and a hint says so once the
+-- screen is quiet. The tape is optional: nothing waits for it and the door hint never does. It
+-- plays when the prompt is used (client/Tapes), and can be watched again.
+local function wakeTv()
+	if tvAwake then
 		return
 	end
-	tvPlayed = true
 	local screen = tvScreen()
-	if screen then
-		screen.Transparency = 0
-		screen.Material = Enum.Material.Neon
-		screen.Color = Color3.fromRGB(150, 190, 255)
-		local light = Instance.new("PointLight")
-		light.Color = screen.Color
-		light.Range = 14
-		light.Brightness = 1.4
-		light.Parent = screen
+	if screen == nil then
+		return
 	end
-	Hud.hint(nil)
-	Cutscene.play("tape.orientation")
+	tvAwake = true
+	screen.Transparency = 0
+	local light = screen:FindFirstChildOfClass("PointLight")
+	if light then
+		light.Enabled = true
+	end
+	local prompt = screen:FindFirstChildOfClass("ProximityPrompt")
+	if prompt then
+		prompt.Enabled = true
+	end
+	local mine = intake
+	task.spawn(function()
+		local waited = 0
+		while (Hud.busy() or Cutscene.playing) and waited < HINT_PATIENCE_SECONDS do
+			waited += task.wait(0.5)
+		end
+		if mine ~= intake or State.server.stage ~= "tutorial" then
+			return -- the player left the intake while the hint waited
+		end
+		tvHintUntil = os.clock() + HINT_SECONDS
+		Hud.hint(TV_HINT)
+	end)
 end
 
 function setStep(name: string)
 	step = name
 	stepStarted = os.clock()
+	tvHintUntil = 0 -- a new lesson replaces the screen's hint
 	if name == "scan" then
 		dotsAtStart = Dots.spawned
-		Hud.hint("Scan.\n[" .. Input.hint("fire") .. "]")
-	elseif name == "sweep" then
-		Hud.hint("[" .. Input.hint("sweep") .. "] sweeps the whole view")
-	elseif name == "find" then
-		Hud.hint(
-			"White: walls. Green: friends. Red: danger.\n["
-				.. Input.hint("spread")
-				.. " widens the scatter]"
-		)
-	elseif name == "door" then
-		Hud.hint("Gold dots are the way on.\n[" .. Input.hint("interact") .. "]")
-	else
-		Hud.hint(nil)
 	end
+	local text = stepHint(name)
+	Hud.hint(if text ~= "" then text else nil)
 end
 
 -- A hint that shows once per session and clears itself. It waits its turn: never while a scene
@@ -199,6 +222,12 @@ local function update()
 		timedHintUntil = 0
 		Hud.hint(nil)
 	end
+	if tvHintUntil > 0 and now >= tvHintUntil then
+		tvHintUntil = 0
+		-- Back to the lesson the screen interrupted, if the player is still in the intake.
+		local text = if State.server.stage == "tutorial" then stepHint(step) else ""
+		Hud.hint(if text ~= "" then text else nil)
+	end
 
 	if State.server.stage == "level" then
 		if Avatar.wading then
@@ -215,11 +244,12 @@ end
 
 -- A new player sees the opening cutscene before the intake; anyone else goes straight in.
 local function beginIntake()
+	local mine = intake
 	local waited = 0
 	while not State.profileLoaded and waited < PROFILE_WAIT_SECONDS do
 		waited += task.wait(0.1)
 	end
-	if State.server.stage ~= "tutorial" then
+	if mine ~= intake or State.server.stage ~= "tutorial" then
 		return
 	end
 	if State.profile.tutorialDone then
@@ -227,7 +257,9 @@ local function beginIntake()
 		return
 	end
 	Cutscene.play("cs.open", function()
-		if State.server.stage == "tutorial" then
+		-- The scene can end early (a friend opened the door and the player is in the level
+		-- now) or the intake can have restarted: then there is no lesson to begin.
+		if mine == intake and State.server.stage == "tutorial" then
 			setStep("scan")
 		end
 	end)
@@ -236,16 +268,18 @@ end
 function Tutorial.start()
 	State.onState(function(server, previous)
 		if server.stage == "tutorial" and previous.stage ~= "tutorial" then
+			intake += 1
 			tvHits = 0
-			tvPlayed = false
+			tvAwake = false
 			task.spawn(beginIntake)
 		elseif server.stage ~= "tutorial" and previous.stage == "tutorial" then
+			intake += 1
 			setStep("done")
 		end
 	end)
 	Lidar.onHit(function(position: Vector3)
-		-- Not during the first two lessons: a new player's first stray dots used to start a
-		-- minute of tape before they had learned to scan. From "find" on it is theirs to discover.
+		-- Not during the first two lessons: a new player's first stray dots used to take over the
+		-- screen before they had learned to scan. From "find" on the television is theirs to find.
 		if step ~= "find" and step ~= "door" then
 			return
 		end
@@ -253,7 +287,7 @@ function Tutorial.start()
 		if screen ~= nil and (screen.Position - position).Magnitude < TV_REACH then
 			tvHits += 1
 			if tvHits >= TV_HITS then
-				playTape()
+				wakeTv()
 			end
 		end
 	end)

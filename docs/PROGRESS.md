@@ -1046,3 +1046,79 @@ fuse and the HUD says "Find the fuse. Go down."; Hana, Lena, Ravi and Pim each s
 their item (wheel, key, crank, Lamp Core); a rescue plays two lines, then walks you out; a first
 catch shows the face, one toast for the monster and Theo's thought, with no Base line on top;
 Base stays quiet during a level card.
+
+## 2026-11-11: The missing tapes and the ending scenes (branch `claude/cutscene-scenes`, stacked on PR #28)
+
+Vasco: the cutscenes were "still either completely dark or empty". A code review (see the project
+file `lidar-game/prompts/2026-11-10-cutscene-threads.md`) found that six of the seven tapes were never
+played, the orientation tape took over the screen from stray dots, and the finale and both endings
+were text windows. This branch is the WHERE and WHEN and the words; the sister branch
+`claude/cutscene-pictures` draws the pictures and the player. **Nothing here was seen in Studio** (the
+cloud has none). CI (stylua, selene, lune tests, rojo build) is the check runner.
+
+What changed:
+- **Six tapes in six rest rooms.** `Lore.rooms[...].tape` names the tape; `LoreRooms` places a player
+  for it (new kits in `Props`: `vcrtv`, `monitor`, `cassette`, `avcart`, `projector`, `camcorder`).
+  The screen is the kit's `TapeScreen` piece: tagged `Lidar_Tape` (`Config.Tags.tape`), attribute
+  `Scene`, a "Watch" prompt named after the tape. The room is built dark like the rest of it, so the
+  screen is hidden with the room; its prompt is off until the room's lamp is revealed (it wakes
+  with `beacon.reveal`). The small players sit on desk tops (`Placement.y` is new).
+- **`src/client/Tapes.luau`** (started from `Main.client`): when the local player uses the prompt of
+  any `Lidar_Tape` screen and no scene or window is up, `Cutscene.play(scene)`. Nothing starts a
+  tape by itself, so a camp's surveyor still talks first. A tape can be watched again. Awake screens
+  flicker (colour and the reach of their light, never the brightness the level's own stutter reads).
+- **Intake television.** `TutorialRoom` builds the TV screen tagged, glowing blue, hidden, with a
+  disabled Watch prompt. Thirty dots (`TV_HITS`, still only from the "find" step on) wake it: visible,
+  its light on, prompt on, and the hint "A screen just woke up. Go look." waits for a quiet screen like
+  the other hints and then puts the lesson's own hint back. The door hint never waits for it.
+- **Early end of the intake scene.** `Tutorial` counts intakes, so the opening's `onDone`, the hint
+  waits and `beginIntake` do nothing for a player who has already left the intake (no "Scan." hint in
+  the level).
+- **Finale as a scene.** `npc.ines` is staged `lamp` with cues `lamp`, `board`, `ladder` (words
+  unchanged). `Menus.showEnding` plays it with `values = { deaths }` and `keep = Lore.endingKeep(deaths)`
+  (the one filter, also used by `Lore.endingBody` for the server's text), then opens a smaller choice
+  window with one line, "Climb, or keep the lamp?" (`choice.ask`). Skipping the scene still opens it.
+  `pendingEnding` still waits for the page being read.
+- **Endings as scenes.** `end.up` (cues `climb`, `morning`, `scan42`) and `end.stay` (`take`, `keep`)
+  are staged `lamp`; the stage directions became big captions (`11:43 PM`, `SCAN 42 OF 42`, `THE
+  BACKROOMS: MAPPED`, `THE RELAY`, ...). No "Card:" text and no "Night Shift". `Menus.choose` closes
+  the window, plays the ending, and sends `Choose` only when it ends or is skipped, so the server's
+  return to the title never happens under a cutscene. `Lore.ending.cards` is gone.
+- **Words.** The seven tapes are "Tape 1 of 7: Survey Orientation" ... "Tape 7 of 7: A. Pike" in the
+  order they are met (orientation, copyroom, office, drybooth, pottingshed, breakroom, archivenook).
+  The intake poster and Pike's poster said "of 9"; now "of 7". `build_text.py` also refuses a staging
+  cue its set does not have (`CUES`). `LoreText.luau` was regenerated and copied to `src/shared/data/`.
+- **Tests** (`tests/LoreTests.luau`): rooms with `tape` name real tapes and none is in two places, all
+  six are placed (kit exists, is in a layout, intake TV tagged), titles run 1 to 7 of 7, the lamp scenes
+  use only lamp cues, the finale keeps five lines (no falls) or six, endings print captions only.
+
+Contract with the pictures branch: `Cutscene.play(id, onDone, options)` with
+`options = { values, keep }` (called through `any` until it is merged: an older Cutscene ignores
+the third argument), `scene.stage` of `office`, `tape` or `lamp`, and the cue names in the contract.
+The `lamp` set does not exist until that branch lands; before then an unknown set falls back to the
+office picture and the finale looks wrong (the words are right).
+
+Not touched: `Director` (the server still sends `Ending` with a title and body; the client now
+ignores the body), the title and party parts of `Menus`, `Stage`, `Cutscene`, `Hud`.
+
+Check in Studio (after both branches are merged; `DevCommand` is `workspace:SetAttribute`):
+- Intake room (new save or `tutorialDone = false`): scan until the "find" step, then keep dots on the
+  television on the east wall. After about 30 dots it glows blue and "A screen just woke up. Go look."
+  appears; the door hint is unaffected. Use the prompt: Tape 1 of 7 plays. Leave and use it again.
+- Each rest room: `DevCommand "lore <room>"`, then scan the room's lamp until the room lights. The
+  prompt "Watch / Tape N of 7: ..." appears only after that. The screen glows and flickers. Using it
+  plays the tape. If the camp has a surveyor (copyroom, drybooth, pottingshed, archivenook) wake
+  them first: they talk, the tape never starts itself.
+  - `lore copyroom`: TV and VCR on the south wall, left of the door. Tape 2, `tape.halden`.
+  - `lore office`: security monitor on the west desk by the lamp (north-west). Tape 3, `tape.hollis`.
+  - `lore drybooth`: cassette player with a small screen, on the west desk. Tape 4, `tape.tobi`.
+  - `lore pottingshed`: TV on a trolley, south wall left of the door. Tape 5, `tape.ravi`.
+  - `lore breakroom`: pull-down screen on the west wall and the slide projector facing it, near the
+    lamp. Tape 6, `tape.quill`.
+  - `lore archivenook`: camcorder with its screen open, on the desk by the lamp. Tape 7, `tape.pike`.
+  Check the players do not clip furniture, and that each is lit when its room is (screen within
+  `LAMP_REACH` of the lamp).
+- Finale: `lore stairwell`, read the three pages, the last one (page 12) starts Ines's scene on the
+  lamp set (five lines without falls, six with); then one line and two buttons. "Up": the climb scene
+  plays, THEN the title appears. "Take the lamp": the Lamp scene plays and you stay in the room.
+- Skip each scene with SKIP: the window still opens (finale) and `Choose` is still sent (endings).

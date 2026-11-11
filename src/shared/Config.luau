@@ -174,6 +174,7 @@ Config.Tags = {
 	shimmer = "Lidar_Shimmer", -- lit water surfaces, which the client lets glint
 	light = "Lidar_Light", -- every server-made light, so clients find them without a scan
 	concealed = "Lidar_Concealed", -- built dark; each client shows it once its scan lands near
+	tape = "Lidar_Tape", -- a screen that plays a tape (attribute Scene), with a Watch prompt
 }
 
 -- Surveyors in the camps. They are dots until found; scanning one a few times (or lighting the

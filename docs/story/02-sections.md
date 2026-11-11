@@ -54,9 +54,9 @@ The text and look data assume this behaviour:
 ### Level 0: The Office Floor (tiers 1 to 2)
 
 **Tells the player:** this is the Backrooms; here is how the rig works; people are alive down here.
-**First room:** a CRT and VCR on a cart, already loaded with Tape 1. The first dots on the screen light it (instant), and it offers to play (`poi.l0.vcr`, `tape.orientation`). Bulletin `plaque.l0` on the wall. HUD goal `goal.l0`.
+**First room:** a TV on a cart, already loaded with Tape 1. Thirty dots on the screen wake it (it glows, with a Watch prompt); the player chooses to play it (`poi.l0.vcr`, `tape.orientation`). Bulletin `plaque.l0` on the wall. HUD goal `goal.l0`.
 **POIs (6):** the Halden badge (`poi.l0.desk`), the whiteboard (`poi.l0.whiteboard`), Hollis's coat (`poi.l0.coat`), the copier with the failed exit guesses (`poi.l0.copier`), the vending machine (`poi.l0.vending`), the exit sign pointing at a wall (`poi.l0.sign`).
-**Recorders:** `rec.l0.1` to `rec.l0.3`. **Tape:** `tape.halden` (break room), `tape.hollis` (security booth).
+**Recorders:** `rec.l0.1` to `rec.l0.3`. **Tapes:** `tape.halden` (TV and VCR in Joss's closet), `tape.hollis` (security monitor at the Night Desk).
 **Enemy:** the Pacer. Keys jangle. He lingers briefly at a scan, then moves on. Vasco's rule: never stand still.
 **Sound:** buzz, fan, copier warm-up, keys. A phone rings once.
 **Pit:** one open lift shaft with a painted edge (`thought.pit`).
@@ -69,7 +69,7 @@ The text and look data assume this behaviour:
 **Tells the player:** fading, the Hush, sound as risk, follow the water.
 **Look:** pool tile, **blue water**, pipes, catwalks, drains. Terrain changes: ankle to knee depth, pipe balance, catwalk over a deep channel.
 **POIs (6):** life ring (`poi.l1.lifering`), pump log (`poi.l1.pumplog`), Tobi's headphones (`poi.l1.headphones`), dinghy (`poi.l1.dinghy`), valve station (`poi.l1.valve`), chalk tally (`poi.l1.tally`).
-**Recorders:** `rec.l1.1` to `rec.l1.3`. **Tape:** `tape.tobi` (pump room).
+**Recorders:** `rec.l1.1` to `rec.l1.3`. **Tape:** `tape.tobi` (cassette player in Hana's Pump House).
 **Enemy:** the Hush. It roams and loses the thread if two sounds are far apart; walking is safe, running and scanning near it is not.
 **Traps:** weak drain gratings, alarm plates by the pump room.
 
@@ -81,7 +81,7 @@ The text and look data assume this behaviour:
 **Tells the player:** the Echo, the tap greeting, what Ravi knows about the scanner.
 **Look:** pale green, linoleum, gurneys, curtains, a PA with no speaker. Cold teal-white light.
 **POIs (6):** PA (`poi.l2.pa`), patient chart (`poi.l2.chart`), tap-code plate (`poi.l2.tapcode`), gurney (`poi.l2.gurney`), cut call bell (`poi.l2.bell`).
-**Recorders:** `rec.l2.1` to `rec.l2.3`. **Tape:** `tape.ravi` (day room).
+**Recorders:** `rec.l2.1` to `rec.l2.3`. **Tape:** `tape.ravi` (TV on a trolley in Ravi's Ward Station).
 **Enemy:** the Echo. Green until close; skips the breath. Fake radio: `radio.fake.1` to `radio.fake.4`, only near it.
 
 **Camp: Ward Station (after tier 5).** Knock two taps, a breath, one (`npc.ravi`). Ravi explains the Echo and that the rig came from Pike's unit.
@@ -92,7 +92,7 @@ The text and look data assume this behaviour:
 **Tells the player:** light is food; the Still; the Halden is everywhere.
 **Look:** violet cave, glowing minerals, roots, rope bridges. Blue-violet light.
 **POIs (4):** Halden door frame in rock (`poi.l3.doorframe`), glowing vein (`poi.l3.crystal`), Quill's camera (`poi.l3.camera`), rope bridge (`poi.l3.bridge`).
-**Recorders:** `rec.l3.1` to `rec.l3.3`. **Tape:** `tape.quill` (projector).
+**Recorders:** `rec.l3.1` to `rec.l3.3`. **Tape:** `tape.quill` (slide projector in the Dormitory).
 **Enemy:** the Still. Never stare, never look away.
 
 **Camp: Hollow Camp (after tier 7).** `npc.pim` on lanterns, the Still, the Lamp Core. POI: `poi.c3.mugs`.
@@ -101,7 +101,7 @@ The text and look data assume this behaviour:
 
 **Tells the player:** the whole truth is at the bottom.
 **Look:** concrete, sodium light, ramps, boom gate. All four enemies appear.
-**POIs (5):** cornerstone (`poi.l4.stone`), ticket machine with Theo's entry time (`poi.l4.ticket`), chalk arrows (`poi.l4.chalk`), Pike's table and camcorder (`poi.l4.pike`), drop shaft wall (`poi.l4.pit`). **Recorder** `rec.l4.1`. **Tape:** `tape.pike`.
+**POIs (5):** cornerstone (`poi.l4.stone`), ticket machine with Theo's entry time (`poi.l4.ticket`), chalk arrows (`poi.l4.chalk`), Pike's table and camcorder (`poi.l4.pike`), drop shaft wall (`poi.l4.pit`). **Recorder** `rec.l4.1`. **Tape:** `tape.pike` (camcorder in Pim's Hollow Camp, since the Garage has no calm room).
 
 **The Lamp Room (finale).** `npc.ines`, then `choice.up` (cutscene `end.up`) or `choice.stay` (`end.stay`, starts The Relay). POIs: the Lamp, the chalkboard of the whole point cloud, the ladder.
 
