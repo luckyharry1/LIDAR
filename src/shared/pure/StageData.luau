@@ -305,8 +305,7 @@ StageData.coats = {
 
 -- Small parts that tell one person from another. `to` is the part they ride on ("head" or
 -- "torso"); `at` is relative to that part's centre; the face looks along -z.
-export type Feature =
-	{ size: Vec, at: Vec, color: Color, to: string, shape: string?, alpha: number? }
+export type Feature = { size: Vec, at: Vec, color: Color, to: string, shape: string?, alpha: number? }
 
 local function feature(
 	to: string,
