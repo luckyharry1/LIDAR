@@ -182,7 +182,7 @@ end
 --------------------------------------------------------------------------------------------
 -- Figures: a head with a face, a body, and a few small parts that tell one person from another
 
-local function newFigure(parent: Instance, name: string): Figure
+local function newFigure(parent: Instance): Figure
 	local parts: { [string]: Part } = {}
 	local origin = CFrame.new()
 	parts.Head =
@@ -529,19 +529,15 @@ local function buildRoom(def: Room)
 		setCamera(opening.segs)
 	end
 	-- the people in it
-	if def.id == "office" then
-		local theo = newFigure(frame, "Theo")
-		dress(theo, "Theo")
-		figures.main = theo
-	elseif def.id == "morning" then
-		local theo = newFigure(frame, "Theo")
+	if def.id == "office" or def.id == "morning" then
+		local theo = newFigure(frame)
 		dress(theo, "Theo")
 		figures.main = theo
 	elseif def.id == "lamp" then
-		local ines = newFigure(frame, "Ines")
+		local ines = newFigure(frame)
 		dress(ines, "Ines")
 		figures.main = ines
-		local theo = newFigure(frame, "Theo")
+		local theo = newFigure(frame)
 		dress(theo, "Theo")
 		figures.second = theo
 	end
@@ -1193,7 +1189,7 @@ cues.echo = function(): number
 	if not isTape() or frame == nil or figures.extra ~= nil then
 		return 0
 	end
-	local pale = newFigure(frame, "Echo")
+	local pale = newFigure(frame)
 	dress(pale, "Echo")
 	pale.ghost = 0.45
 	setSeeThrough(pale, 0)
@@ -1264,7 +1260,7 @@ function Stage.open(container: GuiObject, set: string, id: string?, firstSpeaker
 		-- the speaker of a tape: whoever speaks first who is not Theo, in their own colours
 		local speaker = firstSpeaker or "Ines"
 		if speaker ~= "Announcer" and speaker ~= "Theo" and speaker ~= "Echo" then
-			local main = newFigure(frame, speaker)
+			local main = newFigure(frame)
 			dress(main, speaker)
 			figures.main = main
 			local root = CFrame.lookAt(SPEAKER_SPOT, SPEAKER_SPOT + Vector3.new(0, 0, 1))
@@ -1390,7 +1386,7 @@ function Stage.openPortrait(container: GuiObject): Portrait
 	view.Parent = frame
 	frame.CurrentCamera = view
 	frame.Parent = container
-	local who = newFigure(frame, "")
+	local who = newFigure(frame)
 	local root = CFrame.lookAt(Vector3.new(0, 0, 0), Vector3.new(0, 0, 1))
 	local speakingUntil = 0
 	local connection: RBXScriptConnection? = nil
