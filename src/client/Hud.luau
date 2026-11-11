@@ -85,6 +85,7 @@ local photoLabel: TextLabel
 local mapTimer = 0
 local mapLarge = false
 local hidden = false -- photo mode
+local inCutscene = false -- a cutscene has the whole screen: no crosshair
 local lastSpread = Lidar.spread
 local spreadChangedAt = -math.huge
 local auraLevel = -1
@@ -191,7 +192,19 @@ end
 function Hud.setVisible(visible: boolean)
 	gui.Enabled = visible
 	hidden = not visible
-	crosshair.Visible = visible and State.server.stage ~= "title" and State.server.stage ~= "downed"
+	crosshair.Visible = visible
+		and not inCutscene
+		and State.server.stage ~= "title"
+		and State.server.stage ~= "downed"
+end
+
+-- A cutscene has started or ended: the crosshair is hidden for as long as one plays.
+function Hud.setCutscene(on: boolean)
+	inCutscene = on
+	crosshair.Visible = not on
+		and not hidden
+		and State.server.stage ~= "title"
+		and State.server.stage ~= "downed"
 end
 
 function Hud.photoNotice(on: boolean)
@@ -654,7 +667,7 @@ local function refreshInfo()
 	local server = State.server
 	local stage = server.stage
 	local playing = stage ~= "title"
-	crosshair.Visible = playing and stage ~= "downed" and not hidden
+	crosshair.Visible = playing and stage ~= "downed" and not hidden and not inCutscene
 	local armed = stage == "level" or stage == "tutorial"
 	meterLabel.Visible = armed
 	meterBack.Visible = armed

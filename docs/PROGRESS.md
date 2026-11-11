@@ -1046,3 +1046,53 @@ fuse and the HUD says "Find the fuse. Go down."; Hana, Lena, Ravi and Pim each s
 their item (wheel, key, crank, Lamp Core); a rescue plays two lines, then walks you out; a first
 catch shows the face, one toast for the monster and Theo's thought, with no Base line on top;
 Base stays quiet during a level card.
+
+## 2026-11-11: Fix the cutscene pictures (branch `claude/cutscene-pictures`)
+
+Why: Vasco found the cutscenes "completely dark or empty". The review (see the 2026-11-10 cutscene
+prompts) found the causes in the picture and the playback, not the writing. Nothing here was seen
+in Studio: the cloud build has no Studio. It was checked by tests of the shot maths
+(`tests/StageTests.luau`, 18 checks) and by playing every scene through `Stage` and `Cutscene` on
+a fake Roblox API (no warnings, no hangs, skip works). Treat every visual below as unseen.
+
+What changed:
+- `src/shared/pure/StageData.luau` (new, pure): every room, camera move, subject, scan and
+  chalkboard as data, plus the maths to project a point to the screen. The tests use it to prove a
+  camera is never inside a wall, the speaker is framed and fills 50-80% of the picture height, no
+  block cuts the line of sight, and each room stays under 700 parts.
+- `Stage.luau` (rewritten): tapes are no longer filmed from the floor (the camera was overwritten
+  with the blank origin camera); a speaker with a face, eyes, an open mouth while talking and
+  small traits per person; the Announcer, Theo and the Echo have no body. New rooms: `wake`
+  (a doorway drawn in gold dots, no lit office), `morning`, and the `lamp` set (`lamp, board,
+  ladder, climb, morning, scan42, take, keep`). The opening melt is rebuilt, the scan dots are
+  white and sweep, and the lights end on, not off. An unknown set shows no picture at all.
+- `Cutscene.luau` (rewritten): cues return how long the picture needs, and playback waits for it
+  (a click no longer skips a beat); nothing waits on a black screen; hold Q (B on gamepad) for half
+  a second or press SKIP; subtitles and captions sit on dark bands; typing and caption sounds;
+  GUI static on the tape; the tape caption shows the title alone; camp talks get a portrait, a
+  lighter veil and thin bars; a filmed scene ends if the stage changes under it.
+  `Cutscene.play(id, onDone, options)` takes `{values, keep}` (for `{name}` text and for an item
+  the scene hands over). The cutscene GUIs sit at DisplayOrder 60 and 61, above the fade overlay.
+- `Hud.luau`: the crosshair hides while a cutscene plays (`Hud.setCutscene`).
+- Studio viewer: `workspace:SetAttribute("DevScene", "<scene id>")` or `"all"` (comment in
+  `src/server/Dev.luau`, code in `Cutscene.luau`).
+
+Check in Studio (set `DevScene` to `"all"` and watch, or one id at a time):
+- `cs.open` (fresh save): the office shows, the scanner's dots sweep white across the room, the
+  wall melts (stain, rim, hole, drips) and the hall behind glows; no click is needed; the camera
+  leans into the hole; the lights flicker out only after the lean; no lit office after the dark.
+- `wake`: a gold doorway in white dots, a TV on a cart, a smear; never the lit office.
+- `tape.orientation`, `tape.halden`, `tape.hollis`, `tape.tobi`, `tape.ravi`, `tape.quill`,
+  `tape.pike`: the CRT shows the speaker's face large and centred (not the desk, not black); the
+  mouth moves while talking; static at the start and end; the caption shows the title alone; the
+  orientation tape's `reach` (an arm reaches at the lens), `static`; halden's `door`; the `fade,
+  gone, dim, echo, shape` cues each show something.
+- Camp talks (`npc.*`): a portrait beside the subtitle, a light veil, thin bars; text is readable.
+- `npc.ines`, `end.up`, `end.stay`: the lamp room: `lamp`, `board` (chalk dots with a dark
+  corridor-shaped gap), `ladder`, `climb`, `take`, `keep`, `morning`, `scan42`.
+- Everywhere: the crosshair is gone, SKIP and "[Q] hold to skip" are visible and work, the HUD
+  fade does not cover a scene, scenes end cleanly and the player can move afterwards.
+
+Known risks to look at first: ViewportFrame `ImageTransparency` fades, `UICorner` clipping of the
+CRT, the Ball and Cylinder part shapes on the heads and the lamp, and the reach / shape / lamp
+animations.
