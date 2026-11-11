@@ -26,6 +26,7 @@ export type Room = {
 	notes: { string },
 	scene: string?, -- a surveyor who talks to you here, first visit (LoreText scene id)
 	surveyor: string?, -- who waits here: a key of Lore.surveyors, matching `scene`
+	tape: string?, -- a tape to watch here, on a screen in the room (LoreText scene id)
 }
 -- A surveyor you can meet. `gear` picks their build in src/server/Figures (it also decides the
 -- outline of their dots); `scene` is what they say when found in their camp, `rescued` the lines
@@ -165,6 +166,7 @@ Lore.rooms = {
 		notes = { "haven_copy" },
 		scene = "npc.joss",
 		surveyor = "joss",
+		tape = "tape.halden",
 	},
 	drybooth = {
 		id = "drybooth",
@@ -179,6 +181,7 @@ Lore.rooms = {
 		notes = { "haven_booth" },
 		scene = "npc.hana",
 		surveyor = "hana",
+		tape = "tape.tobi",
 	},
 	pottingshed = {
 		id = "pottingshed",
@@ -193,6 +196,7 @@ Lore.rooms = {
 		notes = { "haven_shed" },
 		scene = "npc.ravi",
 		surveyor = "ravi",
+		tape = "tape.ravi",
 	},
 	archivenook = {
 		id = "archivenook",
@@ -207,6 +211,7 @@ Lore.rooms = {
 		notes = { "haven_nook" },
 		scene = "npc.pim",
 		surveyor = "pim",
+		tape = "tape.pike",
 	},
 	office = {
 		id = "office",
@@ -219,6 +224,7 @@ Lore.rooms = {
 		floor = { 120, 86, 60 },
 		light = { 255, 214, 170 },
 		notes = { "desk_mugs", "desk_signin", "desk_self" },
+		tape = "tape.hollis",
 	},
 	cistern = {
 		id = "cistern",
@@ -245,6 +251,7 @@ Lore.rooms = {
 		floor = { 150, 140, 120 },
 		light = { 255, 224, 190 },
 		notes = { "bunk_board", "bunk_pim", "bunk_theory" },
+		tape = "tape.quill",
 	},
 	stairwell = {
 		id = "stairwell",
@@ -447,6 +454,13 @@ function Lore.roomGoal(roomId: string): string
 	return if id then spoken(id) else ""
 end
 
+-- The name a scene is shown under (a tape's prompt says it).
+function Lore.sceneTitle(id: string): string
+	local scene = LoreText.scene(id)
+	assert(scene ~= nil, "missing scene " .. id)
+	return scene.title
+end
+
 -- A scene as plain paragraphs: spoken lines carry their speaker, directions are narration.
 local function sceneParagraphs(id: string, keep: ((Beat) -> boolean)?): { string }
 	local scene = LoreText.scene(id)
@@ -464,26 +478,14 @@ local function sceneParagraphs(id: string, keep: ((Beat) -> boolean)?): { string
 	return out
 end
 
--- The finale. Ines speaks, then offers the choice; each choice has its own end card.
-Lore.ending = {
-	title = "Ines Calder",
-	body = "", -- set below: the general case; Lore.endingBody fills in the real count
-	choices = { up = text("choice.up"), stay = text("choice.stay") },
-	cards = {
-		up = { title = "Up", body = table.concat(sceneParagraphs("end.up"), "\n\n") },
-		stay = { title = "The lamp", body = table.concat(sceneParagraphs("end.stay"), "\n\n") },
-	} :: { [string]: Note },
-}
-
--- Ines's words for a player who was taken `deaths` times on the way down. The scene counts the
--- falls once; a player who never fell hears that instead.
-function Lore.endingBody(deaths: number): string
+-- Which of Ines's lines a player hears, by how often they were taken: "{deaths} times" and
+-- "You pulled me back" only after a fall, "You never fell" only without one. Used by the scene
+-- (Cutscene's `keep`) and by the text version (endingBody) alike.
+function Lore.endingKeep(deaths: number): (Beat) -> boolean
 	local count = math.max(0, math.floor(deaths))
-	local paragraphs = sceneParagraphs("npc.ines", function(beat: Beat): boolean
+	return function(beat: Beat): boolean
 		local line = beat.line or ""
-		if beat.shot ~= nil then
-			return false -- the pictures belong to the cutscene, not the panel
-		elseif string.find(line, "{deaths}", 1, true) then
+		if string.find(line, "{deaths}", 1, true) then
 			return count > 0
 		elseif string.sub(line, 1, 14) == "You never fell" then
 			return count == 0
@@ -491,6 +493,26 @@ function Lore.endingBody(deaths: number): string
 			return count > 0
 		end
 		return true
+	end
+end
+
+-- The finale. Ines speaks (the scene npc.ines), then offers the choice; each choice is a scene
+-- of its own (end.up, end.stay).
+Lore.ending = {
+	title = "Ines Calder",
+	body = "", -- set below: the general case; Lore.endingBody fills in the real count
+	ask = spoken("choice.ask"), -- the one line over the two buttons
+	choices = { up = text("choice.up"), stay = text("choice.stay") },
+	scenes = { opening = "npc.ines", up = "end.up", stay = "end.stay" } :: { [string]: string },
+}
+
+-- Ines's words as plain text, for a player who was taken `deaths` times on the way down. The
+-- scene counts the falls once; a player who never fell hears that instead.
+function Lore.endingBody(deaths: number): string
+	local count = math.max(0, math.floor(deaths))
+	local keep = Lore.endingKeep(count)
+	local paragraphs = sceneParagraphs("npc.ines", function(beat: Beat): boolean
+		return beat.shot == nil and keep(beat) -- the pictures belong to the cutscene
 	end)
 	return Lore.fill(table.concat(paragraphs, "\n\n"), { deaths = count })
 end

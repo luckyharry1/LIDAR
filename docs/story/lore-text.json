@@ -636,7 +636,7 @@
    "section": "l0",
    "where": "CRT and VCR on a cart in the first room: orientation tape inserted",
    "lines": [
-    "SURVEY ORIENTATION. TAPE 1 OF 9.",
+    "SURVEY ORIENTATION. TAPE 1 OF 7.",
     "PRESS PLAY."
    ],
    "glow": {
@@ -644,7 +644,7 @@
     "radius": 9,
     "look": "l0"
    },
-   "note": "Plays tape.orientation on interact.",
+   "note": "The TV wakes once 30 dots have landed on it; its Watch prompt then plays tape.orientation (as often as you like).",
    "thought": "A tape already loaded. Somebody left this for whoever came through.",
    "look": "l0"
   },
@@ -1287,7 +1287,7 @@
    "where": "Folding table with a camcorder, unit 0007, and a tape",
    "lines": [
     "UNIT 0007. CORBEL & PIKE.",
-    "TAPE 9 OF 9. FOR WHOEVER BRINGS THE REAL FLOOR."
+    "TAPE 7 OF 7. FOR WHOEVER BRINGS THE REAL FLOOR."
    ],
    "glow": {
     "color": "amber",
@@ -2333,6 +2333,15 @@
    "where": "Dialogue choice 2",
    "lines": [
     "Take the lamp."
+   ]
+  },
+  {
+   "id": "choice.ask",
+   "kind": "choice",
+   "section": "lamp",
+   "where": "Choice window, after Ines has finished",
+   "lines": [
+    "Climb, or keep the lamp?"
    ]
   },
   {
@@ -3950,9 +3959,9 @@
   {
    "id": "tape.orientation",
    "kind": "tape",
-   "title": "Survey Orientation (Tape 1 of 9)",
-   "where": "CRT/VCR in the first room (poi.l0.vcr); lit and playable on the first dot",
-   "trigger": "Interact; auto-offers at 20 seconds idle",
+   "title": "Tape 1 of 7: Survey Orientation",
+   "where": "TV on a cart in the intake room (poi.l0.vcr); wakes after 30 dots land on it",
+   "trigger": "Watch prompt on the screen, once it has woken; can be watched again",
    "beats": [
     {
      "shot": "CRT static. A woman at a desk with a banker's lamp. Camcorder angle, slightly too low. Wall maps behind her."
@@ -3994,9 +4003,9 @@
   {
    "id": "tape.halden",
    "kind": "tape",
-   "title": "Halden Building: Where Tomorrow Works",
-   "where": "VCR in the Level 0 break room",
-   "trigger": "Interact",
+   "title": "Tape 2 of 7: Where Tomorrow Works",
+   "where": "TV and VCR in Joss's Supply Closet (copyroom)",
+   "trigger": "Watch prompt, once the room's lamp is lit; can be watched again",
    "beats": [
     {
      "shot": "A promo VHS from 1994, saturated colour. Fast pans of a glass lobby, escalators, an atrium with a fountain."
@@ -4032,9 +4041,9 @@
   {
    "id": "tape.hollis",
    "kind": "tape",
-   "title": "Security Camera 4 (night)",
-   "where": "Monitor in the Level 0 security booth",
-   "trigger": "Interact",
+   "title": "Tape 3 of 7: Security Camera 4",
+   "where": "Security monitor on the desk at the Night Desk (office)",
+   "trigger": "Watch prompt, once the room's lamp is lit; can be watched again",
    "beats": [
     {
      "shot": "Grey security footage. A man in a security jacket, keys on his belt, walks the corridor with a flashlight."
@@ -4070,9 +4079,9 @@
   {
    "id": "tape.tobi",
    "kind": "tape",
-   "title": "Walkman Diary: T. Wren",
-   "where": "Cassette player in the Level 1 pump room",
-   "trigger": "Interact",
+   "title": "Tape 4 of 7: Walkman Diary",
+   "where": "Cassette player with a small screen in Hana's Pump House (drybooth)",
+   "trigger": "Watch prompt, once the room's lamp is lit; can be watched again",
    "beats": [
     {
      "shot": "A cassette player on a shelf, red record light. Water dripping in the background, very close to the mic."
@@ -4106,9 +4115,9 @@
   {
    "id": "tape.ravi",
    "kind": "tape",
-   "title": "Ravi's Demonstration",
-   "where": "TV in the Level 2 day room",
-   "trigger": "Interact",
+   "title": "Tape 5 of 7: Ravi's Demonstration",
+   "where": "TV on a trolley in Ravi's Ward Station (pottingshed)",
+   "trigger": "Watch prompt, once the room's lamp is lit; can be watched again",
    "beats": [
     {
      "shot": "A ward day room. Ravi, nervous, sits close to the camera. A radio on the table."
@@ -4142,9 +4151,9 @@
   {
    "id": "tape.quill",
    "kind": "tape",
-   "title": "Contact Sheet: M. Quill",
-   "where": "Projector in the Level 3 cave",
-   "trigger": "Interact",
+   "title": "Tape 6 of 7: Contact Sheet",
+   "where": "Slide projector and screen in the Dormitory (breakroom)",
+   "trigger": "Watch prompt, once the room's lamp is lit; can be watched again",
    "beats": [
     {
      "shot": "A slide projector throws images on the cave wall: a corridor, frame by frame."
@@ -4184,9 +4193,9 @@
   {
    "id": "tape.pike",
    "kind": "tape",
-   "title": "Tape 9 of 9: A. Pike",
-   "where": "Camcorder on the folding table in the Garage",
-   "trigger": "Interact",
+   "title": "Tape 7 of 7: A. Pike",
+   "where": "Camcorder with its screen open on the desk in Pim's Hollow Camp (archivenook)",
+   "trigger": "Watch prompt, once the room's lamp is lit; can be watched again",
    "beats": [
     {
      "shot": "A young man in a Corbel and Pike jacket. Same face as the ribbon-cutting. Sodium light. A small lamp beside him."
@@ -4367,8 +4376,11 @@
    "kind": "dialogue",
    "title": "Ines Calder",
    "where": "The Lamp Room, after tier 8",
-   "trigger": "Walk up to the green dot",
+   "trigger": "Reading the last page in the Lamp Room (the server sends Ending); then the choice window",
    "beats": [
+    {
+     "stage": "lamp"
+    },
     {
      "shot": "A tall dome. A great brass Lamp. A woman at a desk looks up. Green dot, steady. Her eyes find Theo's scanner first."
     },
@@ -4393,11 +4405,17 @@
      "line": "Put the unit to the board. Forty-one scans. I watched every one."
     },
     {
+     "stage": "board"
+    },
+    {
      "shot": "Theo places his scanner on the chalkboard rig. The board fills with white dots: every scan the Survey ever made. A gap, the shape of a corridor, glows."
     },
     {
      "sp": "Ines",
      "line": "A forgotten place leaves the world. You looked forty-one times. So you can leave."
+    },
+    {
+     "stage": "ladder"
     },
     {
      "shot": "The unit's scan slides into the gap. A line of light runs up the ladder shaft. A real door, edges of daylight."
@@ -4410,49 +4428,63 @@
      "shot": "Two choices. Climb, or take the lamp."
     }
    ],
-   "note": "Ends with choice.up / choice.stay. Journal 12. Six spoken lines for any one player (the falls count is one line or the other).",
-   "look": "lamp"
+   "note": "Ends with choice.ask, then choice.up / choice.stay. Journal 12. Six spoken lines for any one player (the falls count is one line or the other).",
+   "look": "lamp",
+   "stage": "lamp"
   },
   {
    "id": "end.up",
    "kind": "cutscene",
    "title": "Up",
    "where": "After choice.up",
-   "trigger": "Cutscene, then credits card",
+   "trigger": "Cutscene, then the server returns the player to the title",
    "beats": [
     {
-     "shot": "Theo climbs. The air changes first: cold, clean, damp with rain."
+     "stage": "climb"
     },
     {
-     "shot": "A door. He steps through. Halden Building, floor three, early light. The wall is a wall."
+     "shot": "Theo climbs. The dark falls away below. The air changes first: cold, clean, damp with rain. The frame whites out."
+    },
+    {
+     "stage": "morning"
+    },
+    {
+     "shot": "A door. He steps through. Halden Building, floor three, cold early light. The wall is a wall. The tripod scanner stands where it stood."
     },
     {
      "sp": "Theo",
      "line": "It's morning."
     },
     {
-     "shot": "He checks his phone. Time: 11:43 PM. One minute after he leaned on the wall."
+     "cap": "11:43 PM"
     },
     {
      "sp": "Theo",
      "line": "One minute."
     },
     {
-     "shot": "He looks at the plaque in the stairwell: HALDEN BUILDING. FIFTEEN FLOORS."
+     "cap": "HALDEN BUILDING. FIFTEEN FLOORS."
     },
     {
      "sp": "Theo",
      "line": "Fifteen."
     },
     {
-     "shot": "Behind him, the scanner chimes. SCAN 42 OF 42 BEGINNING. Nobody pressed anything."
+     "stage": "scan42"
     },
     {
-     "shot": "Card: THE BACKROOMS: MAPPED. Credits. Next run: Night Shift +."
+     "shot": "Behind him the scanner's lens lights by itself and white dots sweep the room. Nobody pressed anything."
+    },
+    {
+     "cap": "SCAN 42 OF 42"
+    },
+    {
+     "cap": "THE BACKROOMS: MAPPED"
     }
    ],
    "note": "The stinger: fifteen floors, and a scan starting by itself. Keeps the mystery open.",
-   "look": "lamp"
+   "look": "lamp",
+   "stage": "lamp"
   },
   {
    "id": "end.stay",
@@ -4462,7 +4494,10 @@
    "trigger": "Cutscene, then The Relay begins",
    "beats": [
     {
-     "shot": "Theo takes the Lamp's handle. It is heavier than it looks. Ines lets go."
+     "stage": "take"
+    },
+    {
+     "shot": "Theo takes the Lamp's handle. It is heavier than it looks. Ines lets go and steps back. The Lamp flares."
     },
     {
      "sp": "Ines",
@@ -4473,14 +4508,21 @@
      "line": "Somebody will wake up scared in an office tomorrow. I would want a light."
     },
     {
-     "shot": "The ladder is still there. He does not climb it."
+     "stage": "keep"
     },
     {
-     "shot": "Card: THE RELAY. Floor 1. Each floor is lit by the last person to pass it."
+     "shot": "The ladder is still there. He does not climb it. The daylight at the top fades; the Lamp stays lit; small lights come on one below another, far down in the dark."
+    },
+    {
+     "cap": "THE RELAY"
+    },
+    {
+     "cap": "Every floor is lit by the last one through."
     }
    ],
    "note": "Starts endless mode. The daily seed is tonight's floor.",
-   "look": "lamp"
+   "look": "lamp",
+   "stage": "lamp"
   }
  ],
  "looks": {

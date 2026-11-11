@@ -2,6 +2,7 @@
 -- The story wiring: every room, tape, page and card the game shows must resolve to real text
 -- from LoreText, and fit the places the builders put it.
 local Config = require("../src/shared/Config")
+local fs = require("@lune/fs")
 local Difficulty = require("../src/shared/pure/Difficulty")
 local Lore = require("../src/shared/data/Lore")
 local LoreText = require("../src/shared/data/LoreText")
@@ -135,7 +136,78 @@ tests["Ines counts the falls, or says there were none"] = function()
 	assert(string.find(none, "You never fell.", 1, true) ~= nil, "the no-falls line is missing")
 	assert(#placeholdersIn(many) == 0 and #placeholdersIn(none) == 0, "unfilled placeholder")
 	assert(Lore.ending.choices.up ~= "" and Lore.ending.choices.stay ~= "", "the choice is missing")
-	assert(Lore.ending.cards.up ~= nil and Lore.ending.cards.stay ~= nil, "an end card is missing")
+	assert(Lore.ending.ask ~= "" and not string.find(Lore.ending.ask, "\n"), "no question")
+	for _, id in { Lore.ending.scenes.opening, Lore.ending.scenes.up, Lore.ending.scenes.stay } do
+		assert(LoreText.scene(id) ~= nil, `the finale needs the scene {id}`)
+	end
+end
+
+tests["the finale keeps the lines that fit the player, the same way as its text"] = function()
+	local scene = LoreText.scene("npc.ines")
+	assert(scene ~= nil)
+	for _, deaths in { 0, 1, 7 } do
+		local keep = Lore.endingKeep(deaths)
+		local heard = {}
+		for _, beat in scene.beats do
+			if beat.line ~= nil and keep(beat) then
+				table.insert(heard, beat.line)
+			end
+		end
+		local joined = table.concat(heard, "\n")
+		assert(
+			(string.find(joined, "{deaths}", 1, true) ~= nil) == (deaths > 0),
+			`{deaths} falls: the count line is wrong`
+		)
+		assert(
+			(string.find(joined, "You never fell", 1, true) ~= nil) == (deaths == 0),
+			`{deaths} falls: the no-falls line is wrong`
+		)
+		assert(
+			(string.find(joined, "You pulled me back", 1, true) ~= nil) == (deaths > 0),
+			`{deaths} falls: Theo's reply is wrong`
+		)
+		assert(#heard == (if deaths > 0 then 6 else 5), `{deaths} falls: {#heard} lines`)
+	end
+end
+
+tests["Ines and both endings are filmed on the lamp set, in the order the story needs"] = function()
+	local expected = {
+		["npc.ines"] = { "lamp", "board", "ladder" },
+		["end.up"] = { "climb", "morning", "scan42" },
+		["end.stay"] = { "take", "keep" },
+	}
+	for id, cues in expected do
+		local scene = LoreText.scene(id)
+		assert(scene ~= nil and scene.stage == "lamp", `{id} is not staged on the lamp set`)
+		local found = {}
+		for _, beat in scene.beats do
+			if beat.stage ~= nil then
+				table.insert(found, beat.stage)
+			end
+		end
+		assert(
+			table.concat(found, ",") == table.concat(cues, ","),
+			`{id}: cues {table.concat(found, ",")}`
+		)
+	end
+end
+
+tests["the endings print captions, not stage directions or a mode that does not exist"] = function()
+	for _, id in { "end.up", "end.stay" } do
+		local scene = LoreText.scene(id)
+		assert(scene ~= nil)
+		local captions = 0
+		for _, beat in scene.beats do
+			for _, text in { beat.cap, beat.line, beat.shot } do
+				assert(not string.find(text, "Night Shift", 1, true), `{id} promises Night Shift`)
+				assert(not string.find(text, "Card:", 1, true), `{id} prints a card direction`)
+			end
+			if beat.cap ~= nil then
+				captions += 1
+			end
+		end
+		assert(captions >= 2, `{id} has no end captions`)
+	end
 end
 
 tests["every monster has a manual page"] = function()
@@ -243,8 +315,18 @@ tests["hidden objects carry a thought and a prop"] = function()
 	end
 end
 
-tests["the opening and every tape are staged with cues the stage knows"] = function()
+tests["the opening, every tape and the finale are staged with cues the stage knows"] = function()
 	local known = { office = true, lean = true, dark = true, wake = true }
+	local lampCues = {
+		lamp = true,
+		board = true,
+		ladder = true,
+		climb = true,
+		morning = true,
+		scan42 = true,
+		take = true,
+		keep = true,
+	}
 	local tapeCues = {
 		reach = true,
 		static = true,
@@ -262,7 +344,16 @@ tests["the opening and every tape are staged with cues the stage knows"] = funct
 			assert(known[beat.stage], `unknown staging cue {beat.stage}`)
 		end
 	end
+	local lampScenes = 0
 	for _, scene in LoreText.scenes do
+		if scene.stage == "lamp" then
+			lampScenes += 1
+			for _, beat in scene.beats do
+				if beat.stage ~= nil then
+					assert(lampCues[beat.stage], `{scene.id}: unknown lamp cue {beat.stage}`)
+				end
+			end
+		end
 		if scene.kind == "tape" then
 			assert(scene.stage == "tape", `{scene.id} is not staged`)
 			for _, beat in scene.beats do
@@ -270,6 +361,99 @@ tests["the opening and every tape are staged with cues the stage knows"] = funct
 					assert(tapeCues[beat.stage], `{scene.id}: unknown tape cue {beat.stage}`)
 				end
 			end
+		end
+	end
+	assert(lampScenes == 3, `{lampScenes} lamp scenes, expected npc.ines, end.up and end.stay`)
+	for _, id in { "npc.ines", "end.up", "end.stay" } do
+		local scene = LoreText.scene(id)
+		assert(scene ~= nil and scene.stage == "lamp", `{id} is not staged on the lamp set`)
+	end
+end
+
+-- The tapes, in the order a player meets them: the intake's, then one per rest room.
+local TAPE_ROOMS = {
+	{ room = "copyroom", tape = "tape.halden", kit = "vcrtv" },
+	{ room = "office", tape = "tape.hollis", kit = "monitor" },
+	{ room = "drybooth", tape = "tape.tobi", kit = "cassette" },
+	{ room = "pottingshed", tape = "tape.ravi", kit = "avcart" },
+	{ room = "breakroom", tape = "tape.quill", kit = "projector" },
+	{ room = "archivenook", tape = "tape.pike", kit = "camcorder" },
+}
+local TAPE_ORDER = {
+	"tape.orientation",
+	"tape.halden",
+	"tape.hollis",
+	"tape.tobi",
+	"tape.ravi",
+	"tape.quill",
+	"tape.pike",
+}
+
+tests["every room that has a tape names a real tape, and no tape is in two places"] = function()
+	local placed: { [string]: string } = {}
+	for id, room in Lore.rooms do
+		if room.tape ~= nil then
+			local scene = LoreText.scene(room.tape)
+			assert(
+				scene ~= nil and scene.kind == "tape",
+				`{id} names {room.tape}, which is no tape`
+			)
+			assert(placed[room.tape] == nil, `{room.tape} is in {placed[room.tape]} and {id}`)
+			placed[room.tape] = id
+			assert(room.dark, `{id}: a tape screen is revealed by the room's lamp`)
+		end
+	end
+	for _, entry in TAPE_ROOMS do
+		assert(placed[entry.tape] == entry.room, `{entry.tape} should be in {entry.room}`)
+	end
+	assert(placed["tape.orientation"] == nil, "the orientation tape is the intake room's")
+end
+
+tests["every tape is placed: six rest rooms and the intake room"] = function()
+	local props = fs.readFile("src/server/Props.luau")
+	local layouts = fs.readFile("src/server/LoreRooms.luau")
+	for _, entry in TAPE_ROOMS do
+		assert(
+			string.find(props, "\n\t" .. entry.kit .. " = {", 1, true) ~= nil,
+			`no prop kit {entry.kit}`
+		)
+		assert(string.find(props, 'name = "TapeScreen"', 1, true) ~= nil)
+		assert(
+			string.find(layouts, 'kit = "' .. entry.kit .. '"', 1, true) ~= nil,
+			`{entry.kit} is in no room layout`
+		)
+		local room = Lore.rooms[entry.room]
+		assert(room ~= nil and room.tape == entry.tape, `{entry.room} does not hold {entry.tape}`)
+	end
+	local intake = fs.readFile("src/server/TutorialRoom.luau")
+	assert(
+		string.find(intake, '"tape.orientation"', 1, true) ~= nil,
+		"no screen in the intake room"
+	)
+	assert(string.find(intake, "Config.Tags.tape", 1, true) ~= nil, "the intake TV is not tagged")
+	assert(Config.Tags.tape == "Lidar_Tape", "the tape tag changed")
+end
+
+tests["tapes are numbered 1 to 7 in the order they are met, in one style"] = function()
+	assert(#TAPE_ORDER == 7)
+	local seen = 0
+	for _, scene in LoreText.scenes do
+		if scene.kind == "tape" then
+			seen += 1
+		end
+	end
+	assert(seen == #TAPE_ORDER, `{seen} tape scenes, {#TAPE_ORDER} expected`)
+	for index, id in TAPE_ORDER do
+		local scene = LoreText.scene(id)
+		assert(scene ~= nil, `missing {id}`)
+		assert(
+			string.sub(scene.title, 1, #`Tape {index} of 7:`) == `Tape {index} of 7:`,
+			`{id} is titled "{scene.title}", expected "Tape {index} of 7: ..."`
+		)
+	end
+	for _, entry in LoreText.entries do
+		for _, line in entry.lines do
+			assert(not string.find(string.upper(line), "OF 9", 1, true), `{entry.id} says "of 9"`)
 		end
 	end
 end

@@ -37,7 +37,7 @@ export type LoreRoom = {
 	surveyor: Model?, -- the camp's surveyor, if it has one
 }
 
-type Placement = { kit: string, x: number, z: number, yaw: number }
+type Placement = { kit: string, x: number, z: number, yaw: number, y: number? } -- y: on a desk top
 type NoteSpot = { x: number, y: number, z: number, yaw: number, flat: boolean }
 type Layout = {
 	props: { Placement },
@@ -438,6 +438,8 @@ local LAYOUTS: { [string]: Layout } = {
 			{ kit = "lamp", x = 6.5, z = -8.5, yaw = 180 },
 			{ kit = "plant", x = 8.5, z = 8.5, yaw = 0 },
 			{ kit = "rug", x = 0, z = 0, yaw = 0 },
+			-- Tape 2: a TV and VCR against the south wall, left of the way in.
+			{ kit = "vcrtv", x = -6.5, z = 8.5, yaw = 0 },
 		},
 		surveyor = { x = 5.5, z = -1.5, yaw = 160 },
 		notes = {
@@ -459,6 +461,8 @@ local LAYOUTS: { [string]: Layout } = {
 			{ kit = "lamp", x = -9, z = -8, yaw = 180 },
 			{ kit = "plant", x = 8, z = 8, yaw = 0 },
 			{ kit = "rug", x = 0, z = 0, yaw = 0 },
+			-- Tape 4: a cassette player with a small screen, on the west desk (top at 3.05).
+			{ kit = "cassette", x = -10, y = 3.05, z = 4.9, yaw = -90 },
 		},
 		surveyor = { x = 1, z = -6.4, yaw = 180 },
 		notes = {
@@ -480,6 +484,8 @@ local LAYOUTS: { [string]: Layout } = {
 			{ kit = "bench", x = 11, z = 1, yaw = 90 },
 			{ kit = "chair", x = 6.5, z = 0, yaw = -90 },
 			{ kit = "rug", x = 0, z = 0, yaw = 0 },
+			-- Tape 5: a TV on a trolley, left of the way in.
+			{ kit = "avcart", x = -6, z = 8, yaw = 8 },
 		},
 		surveyor = { x = -9.4, z = -0.5, yaw = -90 },
 		notes = {
@@ -500,6 +506,8 @@ local LAYOUTS: { [string]: Layout } = {
 			{ kit = "desk", x = 5.5, z = -8.5, yaw = 180 },
 			{ kit = "chair", x = 5.5, z = -2.9, yaw = 0 },
 			{ kit = "lamp", x = 9, z = -8.5, yaw = 180 },
+			-- Tape 7: a camcorder with its screen open, on the desk (top at 3.05).
+			{ kit = "camcorder", x = 4.6, y = 3.05, z = -8.4, yaw = 180 },
 		},
 		surveyor = { x = -1.5, z = -3.5, yaw = 170 },
 		notes = {
@@ -521,6 +529,8 @@ local LAYOUTS: { [string]: Layout } = {
 			{ kit = "plant", x = 16.5, z = -15, yaw = 180 },
 			{ kit = "plant", x = -17.5, z = 15, yaw = 0 },
 			{ kit = "rug", x = 0, z = 3, yaw = 0 },
+			-- Tape 3: the security monitor on the desk by the lamp (top at 3.05).
+			{ kit = "monitor", x = -13.4, y = 3.05, z = -15, yaw = 180 },
 		},
 		notes = {
 			{ x = -16.6, y = 4.2, z = -14.2, yaw = 180, flat = false },
@@ -543,6 +553,9 @@ local LAYOUTS: { [string]: Layout } = {
 			{ kit = "plant", x = 17, z = 15, yaw = 0 },
 			{ kit = "lamp", x = -17, z = 15, yaw = 0 },
 			{ kit = "rug", x = 0, z = 3, yaw = 0 },
+			-- Tape 6: a pull-down screen on the west wall and a slide projector facing it,
+			-- near the lamp so they light up with the room.
+			{ kit = "projector", x = -20, z = 8, yaw = -90 },
 		},
 		notes = {
 			{ x = -19.7, y = 4.4, z = 2.2, yaw = -90, flat = false },
@@ -707,6 +720,14 @@ local function darken(
 		end,
 	}
 	return beacon
+end
+
+-- Makes a tape player's lit face a screen: tagged, told which tape it plays, and with a Watch
+-- prompt (the client plays the tape when it is used, and flickers the screen, see client/Tapes).
+local function wireTape(screen: BasePart, sceneId: string): ProximityPrompt
+	CollectionService:AddTag(screen, Config.Tags.tape)
+	screen:SetAttribute("Scene", sceneId)
+	return Build.prompt(screen, "Watch", Lore.sceneTitle(sceneId), 0.2)
 end
 
 local function at(origin: Vector3, x: number, y: number, z: number, yaw: number): CFrame
@@ -1231,13 +1252,21 @@ function LoreRooms.build(roomId: string, origin: Vector3): LoreRoom
 	local exitPrompt = Build.prompt(exitDoor, "Continue", "Into the dark", 0.6)
 
 	local benchPrompt: ProximityPrompt? = nil
+	local tapePrompt: ProximityPrompt? = nil
 	local lampProp: Model? = nil
 	for _, placement in layout.props do
 		local prop = Props.place(
 			placement.kit,
-			at(origin, placement.x, 0, placement.z, placement.yaw),
+			at(origin, placement.x, placement.y or 0, placement.z, placement.yaw),
 			model
 		)
+		-- A tape player: its lit face becomes the screen you press Watch on (client/Tapes).
+		local screen = prop:FindFirstChild("TapeScreen")
+		if screen ~= nil and screen:IsA("BasePart") then
+			local tapeScene = room.tape
+			assert(tapeScene ~= nil and tapePrompt == nil, "unexpected tape player in " .. roomId)
+			tapePrompt = wireTape(screen, tapeScene)
+		end
 		if placement.kit == "lamp" and lampProp == nil then
 			lampProp = prop
 		end
@@ -1246,6 +1275,10 @@ function LoreRooms.build(roomId: string, origin: Vector3): LoreRoom
 		end
 	end
 	assert(benchPrompt ~= nil, "every lore room needs a bench")
+	assert(
+		room.tape == nil or tapePrompt ~= nil,
+		"room " .. roomId .. " names a tape but has no player"
+	)
 
 	local notes: { NotePrompt } = {}
 	for index, noteId in room.notes do
@@ -1274,6 +1307,17 @@ function LoreRooms.build(roomId: string, origin: Vector3): LoreRoom
 			beacon = darken(model, lampProp, lampProp:GetPivot().Position, LAMP_REACH, room)
 		elseif fall ~= nil and sheet ~= nil and sheet:IsA("BasePart") then
 			beacon = darken(model, fall, sheet.Position, FALLS_REACH, room)
+		end
+	end
+
+	-- The screen cannot be used while the room is dark: its prompt wakes with the lamp.
+	if tapePrompt ~= nil and beacon ~= nil then
+		local prompt: ProximityPrompt = tapePrompt
+		local lightUp = beacon.reveal
+		prompt.Enabled = false
+		beacon.reveal = function()
+			lightUp()
+			prompt.Enabled = true
 		end
 	end
 

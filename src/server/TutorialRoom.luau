@@ -2,12 +2,14 @@
 -- The first thing a new player stands in: one small dark room with a baffle wall and a door
 -- at the far end. The client's tutorial prompts do the teaching; this only builds the space.
 -- Like the maze, it is invisible: it can only be scanned. A television on a cart holds the
--- Survey's orientation tape; the client plays it once enough dots have landed on the screen.
+-- Survey's orientation tape; the screen wakes once enough dots have landed on it, and the
+-- player chooses to watch it (a Watch prompt).
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Build = require(script.Parent.Build)
 local Config = require(ReplicatedStorage.Shared.Config)
+local Lore = require(ReplicatedStorage.Shared.data.Lore)
 local Props = require(script.Parent.Props)
 
 export type Tutorial = {
@@ -60,7 +62,22 @@ function TutorialRoom.build(origin: Vector3): Tutorial
 	local cart = Vector3.new(HALF_X - 1.8, 0, TV_Z)
 	slab("TVCart", Vector3.new(2.4, 1.6, 3.2), cart + Vector3.new(0, 0.8, 0))
 	slab("TVBody", Vector3.new(2, 1.7, 2.6), cart + Vector3.new(0, 2.45, 0))
-	slab("TVScreen", Vector3.new(0.1, 1.3, 2), cart + Vector3.new(-1.05, 2.45, 0))
+	-- The screen is the orientation tape (client/Tapes plays it). It stays dark and its prompt
+	-- off until enough dots have landed on it; then the client wakes it (client/Tutorial).
+	local screen = Build.part({
+		name = "TVScreen",
+		size = Vector3.new(0.1, 1.3, 2),
+		cframe = CFrame.new(origin + cart + Vector3.new(-1.05, 2.45, 0)),
+		color = Color3.fromRGB(150, 190, 255),
+		material = Enum.Material.Neon,
+		collide = false,
+		tag = Config.Tags.tape,
+		parent = model,
+	})
+	screen:SetAttribute("Scene", "tape.orientation")
+	Build.pointLight(screen, screen.Color, 1.4, 14)
+	local watchPrompt = Build.prompt(screen, "Watch", Lore.sceneTitle("tape.orientation"), 0.2)
+	watchPrompt.Enabled = false
 
 	-- Behind the spawn point: the wall Theo fell through, run like wax.
 	local meltPoint = origin + Vector3.new(0, 0, HALF_Z)
