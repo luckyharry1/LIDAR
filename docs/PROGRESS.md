@@ -603,3 +603,39 @@ progression between runs and room for monetization; then a faint pull towards un
 - Lamp-bags light up but say nothing (the same lamp over and over is not a story).
 - A lit patch of wall and floor now differs per floor (carpet and wallpaper, wet tile, planks, concrete) with seams so it reads as material, and flooded floor shows larger, brighter cyan dots.
 - Not run in Studio yet: check the tape rooms and the opening for brightness and cue timing.
+
+## Fewer, different points of interest and no spawn camping (31 Oct, cloud thread; not seen in Studio)
+
+Vasco's playtest: nearly every POI was "this was here but unfinished, what happened?", with the
+same walls, floor and text, and checkpoints sometimes put you next to a monster. Stacked on
+`claude/cutscenes` (PR #14: silent lamp-bags and per-floor patch looks).
+- One hidden object per level, never the same twice (`Places.tiers`): whiteboard (T1), the guard's
+  coat (T2), Tobi's headphones (T3), the dinghy (T4), the tap-code plate (T5), the stretcher
+  (T6), the glowing vein (T7), the cornerstone (T8). They were two per tier before, with repeats.
+  Posters are down to the plaque that opens a floor, the colour key on T1 and one hazard sign per
+  trap level. The handbook rule posters no longer hang on walls (they are still the manual plates).
+- A found hidden object or tape now lights its whole cell: every closed wall and the open floor
+  beside it, in the floor's look (`World.buildPatch` `area`), with its light range x1.5
+  (`PLACE_RANGE_BOOST`). Lamp-bags and posters still light one wall.
+- Spawn camping: enemy posts keep 4 path steps and 2.5 cells from the checkpoint beacon as well as
+  the start (`Config.Enemy.checkpointClearCells`; relaxed before the start distance on tiny
+  mazes), and roaming monsters never pick a cell within 2 steps of the beacon to idle in
+  (`Config.Enemy.beaconSafeCells`, `EnemyBrain.keepClear`, set in `Enemies.spawn`). The level start
+  already had this.
+- Tests: one hidden object per tier and none repeated, no notice hung twice, no enemy post within
+  3 steps of the beacon over 40 seeds x 14 tiers, a roamer with `keepClear` does not linger there.
+- Check in Studio: the lit cell around each found object reads as that floor; whether the 1.5x
+  light looks too bright; tiers 7 and 8 now have their own patch looks (PR #14).
+- Follow-up (1 Nov, Vasco: lit water did not look like water; three lamps bunched up on level 7):
+  - A lit patch over a flooded cell is now the pool's surface (blue, rings and glints,
+    `fadeSurface` pattern `water`, `WATER_COLOR`) at water level instead of dry floor. A flooded
+    cell beside any light (lamp-bag or found object) gets one too.
+  - Lamp-bags keep apart (`LevelPlan`): the first sits near the start along the route, the rest at
+    even steps, each at least 5 path steps from the others (never under 3 unless the maze leaves
+    no room), and a short way through holds fewer (one per 5 route cells, at most the tier's
+    count, never under two; the PC build counted only one on level 4 before that floor). Over 300 seeds of tier 7, one pair is 3 steps apart and none closer; it was 15% of
+    pairs within 3 steps before. Tier 7 keeps its map and monsters untouched.
+  - Check in Studio: that the blue patch matches the cyan water dots in colour and height (wading
+    ripples are PR #17's), and how many lamp-bags tiers 1 and 2 now get on short routes.
+  - Burnt-out lamp-bags (variant 4) are intended, but at least two bags per level always burn now
+    (a level with two or three lamp-bags has none or at most one burnt out).

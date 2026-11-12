@@ -107,6 +107,7 @@ function Enemies.spawn(
 			plan.def.enemySpeedScale,
 			plan.def.enemySenseScale
 		)
+		brain.keepClear = { plan.beaconCell }
 		local model = BUILDERS[spawn.kind](folder, Config.Tags.enemy)
 		model.Name = spawn.kind .. spawn.id
 		model:SetAttribute("Kind", spawn.kind)

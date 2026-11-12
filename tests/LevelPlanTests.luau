@@ -95,7 +95,7 @@ tests["every tier places valid, non-overlapping contents"] = function()
 				table.insert(revealCells, reveal.cell)
 			end
 			local extras = {
-				{ name = "lamp", cells = plan.lamps, count = def.lamps },
+				{ name = "lamp", cells = plan.lamps, count = #plan.lamps },
 				{
 					name = "reveal",
 					cells = revealCells,
@@ -124,6 +124,17 @@ tests["every tier places valid, non-overlapping contents"] = function()
 				)
 			end
 			assert(#plan.nooks == #plan.lamps, "every lamp-bag needs a variant")
+			local lit = 0
+			for _, variant in plan.nooks do
+				if variant ~= Places.deadNook then
+					lit += 1
+				end
+			end
+			assert(lit >= math.min(2, def.lamps), `fewer than two lit lamp-bags at tier {tier}`)
+			assert(
+				#plan.lamps >= math.min(2, def.lamps) and #plan.lamps <= def.lamps,
+				`wrong lamp count at tier {tier} seed {seed}`
+			)
 			for index, variant in plan.nooks do
 				assert(
 					variant >= 1 and variant <= Places.nookCount,
@@ -174,7 +185,64 @@ tests["every sign and hidden object in the places data exists in the story"] = f
 		end
 	end
 	for variant = 1, Places.nookCount do
-		assert(#Places.nookLines(variant) > 0, "a lamp-bag says nothing")
+		assert(#Places.nookLines(variant) > 0, "a lamp-bag has no tag text")
+	end
+end
+
+tests["each level has one hidden object and no two levels share one"] = function()
+	local ids: { [string]: number } = {}
+	local kits: { [string]: number } = {}
+	for tier, places in Places.tiers do
+		assert(#places.reveals <= 1, `tier {tier} has more than one hidden object`)
+		for _, id in places.reveals do
+			assert(ids[id] == nil, `{id} is hidden on tier {ids[id]} and tier {tier}`)
+			ids[id] = tier
+			local kit = Places.reveal(id).kit
+			assert(kits[kit] == nil, `{id} is drawn like the object on tier {kits[kit]}`)
+			kits[kit] = tier
+		end
+	end
+end
+
+tests["no notice is hung twice in a run"] = function()
+	local seen: { [string]: number } = {}
+	for tier, places in Places.tiers do
+		for _, sign in places.signs do
+			assert(seen[sign.id] == nil, `{sign.id} is hung on tier {seen[sign.id]} and {tier}`)
+			seen[sign.id] = tier
+		end
+	end
+end
+
+tests["lamp-bags are never bunched together"] = function()
+	for tier = 1, LAST_TIER_TESTED do
+		for seed = 1, 100 do
+			local plan = LevelPlan.build(tier, seed * 977, OPTIONS)
+			for i = 1, #plan.lamps do
+				local distances = Maze.distances(plan.maze, plan.lamps[i])
+				for j = i + 1, #plan.lamps do
+					local cell = plan.lamps[j]
+					local steps = distances[Maze.index(plan.maze, cell.x, cell.y)]
+					assert(steps >= 3, `lamp-bags {steps} steps apart at tier {tier} seed {seed}`)
+				end
+			end
+		end
+	end
+end
+
+tests["enemy posts keep clear of the checkpoint beacon"] = function()
+	for tier = 1, LAST_TIER_TESTED do
+		for seed = 1, 40 do
+			local plan = LevelPlan.build(tier, seed * 977, OPTIONS)
+			local beaconDist = Maze.distances(plan.maze, plan.beaconCell)
+			for _, enemy in plan.enemies do
+				local steps = beaconDist[Maze.index(plan.maze, enemy.cell.x, enemy.cell.y)]
+				assert(
+					steps >= 3,
+					`{enemy.kind} starts {steps} steps from the beacon at tier {tier} seed {seed}`
+				)
+			end
+		end
 	end
 end
 
